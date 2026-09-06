@@ -80,3 +80,72 @@ export const ImageQuerySchema = z.object({
   tags: z.array(z.string()),
 });
 export type ImageQuery = z.infer<typeof ImageQuerySchema>;
+
+export const MoodboardSchema = z.object({
+  title: z.string().describe("Short board title, e.g. 'Futurist fashion — cold light, warm bodies'"),
+  concept: z.string().describe("2-3 sentences: the visual/creative territory this board proposes."),
+  tone: z.array(z.string()).describe("4-6 tone words."),
+  palette: z.array(z.string()).describe("3-6 colour/material/light descriptors drawn from the references."),
+  directions: z
+    .array(
+      z.object({
+        title: z.string(),
+        rationale: z.string().describe("1-2 sentences."),
+        referenceIds: z.array(z.string()).describe("3-6 IDs from the provided set, strongest first."),
+      }),
+    )
+    .describe("2-4 visual directions."),
+  missing: z.array(z.string()).describe("What the board lacks and the user should go find. 0-3 items."),
+});
+export type Moodboard = z.infer<typeof MoodboardSchema>;
+
+export const AutoCollectionsSchema = z.object({
+  collections: z
+    .array(
+      z.object({
+        name: z.string().describe("Collection name as the user would write it: short, personal, e.g. 'Data that becomes a ritual'"),
+        emoji: z.string().describe("One emoji."),
+        rationale: z.string().describe("One sentence: the pattern that holds these together."),
+        referenceIds: z.array(z.string()).describe("4-20 IDs from the provided set."),
+      }),
+    )
+    .describe("3-8 proposed collections that reveal real patterns, not categories the taxonomy already has."),
+});
+export type AutoCollections = z.infer<typeof AutoCollectionsSchema>;
+
+export const NarrativeSchema = z.object({
+  headline: z.string().describe("One sentence: what this person is drawn to."),
+  observations: z.array(z.string()).describe("4-7 sharp observations, e.g. 'Henrique keeps saving ideas that turn data into experiences'."),
+  blindSpots: z.array(z.string()).describe("2-3 things the repertoire avoids or lacks."),
+  provocation: z.string().describe("One question or dare for the next month of collecting."),
+});
+export type Narrative = z.infer<typeof NarrativeSchema>;
+
+export const ProjectAnalysisSchema = z.object({
+  summary: z.string().describe("2-3 sentences: what this selection of references says about where the project is going."),
+  concepts: z.array(z.object({ name: z.string(), referenceIds: z.array(z.string()) })).describe("5-10 concepts shared across the selection."),
+  patterns: z.array(z.object({ statement: z.string(), referenceIds: z.array(z.string()) })).describe("3-6 pattern statements."),
+  directions: z
+    .array(
+      z.object({
+        title: z.string(),
+        rationale: z.string(),
+        mechanism: z.string().describe("Mechanism chain with arrows."),
+        referenceIds: z.array(z.string()),
+      }),
+    )
+    .describe("3-4 creative directions that combine the dominant elements."),
+  ideas: z
+    .array(
+      z.object({
+        title: z.string(),
+        direction: z.string().describe("Title of the direction it belongs to."),
+        mechanism: z.string(),
+        description: z.string().describe("3-5 sentences. Concrete and executable."),
+        referenceIds: z.array(z.string()),
+      }),
+    )
+    .describe("5-8 ideas."),
+  combinationQuestion: z.string().describe("e.g. 'Want to explore a direction that combines participation, humor and physical transformation?'"),
+});
+export type ProjectAnalysis = z.infer<typeof ProjectAnalysisSchema>;

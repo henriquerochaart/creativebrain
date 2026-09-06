@@ -197,6 +197,57 @@ export const conversations = pgTable("conversations", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** Saved boards (moodboards) generated from a brief over the repertoire. */
+export const boards = pgTable("boards", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  brief: text("brief").notNull(),
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** V3: a project is a creative process — references → concepts → patterns → directions → ideas → output. */
+export const projects = pgTable("projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  brief: text("brief"),
+  status: text("status").notNull().default("open"), // open | archived
+  analysis: jsonb("analysis").$type<Record<string, unknown>>().notNull().default({}),
+  analyzedAt: timestamp("analyzed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const projectReferences = pgTable(
+  "project_references",
+  {
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    referenceId: uuid("reference_id")
+      .notNull()
+      .references(() => references.id, { onDelete: "cascade" }),
+    position: integer("position").notNull().default(0),
+    note: text("note"),
+    addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.projectId, t.referenceId] })],
+);
+
+/** Behavioural signals that feed Personal Taste: view | ask | save | collect | project. */
+export const referenceEvents = pgTable(
+  "reference_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    referenceId: uuid("reference_id")
+      .notNull()
+      .references(() => references.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("reference_events_ref_idx").on(t.referenceId), index("reference_events_created_idx").on(t.createdAt)],
+);
+
 export const referencesRelations = relations(references, ({ many }) => ({
   collectionItems: many(collectionItems),
 }));
@@ -212,3 +263,5 @@ export type Reference = typeof references.$inferSelect;
 export type NewReference = typeof references.$inferInsert;
 export type Collection = typeof collections.$inferSelect;
 export type ReferenceRelation = typeof referenceRelations.$inferSelect;
+export type Board = typeof boards.$inferSelect;
+export type Project = typeof projects.$inferSelect;

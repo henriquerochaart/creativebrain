@@ -77,6 +77,38 @@ export class MockLLM implements LLMProvider {
       case "image_query":
         out = { description: "mock image description", tags: ["mock"] };
         break;
+      case "moodboard": {
+        const ids = allIds(input.prompt);
+        out = {
+          title: "Mock moodboard",
+          concept: "Mock provider: a real model would define the visual territory here.",
+          tone: ["mock"],
+          palette: ["neutral"],
+          directions: ids.length ? [{ title: "Retrieved set", rationale: "Mock grouping.", referenceIds: ids.slice(0, 6) }] : [],
+          missing: [],
+        };
+        break;
+      }
+      case "auto_collections": {
+        const ids = allIds(input.prompt);
+        out = { collections: ids.length >= 2 ? [{ name: "Mock pattern", emoji: "🧪", rationale: "Mock grouping of everything understood.", referenceIds: ids.slice(0, 20) }] : [] };
+        break;
+      }
+      case "narrative":
+        out = { headline: "Modo mock: configure um LLM real para ler seu repertório.", observations: ["Sem modelo, sem observações."], blindSpots: [], provocation: "Configure LLM_PROVIDER." };
+        break;
+      case "project_analysis": {
+        const ids = allIds(input.prompt);
+        out = {
+          summary: "Mock analysis of the selection.",
+          concepts: ids.length ? [{ name: "mock concept", referenceIds: ids.slice(0, 5) }] : [],
+          patterns: ids.length ? [{ statement: "Mock pattern across the selection.", referenceIds: ids.slice(0, 5) }] : [],
+          directions: ids.length ? [{ title: "Mock direction", rationale: "Mock.", mechanism: "A → B → C", referenceIds: ids.slice(0, 4) }] : [],
+          ideas: ids.length ? [{ title: "Mock idea", direction: "Mock direction", mechanism: "A → B", description: "Configure a real model for ideas.", referenceIds: ids.slice(0, 2) }] : [],
+          combinationQuestion: "Want to explore a direction that combines the dominant elements?",
+        };
+        break;
+      }
       default:
         out = {};
     }
@@ -121,6 +153,9 @@ function keywords(text: string, max = 12): string[] {
     counts.set(w, (counts.get(w) ?? 0) + 1);
   }
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([w]) => w).slice(0, max);
+}
+function allIds(prompt: string): string[] {
+  return [...new Set([...prompt.matchAll(/\[([0-9a-f-]{36})\]/g)].map((m) => m[1]))];
 }
 function titleFromUrl(url: string | null): string | null {
   if (!url) return null;

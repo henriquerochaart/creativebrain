@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listCollections } from "@/server/references";
 import { NewCollection } from "@/components/collection-actions";
+import { AutoCollections } from "@/components/auto-collections";
 
 export default async function CollectionsPage() {
   const cols = await listCollections();
@@ -34,6 +35,7 @@ export default async function CollectionsPage() {
         ))}
         {!cols.length && <li className="px-5 py-10 text-center text-sm text-ink-3">No collections yet. Create one above, or from any reference page.</li>}
       </ol>
+      <AutoCollections />
     </div>
   );
 }

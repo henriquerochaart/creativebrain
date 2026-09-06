@@ -12,6 +12,9 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { CollectionPicker, DeleteButton, ReprocessButton, SaveToggle } from "@/components/reference-actions";
 import { formatDuration, platformLabel, yearOf } from "@/lib/utils";
 import { SIMILARITY_KINDS } from "@/server/taxonomy";
+import { recordEvent } from "@/server/insights";
+import { projectsOfReference, recentProjectsList } from "@/server/projects";
+import { ProjectPicker } from "@/components/project-picker";
 
 export default async function ReferencePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,11 +22,14 @@ export default async function ReferencePage({ params }: { params: Promise<{ id: 
   if (!ref) notFound();
   const pub = toPublic(ref);
   const understood = ref.status === "understood";
-  const [member, all, related, byKind] = await Promise.all([
+  await recordEvent(ref.id, "view");
+  const [member, all, related, byKind, inProjects, openProjects] = await Promise.all([
     collectionsOfReference(ref.id),
     listCollections(),
     understood ? relatedReferences(ref.id, 8).catch(() => []) : Promise.resolve([]),
     understood ? similarReferences(ref.id, 4).catch(() => null) : Promise.resolve(null),
+    projectsOfReference(ref.id),
+    recentProjectsList(8),
   ]);
   const mediaUrl = ref.mediaKey ? getStorage().url(ref.mediaKey) : null;
   const isVideoFile = mediaUrl && ref.mediaMime?.startsWith("video/");
@@ -47,6 +53,7 @@ export default async function ReferencePage({ params }: { params: Promise<{ id: 
           )}
           <SaveToggle id={ref.id} saved={ref.saved} />
           <CollectionPicker referenceId={ref.id} all={all.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji, slug: c.slug }))} member={member} />
+          <ProjectPicker referenceId={ref.id} projects={openProjects} member={inProjects} />
           <ReprocessButton id={ref.id} />
           <DeleteButton id={ref.id} />
         </div>

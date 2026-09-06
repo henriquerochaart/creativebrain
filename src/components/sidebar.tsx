@@ -27,9 +27,20 @@ export async function Sidebar() {
         <NavLink href="/" label="All" count={total} />
         <NavLink href="/inbox" label="Inbox" count={inbox} accent={inbox > 0} />
         <NavLink href="/saved" label="Saved" />
-        <NavLink href="/think" label="Think" />
-        <NavLink href="/patterns" label="My patterns" />
+        <NavLink href="/discover" label="Discover" />
       </nav>
+
+      <div className="mt-8">
+        <span className="eyebrow mb-2 block px-2">Brain</span>
+        <nav className="space-y-0.5">
+          <NavLink href="/think" label="Think" />
+          <NavLink href="/assist" label="Creative assistant" />
+          <NavLink href="/moodboards" label="Moodboards" />
+          <NavLink href="/projects" label="Projects" />
+          <NavLink href="/graph" label="Knowledge graph" />
+          <NavLink href="/patterns" label="My patterns" />
+        </nav>
+      </div>
 
       <div className="mt-8">
         <div className="mb-2 flex items-center justify-between px-2">

@@ -2,13 +2,15 @@ import Link from "next/link";
 import { brandCounts, facetCounts, platformCounts, statusCounts } from "@/server/references";
 import { CREATIVE_PRINCIPLES } from "@/server/taxonomy";
 import { platformLabel } from "@/lib/utils";
+import { trends } from "@/server/insights";
+import { TasteNarrative } from "@/components/taste-narrative";
 
 /**
  * MY PATTERNS — what the Brain notices about what you save.
  * V1 is deterministic aggregation over the understood repertoire; V2 layers narrative and auto-collections.
  */
 export default async function PatternsPage() {
-  const [principles, subjects, formats, concepts, tags, brands, platforms, status] = await Promise.all([
+  const [principles, subjects, formats, concepts, tags, brands, platforms, status, risingTags, risingPrinciples, risingConcepts] = await Promise.all([
     facetCounts("principles", 30),
     facetCounts("subjects", 30),
     facetCounts("formats", 30),
@@ -17,6 +19,9 @@ export default async function PatternsPage() {
     brandCounts(30),
     platformCounts(),
     statusCounts(),
+    trends("tags", 30, 90, 10),
+    trends("principles", 30, 90, 6),
+    trends("concepts", 30, 90, 10),
   ]);
   const understood = status.understood ?? 0;
   const pct = (n: number) => (understood ? Math.round((n / understood) * 100) : 0);
@@ -44,6 +49,45 @@ export default async function PatternsPage() {
       ) : (
         <p className="text-ink-3">Patterns emerge after a few dozen references are understood.</p>
       )}
+
+      <TasteNarrative />
+
+      <section>
+        <h2 className="eyebrow mb-1">Trend detection · last 30 days vs the 90 before</h2>
+        <p className="mb-4 text-sm text-ink-2">What are you saving a lot lately?</p>
+        {risingTags.length + risingPrinciples.length + risingConcepts.length === 0 ? (
+          <p className="text-sm text-ink-3">Needs a few weeks of saving to detect movement.</p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-3">
+            {(
+              [
+                ["Principles", risingPrinciples, (v: string) => `/c/principle/${encodeURIComponent(v)}`],
+                ["Tags", risingTags, (v: string) => `/c/tag/${encodeURIComponent(v)}`],
+                ["Concepts", risingConcepts, null],
+              ] as [string, typeof risingTags, ((v: string) => string) | null][]
+            ).map(([title, items, href]) => (
+              <div key={title}>
+                <p className="eyebrow mb-2">{title}</p>
+                <ul className="space-y-1.5 text-sm">
+                  {items.map((t) => (
+                    <li key={t.value} className="flex items-baseline justify-between gap-3">
+                      {href ? (
+                        <Link href={href(t.value)} className="truncate hover:underline">{t.value}</Link>
+                      ) : (
+                        <span className="truncate">{t.value}</span>
+                      )}
+                      <span className="shrink-0 font-mono text-[12px] text-ink-3">
+                        {t.recent} <span className={t.lift >= 2 ? "text-accent" : ""}>×{t.lift}</span>
+                      </span>
+                    </li>
+                  ))}
+                  {!items.length && <li className="text-ink-3">—</li>}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section>
         <h2 className="eyebrow mb-4">Creative principles</h2>

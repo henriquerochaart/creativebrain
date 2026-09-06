@@ -6,6 +6,7 @@ import { ASK_SYSTEM } from "@/server/ai/prompts";
 import { referenceDigest } from "@/server/search/explain";
 import { db } from "@/server/db/client";
 import { conversations, type Reference } from "@/server/db/schema";
+import { recordEvent } from "@/server/insights";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,7 @@ export const POST = withAuth<{ id: string }>(async (req: NextRequest, { params }
     history: body.history?.slice(-10),
     prompt: body.question,
   });
+  await recordEvent(ref.id, "ask");
   return textStream(chunks, async (answer) => {
     await db.insert(conversations).values({ referenceId: ref.id, mode: "ask", question: body.question!, answer });
   });

@@ -44,7 +44,24 @@ Você joga qualquer coisa (Instagram, TikTok, YouTube, sites, Behance, PDFs, ima
 
 **API de conhecimento pessoal + MCP**
 - REST em `/api/*` protegida por `BRAIN_API_KEY`.
-- Servidor MCP (`npm run mcp`) com as tools `search_references`, `get_reference`, `similar_references`, `think`, `list_collections`, `list_creative_principles`, `capture_reference`. Conecte no Claude, ChatGPT, Gemini, Figma AI ou agentes próprios.
+- Servidor MCP (`npm run mcp`) com as tools `search_references`, `get_reference`, `similar_references`, `think`, `develop_idea`, `generate_moodboard`, `discover`, `list_collections`, `list_creative_principles`, `capture_reference`, `list_projects`, `project_output`, `add_to_project`. Conecte no Claude, ChatGPT, Gemini, Figma AI ou agentes próprios.
+
+## O que está implementado (V2 e V3)
+
+**V2 — o cérebro começa a pensar**
+- **Knowledge Graph** (`/graph`): grafo navegável em canvas; referências como nós, quatro tipos de similaridade como arestas coloridas, hubs de princípios criativos e marcas (PARTICIPATION → Nike, Netflix, Spotify).
+- **Moodboard Generator** (`/moodboards`): "Monte um moodboard para uma campanha de moda futurista" → busca híbrida no repertório → o modelo monta direções visuais, tom, paleta e diz o que falta. Boards ficam salvos.
+- **Creative Assistant** (`/assist`): "Use meu repertório para desenvolver esta ideia" → resposta em streaming, em markdown, citando as referências recuperadas.
+- **Auto Collections** (`/collections`): o cérebro lê o repertório inteiro e propõe coleções que revelam padrões ainda não nomeados; você aceita as que fazem sentido.
+- **Trend Detection** (`/patterns`): "O que estou salvando muito ultimamente?" — últimos 30 dias contra os 90 anteriores, com lift por tag, princípio e conceito.
+- **Personal Taste** (`/discover`): vetor de gosto = centróide ponderado do que você estrelou, colecionou, perguntou, colocou em projetos ou abriu. "For you" e "Unexpected": perto do seu gosto, mas fora dos seus princípios e assuntos favoritos. Sinais em `reference_events`.
+- Narrativa "Things you seem to like" escrita pelo modelo sobre os agregados.
+
+**V3 — o processo criativo como objeto**
+- **Projects** (`/projects`): PROJECT → REFERENCES → CONCEPTS → PATTERNS → DIRECTIONS → IDEAS → OUTPUT.
+- Busca dentro do projeto para adicionar referências; "Add to project" em qualquer referência.
+- "Você selecionou 18 referências. 11 trabalham com participação, 7 com humor…" (determinístico) + análise do modelo: conceitos, padrões, 3-4 direções que combinam os elementos dominantes, 5-8 ideias executáveis com mecanismo, e a pergunta de combinação.
+- OUTPUT: todo o processo como markdown (`/api/projects/:id/output`), pronto para deck ou doc.
 
 ## Stack
 
@@ -123,6 +140,16 @@ Sem chaves de IA? `LLM_PROVIDER=mock` e `EMBEDDING_PROVIDER=mock` rodam o pipeli
 | POST | `/api/think` `{query, history?}` | think mode |
 | GET / POST | `/api/collections`, `/api/collections/:idOrSlug`, `/api/collections/:id/items` | coleções |
 | GET | `/api/concepts`, `/api/tags`, `/api/brands`, `/api/creative-principles`, `/api/status` | agregados e saúde |
+| GET | `/api/graph` | nós e arestas do knowledge graph |
+| GET | `/api/trends`, `/api/discover` | tendências e gosto pessoal |
+| POST | `/api/patterns/narrative` | "things you seem to like" |
+| GET / POST | `/api/moodboards`, `/api/moodboards/:id` | moodboard generator |
+| POST | `/api/assist` `{idea, history?}` | creative assistant (streaming markdown) |
+| POST | `/api/collections/propose`, `/api/collections/accept` | auto collections |
+| GET / POST / PATCH / DELETE | `/api/projects`, `/api/projects/:id` | projetos |
+| POST / DELETE | `/api/projects/:id/references` | referências do projeto |
+| POST | `/api/projects/:id/analyze` | concepts → patterns → directions → ideas |
+| GET | `/api/projects/:id/output` | markdown do processo |
 
 Autenticação: `Authorization: Bearer $BRAIN_API_KEY` ou `x-api-key`. Sem `BRAIN_API_KEY` definido, a API fica aberta (só para uso local).
 
@@ -137,6 +164,9 @@ src/
     connectors/        detect · youtube · tiktok · instagram · web · html/oembed helpers
     pipeline/          ingest (orquestrador) · media (ffmpeg, yt-dlp) · pdf · embed · relate
     search/            híbrida + RRF · explain (why these / think)
+    insights.ts        trends · personal taste · discover · graph data · eventos
+    creative.ts        moodboard · assist · auto collections · narrativa
+    projects.ts        V3 projects e análise
     db/                schema Drizzle · client · migrate
     storage/           local · S3/R2
     queue/             pg-boss
@@ -150,7 +180,10 @@ tests/                 vitest (connectors, taxonomia, RRF, pipeline puro, auth)
 
 `npm run dev` · `npm run build` · `npm start` · `npm run worker` · `npm run mcp` · `npm run db:generate` · `npm run db:migrate` · `npm run typecheck` · `npm test`
 
-## Roadmap
+## Próximos passos possíveis
 
-- **V2**: knowledge graph navegável, moodboard generator, creative assistant sobre o repertório, auto collections, trend detection, personal taste. As bases já existem (grafo em `reference_relations`, agregados em `/patterns`, conversas persistidas em `conversations`).
-- **V3**: PROJECT → REFERENCES → CONCEPTS → PATTERNS → DIRECTIONS → IDEAS → OUTPUT.
+- Conectores adicionais dentro dos termos: Behance API, Pinterest API, Vimeo, Are.na.
+- Screenshot de sites com Playwright (hoje usamos a imagem OpenGraph).
+- Extensão de navegador / share sheet iOS para capturar em um toque.
+- Embeddings visuais reais (CLIP/SigLIP) além da descrição textual da imagem.
+- Auth multiusuário se o Brain deixar de ser pessoal.

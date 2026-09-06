@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { withAuth, bad, readJson } from "@/server/http";
 import { collectionsOfReference, deleteReference, getReference, toPublic, updateReference } from "@/server/references";
+import { recordEvent } from "@/server/insights";
 
 export const runtime = "nodejs";
 type P = { id: string };
@@ -16,6 +17,7 @@ export const PATCH = withAuth<P>(async (req: NextRequest, { params }) => {
   const body = await readJson<{ saved?: boolean; userNote?: string | null; title?: string; tags?: string[]; subjects?: string[]; formats?: string[]; principles?: string[] }>(req);
   const ref = await updateReference(params.id, body);
   if (!ref) return bad("Not found", 404);
+  if (body.saved === true) await recordEvent(ref.id, "save");
   return Response.json({ reference: toPublic(ref) });
 });
 

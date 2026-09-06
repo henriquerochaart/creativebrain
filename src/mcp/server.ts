@@ -147,5 +147,83 @@ server.registerTool(
   },
 );
 
+server.registerTool(
+  "develop_idea",
+  { description: "Creative assistant: develops an idea or brief using only the user's repertoire (V2). Returns markdown.", inputSchema: { idea: z.string() } },
+  async ({ idea }) => {
+    const res = await fetch(`${BRAIN_URL}/api/assist`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(BRAIN_API_KEY ? { authorization: `Bearer ${BRAIN_API_KEY}` } : {}) },
+      body: JSON.stringify({ idea }),
+    });
+    if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+    return text(await res.text());
+  },
+);
+
+type MoodboardRes = {
+  board: { id: string };
+  analysis: { title: string; concept: string; tone: string[]; palette: string[]; directions: { title: string; rationale: string; referenceIds: string[] }[]; missing: string[] };
+  references: Record<string, Ref>;
+};
+
+server.registerTool(
+  "generate_moodboard",
+  { description: "Assembles a moodboard from the repertoire for a brief and saves it. Returns directions with reference titles.", inputSchema: { brief: z.string() } },
+  async ({ brief }) => {
+    const res = await api<MoodboardRes>("/api/moodboards", { method: "POST", body: JSON.stringify({ brief }) });
+    const name = (id: string) => res.references[id]?.title ?? id;
+    const a = res.analysis;
+    const lines = [
+      `${a.title}\n${a.concept}`,
+      `Tone: ${a.tone.join(", ")} · Palette: ${a.palette.join(", ")}`,
+      ...a.directions.map((d, i) => `${String(i + 1).padStart(2, "0")}  ${d.title}\n    ${d.rationale}\n    ${d.referenceIds.map(name).join(" · ")}`),
+      a.missing.length ? `MISSING\n${a.missing.map((m) => `→ ${m}`).join("\n")}` : null,
+      `Board: ${BRAIN_URL}/moodboards/${res.board.id}`,
+    ];
+    return text(lines.filter(Boolean).join("\n\n"));
+  },
+);
+
+type DiscoverRes = {
+  signals: number;
+  favourites: { principles: string[] };
+  forYou: { reference: Ref; score: number }[];
+  unexpected: { reference: Ref; score: number; because: string }[];
+};
+
+server.registerTool("discover", { description: "Personal taste: references close to what the user likes but not yet touched, and unexpected ones from a different angle.", inputSchema: {} }, async () => {
+  const d = await api<DiscoverRes>("/api/discover");
+  if (!d.signals) return text("No taste signals yet: star, collect or ask about references first.");
+  const unexpected = d.unexpected.map((u) => `${Math.round(u.score * 100)}%  ${line(u.reference)}\n  because it ${u.because}`).join("\n\n");
+  const forYou = d.forYou.map((f) => `${Math.round(f.score * 100)}%  ${line(f.reference)}`).join("\n\n");
+  return text([`Taste from ${d.signals} signals. Favourite principles: ${d.favourites.principles.join(", ")}`, `UNEXPECTED\n${unexpected}`, `FOR YOU\n${forYou}`].join("\n\n"));
+});
+
+server.registerTool("list_projects", { description: "V3 projects (creative processes) with reference counts.", inputSchema: {} }, async () => {
+  const res = await api<{ projects: { id: string; name: string; brief: string | null; count: number; analyzed_at: string | null }[] }>("/api/projects");
+  const rows = res.projects.map((p) => `${p.name} (${p.count} refs${p.analyzed_at ? ", analysed" : ""}) — ${p.id}${p.brief ? `\n  ${p.brief}` : ""}`);
+  return text(rows.join("\n") || "No projects.");
+});
+
+server.registerTool(
+  "project_output",
+  { description: "Full output of a project as markdown: references, concepts, patterns, directions, ideas.", inputSchema: { projectId: z.string() } },
+  async ({ projectId }) => {
+    const res = await fetch(`${BRAIN_URL}/api/projects/${projectId}/output`, { headers: BRAIN_API_KEY ? { authorization: `Bearer ${BRAIN_API_KEY}` } : {} });
+    if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+    return text(await res.text());
+  },
+);
+
+server.registerTool(
+  "add_to_project",
+  { description: "Adds a reference to a project.", inputSchema: { projectId: z.string(), referenceId: z.string(), note: z.string().optional() } },
+  async ({ projectId, referenceId, note }) => {
+    await api(`/api/projects/${projectId}/references`, { method: "POST", body: JSON.stringify({ referenceId, note }) });
+    return text("Added.");
+  },
+);
+
 const transport = new StdioServerTransport();
 await server.connect(transport);
