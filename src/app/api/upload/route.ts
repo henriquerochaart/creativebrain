@@ -3,7 +3,8 @@ import { withAuth, bad } from "@/server/http";
 import { captureUpload, toPublic } from "@/server/references";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+// Inline processing runs in `after()`; the function must live long enough to understand a video.
+export const maxDuration = 300;
 
 /** POST /api/upload — multipart with `file` (image, video, pdf, text) and optional `note`, `collectionId`. */
 export const POST = withAuth(async (req: NextRequest) => {

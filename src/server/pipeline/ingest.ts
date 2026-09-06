@@ -13,7 +13,8 @@ import { ANALYST_SYSTEM, synthesisPrompt } from "../ai/prompts";
 import type { AIDocument, AIImage } from "../ai/types";
 import { resolveUrl } from "../connectors";
 import { extensionFor, getStorage } from "../storage";
-import { downloadFile, extractAudio, extractFrames, fetchMediaWithYtDlp, hasBinary, probeMedia, withTempFile } from "./media";
+import { downloadFile, extractAudio, extractFrames, fetchMediaWithYtDlp, probeMedia, withTempFile } from "./media";
+import { ffmpegBinary } from "./binaries";
 import { readPdf } from "./pdf";
 import { embedReference, toVectorLiteral } from "./embed";
 import { rebuildRelations } from "./relate";
@@ -112,8 +113,8 @@ async function runPipeline(ref: Reference): Promise<Reference> {
   const documents: AIDocument[] = [];
   let frameCount = 0;
   if (media && (media.mime.startsWith("video/") || media.mime.startsWith("audio/"))) {
-    const ffmpegOk = await hasBinary(process.env.FFMPEG_PATH ?? "ffmpeg");
-    if (!ffmpegOk) warnings.push("ffmpeg not available: video frames and audio were not extracted");
+    const ffmpegOk = Boolean(await ffmpegBinary());
+    if (!ffmpegOk) warnings.push("ffmpeg not available: video frames and audio were not extracted (install ffmpeg or the ffmpeg-static package)");
     else {
       await setStep(ref.id, "frames");
       await withTempFile(media.data, extensionFor(media.mime), async (file) => {

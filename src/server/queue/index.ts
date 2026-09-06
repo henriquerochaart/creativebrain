@@ -1,4 +1,5 @@
 import { PgBoss, type Job } from "pg-boss";
+import { after } from "next/server";
 import { env } from "../env";
 import { processReference } from "../pipeline/ingest";
 
@@ -36,7 +37,14 @@ export async function enqueueIngest(referenceId: string): Promise<{ mode: "worke
   }
   if (!inflight.has(referenceId)) {
     inflight.add(referenceId);
-    void processReference(referenceId).finally(() => inflight.delete(referenceId));
+    const job = () => processReference(referenceId).finally(() => inflight.delete(referenceId));
+    // Inside a request, `after` keeps serverless functions (Vercel etc.) alive until the pipeline finishes.
+    // Outside a request context (worker, scripts) it throws, so we fall back to a detached promise.
+    try {
+      after(job);
+    } catch {
+      void job();
+    }
   }
   return { mode: "inline" };
 }

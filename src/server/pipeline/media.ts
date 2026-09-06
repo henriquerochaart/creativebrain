@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { env } from "../env";
+import { ffmpegBinary, ffprobeBinary } from "./binaries";
 
 const run = promisify(execFile);
 
@@ -24,7 +25,9 @@ export type ProbeInfo = { durationSeconds: number | null; width: number | null; 
 
 export async function probeMedia(file: string): Promise<ProbeInfo> {
   try {
-    const { stdout } = await run(env.connectors.ffprobePath, [
+    const ffprobe = await ffprobeBinary();
+    if (!ffprobe) throw new Error("ffprobe unavailable");
+    const { stdout } = await run(ffprobe, [
       "-v",
       "error",
       "-print_format",
@@ -54,6 +57,8 @@ export async function probeMedia(file: string): Promise<ProbeInfo> {
  * Returns buffers in chronological order.
  */
 export async function extractFrames(videoFile: string, durationSeconds: number | null, count = 8): Promise<Buffer[]> {
+  const ffmpeg = await ffmpegBinary();
+  if (!ffmpeg) return [];
   const dir = await tmpDir("frames");
   try {
     const frames: Buffer[] = [];
@@ -64,7 +69,7 @@ export async function extractFrames(videoFile: string, durationSeconds: number |
         const t = ((i + 0.5) / n) * duration;
         const out = path.join(dir, `f${String(i).padStart(2, "0")}.jpg`);
         try {
-          await run(env.connectors.ffmpegPath, ["-y", "-ss", t.toFixed(2), "-i", videoFile, "-frames:v", "1", "-vf", "scale='min(768,iw)':-2", "-q:v", "4", out], { timeout: 60000 });
+          await run(ffmpeg, ["-y", "-ss", t.toFixed(2), "-i", videoFile, "-frames:v", "1", "-vf", "scale='min(768,iw)':-2", "-q:v", "4", out], { timeout: 60000 });
           frames.push(await fs.readFile(out));
         } catch {
           /* skip broken seek */
@@ -72,7 +77,7 @@ export async function extractFrames(videoFile: string, durationSeconds: number |
       }
     } else {
       // Unknown duration: sample one frame per second up to `count`.
-      await run(env.connectors.ffmpegPath, ["-y", "-i", videoFile, "-vf", "fps=1,scale='min(768,iw)':-2", "-frames:v", String(count), "-q:v", "4", path.join(dir, "f%02d.jpg")], { timeout: 120000 });
+      await run(ffmpeg, ["-y", "-i", videoFile, "-vf", "fps=1,scale='min(768,iw)':-2", "-frames:v", String(count), "-q:v", "4", path.join(dir, "f%02d.jpg")], { timeout: 120000 });
       for (const f of (await fs.readdir(dir)).sort()) frames.push(await fs.readFile(path.join(dir, f)));
     }
     return frames;
@@ -83,10 +88,12 @@ export async function extractFrames(videoFile: string, durationSeconds: number |
 
 /** Extracts the audio track as mono 16 kHz MP3 (small enough for speech-to-text APIs). */
 export async function extractAudio(mediaFile: string): Promise<Buffer | null> {
+  const ffmpeg = await ffmpegBinary();
+  if (!ffmpeg) return null;
   const dir = await tmpDir("audio");
   try {
     const out = path.join(dir, "audio.mp3");
-    await run(env.connectors.ffmpegPath, ["-y", "-i", mediaFile, "-vn", "-ac", "1", "-ar", "16000", "-b:a", "48k", out], { timeout: 300000 });
+    await run(ffmpeg, ["-y", "-i", mediaFile, "-vn", "-ac", "1", "-ar", "16000", "-b:a", "48k", out], { timeout: 300000 });
     const buf = await fs.readFile(out);
     return buf.length > 1000 ? buf : null;
   } catch {

@@ -108,6 +108,31 @@ Sem chaves de IA? `LLM_PROVIDER=mock` e `EMBEDDING_PROVIDER=mock` rodam o pipeli
 **Mídia das redes sociais**
 `MEDIA_FETCHER=none` (padrão) guarda URL, metadados públicos (oEmbed) e thumbnail; o modelo analisa a partir disso. `MEDIA_FETCHER=yt-dlp` baixa o vídeo com um binário local para frames, áudio e transcrição. Ligue apenas onde os termos da plataforma permitirem.
 
+## Deploy na Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fhenriquerochaart%2Fcreativebrain&project-name=henrique-brain&env=DATABASE_URL,APP_URL,BRAIN_API_KEY,LLM_PROVIDER,LLM_MODEL,EMBEDDING_PROVIDER,EMBEDDING_MODEL,EMBEDDING_DIMENSIONS,TRANSCRIPTION_PROVIDER,TRANSCRIPTION_MODEL,ANTHROPIC_API_KEY,OPENAI_API_KEY,STORAGE_DRIVER,S3_BUCKET,S3_REGION,S3_ENDPOINT,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_PUBLIC_URL,PROCESSING_MODE)
+
+O repositório já está preparado para serverless: o processamento em background usa `after()` do Next (a função fica viva até o pipeline terminar, `maxDuration` 300s), ffmpeg e ffprobe vêm empacotados (`ffmpeg-static`), a região padrão é `gru1` (São Paulo) e o script `vercel-build` aplica as migrações antes do build.
+
+**Três serviços externos, todos com plano gratuito**
+
+1. **Postgres com pgvector** — [Neon](https://neon.tech) (região `sa-east-1`). Copie a connection string para `DATABASE_URL`. A extensão `vector` é criada pela migração.
+2. **Storage S3 compatível** — [Cloudflare R2](https://developers.cloudflare.com/r2/) com um bucket público. Na Vercel o disco não persiste, então `STORAGE_DRIVER=s3` é obrigatório. Preencha `S3_BUCKET`, `S3_ENDPOINT` (`https://<account>.r2.cloudflarestorage.com`), `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION=auto`, `S3_PUBLIC_URL` (URL pública do bucket).
+3. **IA** — `ANTHROPIC_API_KEY` (raciocínio e visão) e `OPENAI_API_KEY` (embeddings e transcrição).
+
+**Passos**
+
+1. Clique no botão acima, ou em vercel.com → *Add New → Project* → importe `henriquerochaart/creativebrain`.
+2. Preencha as variáveis. `PROCESSING_MODE=inline`, `APP_URL=https://<seu-projeto>.vercel.app`, `BRAIN_API_KEY` com um segredo longo (protege a API para os agentes).
+3. Deploy. O build roda `npm run db:migrate` contra o Neon e depois `next build`.
+4. Abra a URL, cole um link. O Inbox mostra o entendimento acontecendo.
+
+**Limites conhecidos em serverless**
+
+- Vídeos longos podem passar dos 300s de função no plano Hobby (Pro permite 800s). Para volume de vídeo, rode `npm run worker` em um container (Railway, Fly, Render) com `PROCESSING_MODE=worker` na Vercel.
+- `MEDIA_FETCHER=yt-dlp` precisa do binário e não roda na Vercel; use o worker externo.
+- Uploads na Vercel são limitados a 4.5 MB por request no plano Hobby. Arquivos maiores: worker externo ou upload direto ao R2 (não implementado).
+
 ## MCP
 
 ```json

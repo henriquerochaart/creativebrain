@@ -4,6 +4,8 @@ import { captureInput, toPublic } from "@/server/references";
 import { browse } from "@/server/search";
 
 export const runtime = "nodejs";
+// Inline processing runs in `after()`; the function must live long enough to understand a video.
+export const maxDuration = 300;
 
 /** GET /api/references — browse with filters. */
 export const GET = withAuth(async (req: NextRequest) => {

@@ -49,7 +49,7 @@ export const env = {
     youtubeApiKey: str("YOUTUBE_API_KEY"),
     mediaFetcher: str("MEDIA_FETCHER", "none") as "none" | "yt-dlp",
     ytDlpPath: str("YT_DLP_PATH", "yt-dlp"),
-    ffmpegPath: str("FFMPEG_PATH", "ffmpeg"),
-    ffprobePath: str("FFPROBE_PATH", "ffprobe"),
+    ffmpegPath: str("FFMPEG_PATH"),
+    ffprobePath: str("FFPROBE_PATH"),
   },
 } as const;
