@@ -58,6 +58,13 @@ export async function Sidebar() {
       </div>
 
       <div className="mt-8">
+        <span className="eyebrow mb-2 block px-2">Capture</span>
+        <nav className="space-y-0.5">
+          <NavLink href="/share/setup" label="Share from your phone" />
+        </nav>
+      </div>
+
+      <div className="mt-8">
         <span className="eyebrow mb-2 block px-2">Categories</span>
         <nav className="space-y-0.5">
           {orderedSubjects.map((s) => (

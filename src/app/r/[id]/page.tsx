@@ -16,8 +16,9 @@ import { recordEvent } from "@/server/insights";
 import { projectsOfReference, recentProjectsList } from "@/server/projects";
 import { ProjectPicker } from "@/components/project-picker";
 
-export default async function ReferencePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ReferencePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
+  const sp = await searchParams;
   const ref = await getReference(id);
   if (!ref) notFound();
   const pub = toPublic(ref);
@@ -41,6 +42,8 @@ export default async function ReferencePage({ params }: { params: Promise<{ id: 
 
   return (
     <article className="mx-auto max-w-5xl space-y-10">
+      {sp.shared && <p className="rounded-full bg-ink px-4 py-2 text-center text-[13px] text-paper">Captured from the share sheet. The Brain is understanding it.</p>}
+      {sp.dup && <p className="rounded-full bg-paper-2 px-4 py-2 text-center text-[13px] text-ink-2">Already in the Brain. Here it is.</p>}
       <div className="flex items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-ink-2 hover:text-ink">
           <ArrowLeft className="h-4 w-4" /> Back

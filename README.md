@@ -108,6 +108,17 @@ Sem chaves de IA? `LLM_PROVIDER=mock` e `EMBEDDING_PROVIDER=mock` rodam o pipeli
 **Mídia das redes sociais**
 `MEDIA_FETCHER=none` (padrão) guarda URL, metadados públicos (oEmbed) e thumbnail; o modelo analisa a partir disso. `MEDIA_FETCHER=yt-dlp` baixa o vídeo com um binário local para frames, áudio e transcrição. Ligue apenas onde os termos da plataforma permitirem.
 
+## Share to Brain — salvar do celular em um toque
+
+O Instagram não expõe os posts salvos por API. O gesto muda: em vez de Salvar, **Compartilhar → Brain**. Funciona igual no TikTok, YouTube, Safari, Chrome e Behance. A página `/share/setup` do app explica tudo com a URL já preenchida.
+
+- **Android**: o Brain é um PWA com `share_target` (`public/manifest.webmanifest`). Instale pelo Chrome (Adicionar à tela inicial) e ele aparece na share sheet do sistema. O compartilhamento cai em `/share?url=&text=&title=`, que captura e abre a referência enquanto ela é entendida.
+- **iPhone**: um Atalho chamado Brain, com "Mostrar na Share Sheet", que faz `POST /api/references` com `{ "input": Shortcut Input }` e o header `Authorization: Bearer $BRAIN_API_KEY`. Receita passo a passo em `/share/setup`. Variante sem chave: `Open URL` para `/share?url=`.
+- **Desktop**: bookmarklet "+ Brain" na mesma página.
+- **Automação**: `GET /api/capture?url=&text=&title=` com a chave da API, para ferramentas que só fazem GET. `&redirect=1` redireciona para a referência.
+
+O que chega: o link e o texto que o app compartilhou junto (o Instagram manda a legenda). A legenda vira a nota do usuário e entra no entendimento. Parâmetros de tracking são removidos antes da deduplicação, então compartilhar duas vezes o mesmo reel abre a mesma referência.
+
 ## Deploy na Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fhenriquerochaart%2Fcreativebrain&project-name=henrique-brain&env=DATABASE_URL,APP_URL,BRAIN_API_KEY,LLM_PROVIDER,LLM_MODEL,EMBEDDING_PROVIDER,EMBEDDING_MODEL,EMBEDDING_DIMENSIONS,TRANSCRIPTION_PROVIDER,TRANSCRIPTION_MODEL,ANTHROPIC_API_KEY,OPENAI_API_KEY,STORAGE_DRIVER,S3_BUCKET,S3_REGION,S3_ENDPOINT,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_PUBLIC_URL,PROCESSING_MODE)
