@@ -1,4 +1,5 @@
 import { cn, platformLabel } from "@/lib/utils";
+import { SmartImage } from "./smart-image";
 import type { PublicReference } from "@/server/references";
 
 const PLACEHOLDER_TONES: Record<string, string> = {
@@ -11,10 +12,14 @@ const PLACEHOLDER_TONES: Record<string, string> = {
 };
 
 export function Thumb({ reference, className, sizes }: { reference: Pick<PublicReference, "thumbnailUrl" | "title" | "sourcePlatform" | "mediaType" | "content" | "ai">; className?: string; sizes?: string }) {
+  const placeholder = <Placeholder reference={reference} className={className} />;
   if (reference.thumbnailUrl) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={reference.thumbnailUrl} alt={reference.title ?? ""} loading="lazy" sizes={sizes} className={cn("block h-auto w-full object-cover", className)} />;
+    return <SmartImage src={reference.thumbnailUrl} alt={reference.title ?? ""} sizes={sizes} className={cn("block h-auto w-full object-cover", className)} fallback={placeholder} />;
   }
+  return placeholder;
+}
+
+function Placeholder({ reference, className }: { reference: Pick<PublicReference, "title" | "sourcePlatform" | "mediaType" | "content" | "ai">; className?: string }) {
   const tone = PLACEHOLDER_TONES[reference.sourcePlatform] ?? "from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900";
   const excerpt = reference.mediaType === "text" ? reference.content?.pageText ?? reference.ai?.summary : reference.ai?.summary;
   return (
