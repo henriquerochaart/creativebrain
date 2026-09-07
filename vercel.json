@@ -1,8 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "regions": ["gru1"],
-  "functions": {
-    "src/app/api/**/route.ts": { "memory": 1769 }
-  }
+  "framework": "nextjs"
 }

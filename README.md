@@ -146,7 +146,9 @@ Se o site principal não estiver na Vercel (Framer, Webflow, Squarespace e afins
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fhenriquerochaart%2Fcreativebrain&project-name=henrique-brain&env=DATABASE_URL,APP_URL,BRAIN_API_KEY,LLM_PROVIDER,LLM_MODEL,EMBEDDING_PROVIDER,EMBEDDING_MODEL,EMBEDDING_DIMENSIONS,TRANSCRIPTION_PROVIDER,TRANSCRIPTION_MODEL,ANTHROPIC_API_KEY,OPENAI_API_KEY,STORAGE_DRIVER,S3_BUCKET,S3_REGION,S3_ENDPOINT,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_PUBLIC_URL,PROCESSING_MODE)
 
-O repositório já está preparado para serverless: o processamento em background usa `after()` do Next (a função fica viva até o pipeline terminar, `maxDuration` 300s), ffmpeg e ffprobe vêm empacotados (`ffmpeg-static`), a região padrão é `gru1` (São Paulo) e o script `vercel-build` aplica as migrações antes do build.
+O repositório já está preparado para serverless: o processamento em background usa `after()` do Next, então a função fica viva até o pipeline terminar, com `maxDuration` de 300s; ffmpeg e ffprobe vêm empacotados via `ffmpeg-static`; e o script `vercel-build` aplica as migrações antes do build.
+
+O `vercel.json` fica de propósito no mínimo, só declarando o framework, para o primeiro deploy funcionar em qualquer plano. Região e memória de função são ajustes de Project Settings, não de arquivo: em **Settings → Functions** escolha a região `gru1` (São Paulo) para ficar perto do banco. Limites por plano mudam com o tempo e não pude conferir a documentação ao escrever isto, então trate `maxDuration` de 300s como o teto do Hobby a validar: se um vídeo longo for cortado, o caminho é o worker externo.
 
 **Três serviços externos, todos com plano gratuito**
 
