@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   ...(basePath ? { basePath } : {}),
   // Inlined so client components can prefix the paths they build by hand (fetch, service worker).
   env: { NEXT_PUBLIC_BASE_PATH: basePath },
-  serverExternalPackages: ["pg", "pg-boss", "unpdf", "@anthropic-ai/sdk", "openai", "@google/genai"],
+  serverExternalPackages: ["pg", "pg-boss", "unpdf", "@napi-rs/canvas", "@anthropic-ai/sdk", "openai", "@google/genai"],
   images: {
     // Thumbnails are served from our own storage route or remote CDNs; we render plain <img>.
     unoptimized: true,

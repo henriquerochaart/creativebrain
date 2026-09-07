@@ -2,7 +2,7 @@
   "name": "henrique-brain",
   "version": "0.1.0",
   "private": true,
-  "description": "Henrique Brain \u2014 a multimodal creative memory system. Capture, understand, classify, connect, remember, retrieve.",
+  "description": "Henrique Brain — a multimodal creative memory system. Capture, understand, classify, connect, remember, retrieve.",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -53,6 +53,7 @@
     "node": ">=20"
   },
   "optionalDependencies": {
+    "@napi-rs/canvas": "^1.0.8",
     "ffmpeg-static": "^5.3.0",
     "ffprobe-static": "^3.1.0"
   }

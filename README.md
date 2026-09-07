@@ -18,11 +18,13 @@ Você joga qualquer coisa (Instagram, TikTok, YouTube, sites, Behance, PDFs, ima
 **Processamento (pipeline em background)**
 `detect → resolve → metadata → media → frames → audio → transcribe → ocr/vision → synthesis → embeddings → relationships → save`
 - Vídeo: ffmpeg extrai até 8 frames e o áudio; speech-to-text configurável; o modelo de visão assiste os frames e produz *video understanding* (visual, áudio, texto na tela, narrativa beat a beat, mecanismo).
-- PDF: texto extraído com `unpdf` e o documento inteiro anexado ao modelo (até 100 páginas / 30 MB).
+- PDF: texto extraído com `unpdf`, documento inteiro anexado ao modelo até 100 páginas ou 30 MB, e a **primeira página renderizada como thumbnail**. Acima desse limite, a capa renderizada é também o que o modelo de visão enxerga.
 - Sites: OpenGraph + texto legível + imagem OG analisada pelo modelo de visão.
 - Uma única chamada multimodal produz o arquivo semântico completo, validado por schema (zod).
 - Quatro embeddings por referência: conteúdo, visual, estratégico, execução.
 - Grafo de conhecimento: arestas `reference_relations` por tipo de similaridade.
+
+A thumbnail é sempre a do próprio material: imagem OpenGraph ou oEmbed do link, frame do vídeo, o arquivo no caso de imagem, primeira página no caso de PDF. Nada é gerado para representar uma referência. Quando o material não traz imagem, como uma ideia em texto, o card cai em tipografia, não em imagem inventada.
 
 **Classificação**
 - Três sistemas simultâneos: PLATFORM, SUBJECT, FORMAT (vocabulários controlados em `src/server/taxonomy.ts`).

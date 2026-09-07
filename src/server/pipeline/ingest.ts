@@ -15,7 +15,7 @@ import { resolveUrl } from "../connectors";
 import { extensionFor, getStorage } from "../storage";
 import { downloadFile, extractAudio, extractFrames, fetchMediaWithYtDlp, probeMedia, withTempFile } from "./media";
 import { ffmpegBinary } from "./binaries";
-import { readPdf } from "./pdf";
+import { readPdf, renderPdfFirstPage } from "./pdf";
 import { embedReference, toVectorLiteral } from "./embed";
 import { rebuildRelations } from "./relate";
 import { CREATIVE_PRINCIPLES, FORMATS, SUBJECTS, canonical, normalizeTag, type ProcessingStep } from "../taxonomy";
@@ -156,9 +156,18 @@ async function runPipeline(ref: Reference): Promise<Reference> {
       const pdf = await readPdf(media.data);
       metadata.pageCount = pdf.pageCount;
       content.pageText = pdf.text;
-      if (media.data.length <= MAX_INLINE_PDF_BYTES && pdf.pageCount <= MAX_INLINE_PDF_PAGES) {
+      const attachable = media.data.length <= MAX_INLINE_PDF_BYTES && pdf.pageCount <= MAX_INLINE_PDF_PAGES;
+      if (attachable) {
         documents.push({ mime: "application/pdf", data: media.data, name: metadata.title ?? "document.pdf" });
-      } else warnings.push("PDF too large to attach; analysed from extracted text");
+      } else warnings.push("PDF too large to attach; analysed from extracted text and its cover");
+      // The document's own first page is its thumbnail. When the file is too big to attach,
+      // the rendered cover is also what the vision model gets to look at.
+      const cover = await renderPdfFirstPage(media.data);
+      if (cover) {
+        const stored = await storage.put(`references/${ref.id}/thumbnail.png`, cover, "image/png");
+        thumbnailUrl = stored.url;
+        if (!attachable) images.push({ mime: "image/png", data: cover });
+      } else warnings.push("PDF cover not rendered (@napi-rs/canvas unavailable); no thumbnail");
     } catch (err) {
       warnings.push(`PDF text extraction failed: ${err instanceof Error ? err.message : String(err)}`);
     }
