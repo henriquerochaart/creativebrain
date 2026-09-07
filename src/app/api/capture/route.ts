@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { withAuth, bad } from "@/server/http";
 import { inputFromShare } from "@/server/share";
 import { captureInput, toPublic } from "@/server/references";
+import { withBase } from "@/lib/base-path";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -15,6 +16,6 @@ export const GET = withAuth(async (req: NextRequest) => {
   const parsed = inputFromShare({ url: p.get("url"), text: p.get("text"), title: p.get("title") });
   if (!parsed) return bad("Nothing to capture: pass `url`, `text` or `title`");
   const { reference, duplicate } = await captureInput(parsed.input, { note: parsed.note ?? undefined });
-  if (p.get("redirect") === "1") return Response.redirect(new URL(`/r/${reference.id}`, req.nextUrl.origin), 303);
+  if (p.get("redirect") === "1") return Response.redirect(new URL(withBase(`/r/${reference.id}`), req.nextUrl.origin), 303);
   return Response.json({ reference: toPublic(reference), duplicate }, { status: duplicate ? 200 : 201 });
 });

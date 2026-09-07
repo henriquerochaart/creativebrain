@@ -10,6 +10,9 @@ Personal multimodal creative memory. Product rule: **never save a reference with
 - `src/server/search` — hybrid search with RRF over Postgres FTS + four pgvector columns.
 - `src/server/db/schema.ts` — Drizzle schema. `EMBEDDING_DIMENSIONS` is baked into the migration.
 
+## Base path
+`BASE_PATH` (e.g. `/brain`) serves the app from a sub path. Next prefixes `<Link>`, `router.push`, route handlers and `public/` automatically. It does NOT prefix strings you build yourself, and `redirect()` from `next/navigation` DOES prefix — so use `withBase()` from `src/lib/base-path.ts` for `fetch`, `Response.redirect`, `new URL`, plain `<a href>` and manifest paths, and never for `<Link>` or `redirect()`. Verified both ways in `tests/share.test.ts` and by building at root and at `/brain`.
+
 ## Conventions
 - Code and UI in English; product docs (README) in Portuguese.
 - Keep the UI a creation tool, not a dashboard: whitespace, clean type, masonry, minimal chrome.

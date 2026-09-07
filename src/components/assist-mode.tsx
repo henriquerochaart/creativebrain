@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Markdown } from "./markdown";
 import { Thumb } from "./thumb";
 import { api } from "@/lib/api";
+import { withBase } from "@/lib/base-path";
 import type { PublicReference } from "@/server/references";
 
 type Turn = { role: "user" | "assistant"; content: string };
@@ -23,7 +24,7 @@ export function AssistMode() {
     const history = turns;
     setTurns([...history, { role: "user", content: text }, { role: "assistant", content: "" }]);
     try {
-      const res = await fetch("/api/assist", { method: "POST", headers: { "content-type": "application/json", "x-brain-ui": "1" }, body: JSON.stringify({ idea: text, history }) });
+      const res = await fetch(withBase("/api/assist"), { method: "POST", headers: { "content-type": "application/json", "x-brain-ui": "1" }, body: JSON.stringify({ idea: text, history }) });
       if (!res.ok || !res.body) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? `${res.status}`);
       setDegraded(res.headers.get("x-degraded"));
       const ids = (res.headers.get("x-references") ?? "").split(",").filter(Boolean);

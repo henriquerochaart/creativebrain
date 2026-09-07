@@ -2,7 +2,7 @@
   "name": "henrique-brain",
   "version": "0.1.0",
   "private": true,
-  "description": "Henrique Brain — a multimodal creative memory system. Capture, understand, classify, connect, remember, retrieve.",
+  "description": "Henrique Brain \u2014 a multimodal creative memory system. Capture, understand, classify, connect, remember, retrieve.",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -13,6 +13,7 @@
     "mcp": "tsx src/mcp/server.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/server/db/migrate.ts",
+    "preflight": "tsx src/preflight.ts",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

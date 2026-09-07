@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, X, Sparkles, Copy } from "lucide-react";
 import { api } from "@/lib/api";
+import { withBase } from "@/lib/base-path";
 import { Thumb } from "./thumb";
 import type { PublicReference } from "@/server/references";
 
@@ -154,7 +155,7 @@ export function CopyOutput({ id }: { id: string }) {
     <button
       type="button"
       onClick={async () => {
-        const res = await fetch(`/api/projects/${id}/output`, { headers: { "x-brain-ui": "1" } });
+        const res = await fetch(withBase(`/api/projects/${id}/output`), { headers: { "x-brain-ui": "1" } });
         await navigator.clipboard.writeText(await res.text());
         setDone(true);
         setTimeout(() => setDone(false), 2000);

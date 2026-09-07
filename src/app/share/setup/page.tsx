@@ -1,11 +1,14 @@
 import { headers } from "next/headers";
 import { env } from "@/server/env";
 import { InstallButton, CopyField } from "@/components/share-setup";
+import { withBase } from "@/lib/base-path";
 
 /** One page that turns a phone into a capture device: Android via PWA share sheet, iPhone via a Shortcut. */
 export default async function ShareSetupPage() {
   const h = await headers();
   const origin = env.appUrl.startsWith("http") && !env.appUrl.includes("localhost") ? env.appUrl : `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000"}`;
+  // Everything shown on this page is copied into a phone, so it must be the full public root.
+  const root = `${origin}${env.basePath}`;
   const apiKeySet = Boolean(env.apiKey);
   return (
     <div className="mx-auto max-w-3xl space-y-12">
@@ -26,7 +29,7 @@ export default async function ShareSetupPage() {
           <InstallButton />
         </div>
         <ol className="mt-5 space-y-2 text-sm text-ink-2">
-          <li>1. Open <span className="font-mono text-ink">{origin}</span> in Chrome on the phone.</li>
+          <li>1. Open <span className="font-mono text-ink">{root}</span> in Chrome on the phone.</li>
           <li>2. Tap the button above, or Chrome menu → <b>Add to Home screen</b> → <b>Install</b>.</li>
           <li>3. In Instagram, on any reel or post: Share → <b>Brain</b>. The reference opens while it is being understood.</li>
         </ol>
@@ -46,7 +49,7 @@ export default async function ShareSetupPage() {
           <li>3. Add action <b>Get Contents of URL</b>.</li>
           <li>
             4. Set URL to
-            <CopyField value={`${origin}/api/references`} />
+            <CopyField value={`${root}/api/references`} />
           </li>
           <li>
             5. Expand the action: Method <b>POST</b>. Headers: <span className="font-mono text-ink">Content-Type</span> = <span className="font-mono text-ink">application/json</span>
@@ -58,12 +61,12 @@ export default async function ShareSetupPage() {
             . Request Body <b>JSON</b>: field <span className="font-mono text-ink">input</span> = <b>Shortcut Input</b>.
           </li>
           <li>6. Add action <b>Show Notification</b> with text “Captured”. Done.</li>
-          <li>7. In Instagram: Share → <b>…</b> → <b>Brain</b>. The first time, iOS asks to allow the connection to {origin}.</li>
+          <li>7. In Instagram: Share → <b>…</b> → <b>Brain</b>. The first time, iOS asks to allow the connection to {root}.</li>
         </ol>
         <details className="mt-5">
           <summary className="cursor-pointer text-sm text-ink-2">Simpler variant that opens the Brain in Safari</summary>
           <p className="mt-2 text-sm text-ink-2">
-            Two actions only: <b>URL</b> set to <span className="font-mono text-ink">{origin}/share?url=</span> followed by <b>Shortcut Input</b>, then <b>Open URLs</b>. It opens the reference page while the Brain understands it. No key needed if the UI is open.
+            Two actions only: <b>URL</b> set to <span className="font-mono text-ink">{root}/share?url=</span> followed by <b>Shortcut Input</b>, then <b>Open URLs</b>. It opens the reference page while the Brain understands it. No key needed if the UI is open.
           </p>
         </details>
       </section>
@@ -72,7 +75,7 @@ export default async function ShareSetupPage() {
         <h2 className="text-lg font-semibold tracking-tight">Desktop</h2>
         <p className="mt-1 text-sm text-ink-2">Drag this to your bookmarks bar. On any page, click it to send the URL to the Brain.</p>
         <a
-          href={`javascript:void(window.open('${origin}/share?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`}
+          href={`javascript:void(window.open('${root}/share?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`}
           className="mt-4 inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-paper"
           onDragStart={undefined}
         >

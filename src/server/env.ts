@@ -11,9 +11,21 @@ function int(name: string, fallback: number): number {
   return Number.isFinite(v) && v > 0 ? v : fallback;
 }
 
+import { BASE_PATH } from "../lib/base-path";
+
+/** True on Vercel, AWS Lambda and similar per-request runtimes. */
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.FUNCTIONS_WORKER_RUNTIME);
+
+const appUrl = str("APP_URL", "http://localhost:3000").replace(/\/+$/, "");
+
 export const env = {
+  isServerless,
+  basePath: BASE_PATH,
   databaseUrl: str("DATABASE_URL", "postgres://brain:brain@localhost:5432/brain"),
-  appUrl: str("APP_URL", "http://localhost:3000").replace(/\/$/, ""),
+  /** Origin only, no path. */
+  appUrl,
+  /** Origin + base path: the public root of the app, used to build absolute URLs. */
+  publicUrl: `${appUrl}${BASE_PATH}`,
   apiKey: str("BRAIN_API_KEY"),
   processingMode: str("PROCESSING_MODE", "inline") as "inline" | "worker",
 

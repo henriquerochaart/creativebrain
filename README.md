@@ -119,6 +119,29 @@ O Instagram não expõe os posts salvos por API. O gesto muda: em vez de Salvar,
 
 O que chega: o link e o texto que o app compartilhou junto (o Instagram manda a legenda). A legenda vira a nota do usuário e entra no entendimento. Parâmetros de tracking são removidos antes da deduplicação, então compartilhar duas vezes o mesmo reel abre a mesma referência.
 
+## Servir em um sub caminho (henriquerocha.art/brain)
+
+O app roda na raiz de um domínio ou em um sub caminho. Defina `BASE_PATH=/brain` e o Next passa a servir tudo sob `/brain`: páginas, `/brain/api/*`, ícones, manifest e service worker. `withBase()` em `src/lib/base-path.ts` cuida do que o Next não prefixa sozinho (fetch no cliente, `Response.redirect`, URLs absolutas de mídia, caminhos dentro do manifest).
+
+Na Vercel um domínio se liga a um projeto pela raiz, nunca por um caminho. Então o sub caminho exige que **o site que já responde por `henriquerocha.art` faça o rewrite**. Se esse site também está na Vercel, no `vercel.json` **dele**:
+
+```json
+{
+  "rewrites": [
+    { "source": "/brain", "destination": "https://SEU-PROJETO-BRAIN.vercel.app/brain" },
+    { "source": "/brain/:path*", "destination": "https://SEU-PROJETO-BRAIN.vercel.app/brain/:path*" }
+  ]
+}
+```
+
+O destino inclui `/brain` porque o app já serve sob esse prefixo. Sem isso o rewrite cai em 404.
+
+Se o site principal não estiver na Vercel (Framer, Webflow, Squarespace e afins raramente permitem rewrite de sub caminho), **use um subdomínio**: `brain.henriquerocha.art`, com `BASE_PATH` vazio e um CNAME apontando para a Vercel. É mais simples e evita o proxy. Um detalhe do rewrite: respostas em streaming (`/api/assist`, `/api/references/:id/ask`) passam por um proxy a mais e podem chegar em blocos em vez de palavra por palavra.
+
+## Pre-flight
+
+`npm run preflight` verifica o que um deploy precisa e falha com mensagem clara: banco alcançável, extensão pgvector, as 9 tabelas, largura do vetor conferindo com `EMBEDDING_DIMENSIONS`, storage que persiste de verdade no host, chaves de IA, `BRAIN_API_KEY`, `APP_URL`, ffmpeg. Rode local antes de subir e na Vercel pelo terminal do projeto depois.
+
 ## Deploy na Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fhenriquerochaart%2Fcreativebrain&project-name=henrique-brain&env=DATABASE_URL,APP_URL,BRAIN_API_KEY,LLM_PROVIDER,LLM_MODEL,EMBEDDING_PROVIDER,EMBEDDING_MODEL,EMBEDDING_DIMENSIONS,TRANSCRIPTION_PROVIDER,TRANSCRIPTION_MODEL,ANTHROPIC_API_KEY,OPENAI_API_KEY,STORAGE_DRIVER,S3_BUCKET,S3_REGION,S3_ENDPOINT,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_PUBLIC_URL,PROCESSING_MODE)
@@ -134,9 +157,12 @@ O repositório já está preparado para serverless: o processamento em backgroun
 **Passos**
 
 1. Clique no botão acima, ou em vercel.com → *Add New → Project* → importe `henriquerochaart/creativebrain`.
-2. Preencha as variáveis. `PROCESSING_MODE=inline`, `APP_URL=https://<seu-projeto>.vercel.app`, `BRAIN_API_KEY` com um segredo longo (protege a API para os agentes).
+2. Preencha as variáveis. `PROCESSING_MODE=inline`, `APP_URL` com a origem pública, `BRAIN_API_KEY` com um segredo longo (protege a API para os agentes), e `BASE_PATH=/brain` se for servir em sub caminho.
 3. Deploy. O build roda `npm run db:migrate` contra o Neon e depois `next build`.
-4. Abra a URL, cole um link. O Inbox mostra o entendimento acontecendo.
+4. Rode `npm run preflight` (localmente com as mesmas variáveis, ou no terminal do projeto na Vercel). Deve dizer "nothing blocking".
+5. Abra a URL, cole um link. O Inbox mostra o entendimento acontecendo.
+
+Depois do import, **cada push para a branch de produção publica sozinho**. A Vercel usa como Production Branch a branch default do repositório; as outras geram Preview deployments com URL própria.
 
 **Limites conhecidos em serverless**
 
@@ -214,7 +240,7 @@ tests/                 vitest (connectors, taxonomia, RRF, pipeline puro, auth)
 
 ## Scripts
 
-`npm run dev` · `npm run build` · `npm start` · `npm run worker` · `npm run mcp` · `npm run db:generate` · `npm run db:migrate` · `npm run typecheck` · `npm test`
+`npm run dev` · `npm run build` · `npm start` · `npm run worker` · `npm run mcp` · `npm run db:generate` · `npm run db:migrate` · `npm run preflight` · `npm run typecheck` · `npm test`
 
 ## Próximos passos possíveis
 

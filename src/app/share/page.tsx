@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { inputFromShare } from "@/server/share";
 import { captureInput } from "@/server/references";
 import { CaptureBox } from "@/components/capture-box";
+import { withBase } from "@/lib/base-path";
 
 /**
  * Share target. Android's share sheet (installed PWA) and the iOS Shortcut land here with
@@ -13,6 +14,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
   const parsed = inputFromShare({ url: sp.url, text: sp.text, title: sp.title });
   if (parsed) {
     const { reference, duplicate } = await captureInput(parsed.input, { note: parsed.note ?? undefined });
+    // `redirect` from next/navigation already applies basePath — do not add it here.
     redirect(`/r/${reference.id}${duplicate ? "?dup=1" : "?shared=1"}`);
   }
   return (
@@ -23,7 +25,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
       <Suspense>
         <CaptureBox />
       </Suspense>
-      <a href="/share/setup" className="inline-block text-sm text-ink-2 underline-offset-4 hover:underline">
+      <a href={withBase("/share/setup")} className="inline-block text-sm text-ink-2 underline-offset-4 hover:underline">
         Set up “Share to Brain” on iPhone and Android →
       </a>
     </div>
