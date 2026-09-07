@@ -119,9 +119,13 @@ O Instagram não expõe os posts salvos por API. O gesto muda: em vez de Salvar,
 
 O que chega: o link e o texto que o app compartilhou junto (o Instagram manda a legenda). A legenda vira a nota do usuário e entra no entendimento. Parâmetros de tracking são removidos antes da deduplicação, então compartilhar duas vezes o mesmo reel abre a mesma referência.
 
-## Servir em um sub caminho (henriquerocha.art/brain)
+## Onde o app responde
 
-O app roda na raiz de um domínio ou em um sub caminho. Defina `BASE_PATH=/brain` e o Next passa a servir tudo sob `/brain`: páginas, `/brain/api/*`, ícones, manifest e service worker. `withBase()` em `src/lib/base-path.ts` cuida do que o Next não prefixa sozinho (fetch no cliente, `Response.redirect`, URLs absolutas de mídia, caminhos dentro do manifest).
+O deploy de referência é um **subdomínio**: `brain.henriquerocha.art`, com `BASE_PATH` vazio. É o caminho recomendado. Na Vercel, adicione o domínio em Settings → Domains do projeto do Brain e siga o registro de DNS que a tela mostrar. Se os nameservers do domínio já estiverem na Vercel, ela cria o registro sozinha. Nada de proxy no meio, e o streaming das respostas chega palavra por palavra.
+
+### Alternativa: sub caminho (henriquerocha.art/brain)
+
+O app também roda em um sub caminho. Defina `BASE_PATH=/brain` e o Next passa a servir tudo sob `/brain`: páginas, `/brain/api/*`, ícones, manifest e service worker. `withBase()` em `src/lib/base-path.ts` cuida do que o Next não prefixa sozinho (fetch no cliente, `Response.redirect`, URLs absolutas de mídia, caminhos dentro do manifest).
 
 Na Vercel um domínio se liga a um projeto pela raiz, nunca por um caminho. Então o sub caminho exige que **o site que já responde por `henriquerocha.art` faça o rewrite**. Se esse site também está na Vercel, no `vercel.json` **dele**:
 
@@ -136,7 +140,7 @@ Na Vercel um domínio se liga a um projeto pela raiz, nunca por um caminho. Ent�
 
 O destino inclui `/brain` porque o app já serve sob esse prefixo. Sem isso o rewrite cai em 404.
 
-Se o site principal não estiver na Vercel (Framer, Webflow, Squarespace e afins raramente permitem rewrite de sub caminho), **use um subdomínio**: `brain.henriquerocha.art`, com `BASE_PATH` vazio e um CNAME apontando para a Vercel. É mais simples e evita o proxy. Um detalhe do rewrite: respostas em streaming (`/api/assist`, `/api/references/:id/ask`) passam por um proxy a mais e podem chegar em blocos em vez de palavra por palavra.
+Sites em Framer, Webflow, Squarespace e afins raramente permitem rewrite de sub caminho, e nesses casos o subdomínio é a única opção. Um detalhe do rewrite mesmo quando ele funciona: respostas em streaming como `/api/assist` e `/api/references/:id/ask` passam por um proxy a mais e podem chegar em blocos em vez de palavra por palavra.
 
 ## Pre-flight
 
