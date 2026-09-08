@@ -36,6 +36,8 @@ export type ReferenceMetadata = {
   pageCount?: number | null;
   siteName?: string | null;
   language?: string | null;
+  /** Origin of the stored thumbnail, so /api/media can fall back when storage loses the object. */
+  sourceThumbnailUrl?: string | null;
   [key: string]: unknown;
 };
 
