@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Brain">
+  <!--
+    The brain is drawn by the viewer's own emoji font, not shipped here: on Apple devices that is
+    Apple Color Emoji, elsewhere the platform's own. Nothing proprietary is redistributed, and the
+    glyph stays sharp at every size a raster favicon would blur.
+  -->
+  <defs>
+    <filter id="pinkGlow" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="blurred"/>
+      <feFlood flood-color="#ff4d9d" flood-opacity="0.85"/>
+      <feComposite in2="blurred" operator="in" result="halo"/>
+      <feMerge>
+        <feMergeNode in="halo"/>
+        <feMergeNode in="halo"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="64" height="64" fill="#000000"/>
+
+  <text
+    x="32"
+    y="33"
+    font-size="38"
+    text-anchor="middle"
+    dominant-baseline="central"
+    filter="url(#pinkGlow)"
+    font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, EmojiOne Color, Android Emoji, sans-serif"
+  >🧠</text>
+</svg>

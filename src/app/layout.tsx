@@ -11,7 +11,16 @@ export const metadata: Metadata = {
   manifest: withBase("/manifest.webmanifest"),
   applicationName: "Henrique Brain",
   appleWebApp: { capable: true, title: "Brain", statusBarStyle: "default" },
-  icons: { icon: [{ url: withBase("/icons/icon-192.png"), sizes: "192x192" }, { url: withBase("/icons/icon-512.png"), sizes: "512x512" }], apple: withBase("/icons/icon-180.png") },
+  // The SVG is listed first: browsers that support it pick it and render the brain with the
+  // viewer's own emoji font, sharp at any size. The PNGs stay as the fallback.
+  icons: {
+    icon: [
+      { url: withBase("/icons/icon.svg"), type: "image/svg+xml" },
+      { url: withBase("/icons/icon-192.png"), sizes: "192x192" },
+      { url: withBase("/icons/icon-512.png"), sizes: "512x512" },
+    ],
+    apple: withBase("/icons/icon-180.png"),
+  },
 };
 
 export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fbfbfa" }, { media: "(prefers-color-scheme: dark)", color: "#0f0f10" }] };
