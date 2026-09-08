@@ -79,6 +79,8 @@ async function runPipeline(ref: Reference): Promise<Reference> {
       if (thumb && thumb.mime.startsWith("image/")) {
         const stored = await storage.put(`references/${ref.id}/thumbnail.${extensionFor(thumb.mime)}`, thumb.data, thumb.mime);
         thumbnailUrl = stored.url;
+        // Keep the origin: if storage loses the object, /api/media falls back to it rather than a hole.
+        metadata.sourceThumbnailUrl = resolved.thumbnailUrl;
         if (mediaType === "image" && !resolved.mediaUrl) media = thumb;
       } else thumbnailUrl = resolved.thumbnailUrl;
     }
