@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import "./globals.css";
 import { TopBar } from "@/components/top-bar";
 import { Sidebar } from "@/components/sidebar";
+import { SidebarDrawer } from "@/components/sidebar-drawer";
+import { SidebarProvider } from "@/components/sidebar-provider";
 import { LangProvider } from "@/components/lang-provider";
 import { withBase } from "@/lib/base-path";
 import { dict } from "@/server/lang";
@@ -39,15 +41,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={localeOf(lang)}>
       <body className="min-h-screen">
         <LangProvider lang={lang}>
-          <Suspense fallback={<div className="h-16 border-b border-line" />}>
-            <TopBar />
-          </Suspense>
-          <div className="flex">
-            <Suspense fallback={<div className="hidden w-56 shrink-0 border-r border-line lg:block" />}>
-              <Sidebar />
+          <SidebarProvider>
+            <Suspense fallback={<div className="h-16 border-b border-line" />}>
+              <TopBar />
             </Suspense>
-            <main className="min-w-0 flex-1 px-6 py-8 lg:px-10">{children}</main>
-          </div>
+            <div className="flex">
+              <SidebarDrawer>
+                <Suspense fallback={<div className="h-full" />}>
+                  <Sidebar />
+                </Suspense>
+              </SidebarDrawer>
+              <main className="min-w-0 flex-1 px-6 py-8 lg:px-10">{children}</main>
+            </div>
+          </SidebarProvider>
         </LangProvider>
       </body>
     </html>

@@ -25,7 +25,10 @@ export async function Sidebar() {
   const orderedSubjects = [...SUBJECTS].filter((s) => subjectCount.has(s)).sort((a, b) => (subjectCount.get(b) ?? 0) - (subjectCount.get(a) ?? 0));
 
   return (
-    <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 overflow-y-auto border-r border-line px-4 py-6 text-[13px] lg:block">
+    // Position, width and mobile/desktop visibility all live on SidebarDrawer, the wrapper this
+    // renders inside of. Kept here would double up with — and on the drawer's translated panel,
+    // fight — the classes that make the off-canvas version work.
+    <aside className="px-4 py-6 pt-14 text-[13px] lg:pt-6">
       <nav className="space-y-0.5">
         <NavLink href="/" label={d.nav.all} count={total} />
         <NavLink href="/inbox" label={d.nav.inbox} count={inbox} accent={inbox > 0} />

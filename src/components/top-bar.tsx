@@ -5,18 +5,31 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Search, Plus } from "lucide-react";
 import { useT } from "./lang-provider";
+import { useSidebar } from "./sidebar-provider";
 import { LangSwitch } from "./lang-switch";
 
 export function TopBar() {
   const router = useRouter();
   const params = useSearchParams();
   const d = useT();
+  const { open, toggle } = useSidebar();
   const [q, setQ] = useState(params.get("q") ?? "");
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-paper/85 px-6 backdrop-blur">
-      <Link href="/" className="shrink-0 text-[13px] font-semibold uppercase tracking-[0.18em]">
+      {/* Below lg the sidebar is a drawer, not a fixed column, so the mark opens it instead of
+          just linking home — otherwise there would be no way to reach it on a phone at all. */}
+      <Link href="/" className="hidden shrink-0 text-[13px] font-semibold uppercase tracking-[0.18em] lg:inline">
         {d.app.name}
       </Link>
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={d.header.menu}
+        aria-expanded={open}
+        className="shrink-0 rounded-full px-2.5 py-1.5 text-[13px] font-semibold uppercase tracking-[0.18em] hover:bg-paper-2 lg:hidden"
+      >
+        {d.app.short}
+      </button>
       <form
         className="mx-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-line bg-paper-2/60 px-4 focus-within:border-ink/30"
         onSubmit={(e) => {

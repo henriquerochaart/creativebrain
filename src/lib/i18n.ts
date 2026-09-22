@@ -18,12 +18,15 @@ const pt = {
   langName: { pt: "Português", en: "English" },
   app: {
     name: "Henrique Brain",
+    short: "HB",
     description: "Uma memória criativa multimodal. Capturar → Entender → Classificar → Conectar → Lembrar → Recuperar.",
   },
   header: {
     search: "Busque qualquer coisa… ou pergunte: campanhas que fazem o público participar",
     add: "Adicionar",
     language: "Idioma",
+    menu: "Menu",
+    close: "Fechar",
   },
   nav: {
     all: "Tudo",
@@ -364,12 +367,15 @@ const en: Dict = {
   langName: { pt: "Português", en: "English" },
   app: {
     name: "Henrique Brain",
+    short: "HB",
     description: "A multimodal creative memory. Capture → Understand → Classify → Connect → Remember → Retrieve.",
   },
   header: {
     search: "Search anything… or ask: campaigns that make the audience participate",
     add: "Add",
     language: "Language",
+    menu: "Menu",
+    close: "Close",
   },
   nav: {
     all: "All",
