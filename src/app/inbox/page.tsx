@@ -8,6 +8,7 @@ import { toPublic } from "@/server/references";
 import { desc, inArray, sql } from "drizzle-orm";
 import { ReprocessButton } from "@/components/reference-actions";
 import { dict } from "@/server/lang";
+import { ReprocessVideos } from "@/components/reprocess-videos";
 
 export default async function InboxPage() {
   const { lang, d } = await dict();
@@ -25,6 +26,9 @@ export default async function InboxPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">{d.inbox.title}</h1>
         <p className="mt-1 text-sm text-ink-2">{d.inbox.sub}</p>
+        <div className="mt-4">
+          <ReprocessVideos />
+        </div>
       </header>
 
       {running.length > 0 && (

@@ -12,7 +12,7 @@ const PLACEHOLDER_TONES: Record<string, string> = {
   website: "from-sky-100 to-zinc-100 dark:from-sky-900/30 dark:to-zinc-800",
 };
 
-type ThumbRef = Pick<PublicReference, "thumbnailUrl" | "title" | "sourcePlatform" | "mediaType" | "content" | "ai">;
+type ThumbRef = Pick<PublicReference, "thumbnailUrl" | "title" | "sourcePlatform" | "mediaType" | "content">;
 
 export function Thumb({ reference, className, sizes, lang = "pt" }: { reference: ThumbRef; className?: string; sizes?: string; lang?: Lang }) {
   const placeholder = <Placeholder reference={reference} className={className} lang={lang} />;
@@ -24,12 +24,15 @@ export function Thumb({ reference, className, sizes, lang = "pt" }: { reference:
 
 function Placeholder({ reference, className }: { reference: ThumbRef; className?: string; lang: Lang }) {
   const tone = PLACEHOLDER_TONES[reference.sourcePlatform] ?? "from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900";
-  const excerpt = reference.mediaType === "text" ? reference.content?.pageText ?? reference.ai?.summary : reference.ai?.summary;
+  // A text idea has no image because its words are the material, so those words stand in for one.
+  // Nothing else does: the model's summary is generated, and painting it over the frame turns a
+  // reference into a caption. Every caller prints the title right below, so the rest stays quiet.
+  const excerpt = reference.mediaType === "text" ? reference.content?.pageText : null;
   // No platform label here: the card's own badge sits in this corner, and the meta line under the
   // card already names the platform. Two labels in one corner just collided.
   return (
     <div className={cn("flex aspect-[4/3] w-full flex-col justify-end bg-gradient-to-br p-4", tone, className)}>
-      <p className="line-clamp-4 text-sm leading-snug text-ink-2">{excerpt ?? reference.title}</p>
+      {excerpt && <p className="line-clamp-4 text-sm leading-snug text-ink-2">{excerpt}</p>}
     </div>
   );
 }

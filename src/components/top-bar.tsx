@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Search, Plus, Sparkles } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { useT } from "./lang-provider";
 import { LangSwitch } from "./lang-switch";
 
@@ -34,9 +34,6 @@ export function TopBar() {
         />
       </form>
       <LangSwitch />
-      <Link href="/think" className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm text-ink-2 hover:bg-paper-2 md:inline-flex">
-        <Sparkles className="h-4 w-4" /> {d.header.think}
-      </Link>
       <Link href="/?add=1" className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ink px-4 text-sm font-medium text-paper hover:opacity-90">
         <Plus className="h-4 w-4" /> {d.header.add}
       </Link>

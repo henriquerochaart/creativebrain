@@ -8,7 +8,10 @@ const nextConfig: NextConfig = {
   ...(basePath ? { basePath } : {}),
   // Inlined so client components can prefix the paths they build by hand (fetch, service worker).
   env: { NEXT_PUBLIC_BASE_PATH: basePath },
-  serverExternalPackages: ["pg", "pg-boss", "unpdf", "@napi-rs/canvas", "@anthropic-ai/sdk", "openai", "@google/genai"],
+  // ffmpeg-static and ffprobe-static locate their binary with path.join(__dirname, …). Bundling them
+  // rewrites __dirname, the path stops resolving, and frame extraction fails silently — which is how
+  // a video ends up with no thumbnail of its own. They have to stay external.
+  serverExternalPackages: ["pg", "pg-boss", "unpdf", "@napi-rs/canvas", "ffmpeg-static", "ffprobe-static", "@anthropic-ai/sdk", "openai", "@google/genai"],
   images: {
     // Thumbnails are served from our own storage route or remote CDNs; we render plain <img>.
     unoptimized: true,

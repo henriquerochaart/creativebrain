@@ -16,6 +16,7 @@ export type SearchFilters = {
   brand?: string;
   collectionId?: string;
   status?: string;
+  mediaType?: string;
 };
 
 export type SearchHit = {
@@ -35,6 +36,7 @@ export type SearchResult = {
 function filterSql(f: SearchFilters): SQL {
   const parts: SQL[] = [sql`r.status = ${f.status ?? "understood"}`];
   if (f.platform) parts.push(sql`r.source_platform = ${f.platform}`);
+  if (f.mediaType) parts.push(sql`r.media_type = ${f.mediaType}`);
   if (f.subject) parts.push(sql`${f.subject} = ANY(r.subjects)`);
   if (f.format) parts.push(sql`${f.format} = ANY(r.formats)`);
   if (f.principle) parts.push(sql`${f.principle} = ANY(r.principles)`);

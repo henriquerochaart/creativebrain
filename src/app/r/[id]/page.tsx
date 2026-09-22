@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Play } from "lucide-react";
 import { collectionsOfReference, getReference, listCollections, relatedReferences, similarReferences, toPublic } from "@/server/references";
 import { getStorage } from "@/server/storage";
 import { Thumb } from "@/components/thumb";
@@ -36,8 +36,12 @@ export default async function ReferencePage({ params, searchParams }: { params: 
     recentProjectsList(8),
   ]);
   const mediaUrl = ref.mediaKey ? getStorage().url(ref.mediaKey) : null;
-  const isVideoFile = mediaUrl && ref.mediaMime?.startsWith("video/");
   const isPdf = mediaUrl && ref.mediaMime === "application/pdf";
+  // A video is always its own thumbnail, and the thumbnail is the way to the video. One gesture for
+  // every video, whether we hold the file or the platform kept it. An uploaded clip has no canonical
+  // URL, so the stored file is its original.
+  const isVideo = ref.mediaType === "video";
+  const videoHref = isVideo ? ref.canonicalUrl ?? mediaUrl : null;
   const ai = ref.ai;
   const v = ref.content.visualAnalysis;
   const warnings = (ref.metadata as { warnings?: string[] }).warnings ?? [];
@@ -66,8 +70,18 @@ export default async function ReferencePage({ params, searchParams }: { params: 
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-line bg-paper-2">
-        {isVideoFile ? (
-          <video src={mediaUrl!} controls playsInline poster={ref.thumbnailUrl ?? undefined} className="max-h-[70vh] w-full bg-black" />
+        {videoHref ? (
+          <a href={videoHref} target="_blank" rel="noreferrer" aria-label={d.reference.openVideo} className="group relative block">
+            <Thumb reference={pub} lang={lang} className="max-h-[70vh] object-contain" />
+            <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition-transform duration-300 group-hover:scale-110">
+                <Play className="ml-1 h-6 w-6 fill-current" />
+              </span>
+            </span>
+            <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-[12px] text-white backdrop-blur">
+              <ExternalLink className="h-3 w-3" /> {d.reference.openVideo}
+            </span>
+          </a>
         ) : isPdf ? (
           <iframe src={mediaUrl!} title={ref.title ?? "PDF"} className="h-[70vh] w-full" />
         ) : ref.mediaType === "text" && !ref.thumbnailUrl ? (

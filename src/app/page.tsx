@@ -13,7 +13,8 @@ export default async function Home() {
   return (
     <div className="space-y-10">
       <section className="pt-6">
-        <h1 className="mb-6 text-center text-[13px] font-semibold uppercase tracking-[0.2em] text-ink-3">{d.home.motto}</h1>
+        {/* The page still needs one heading; it just should not be shouted at the reader. */}
+        <h1 className="sr-only">{d.app.name}</h1>
         <Suspense>
           <CaptureBox />
         </Suspense>

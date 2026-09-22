@@ -22,7 +22,6 @@ const pt = {
   },
   header: {
     search: "Busque qualquer coisa… ou pergunte: campanhas que fazem o público participar",
-    think: "Pensar",
     add: "Adicionar",
     language: "Idioma",
   },
@@ -47,10 +46,9 @@ const pt = {
     categoriesAppear: "As categorias aparecem conforme as referências são entendidas.",
   },
   home: {
-    motto: "Nunca salve uma referência sem entendê-la",
     allReferences: "Todas as referências",
     emptyTitle: "Seu cérebro está vazio. Cole um reel do Instagram, um TikTok, um link do YouTube, um site, ou solte um PDF acima.",
-    emptySub: "O sistema vai entender e ela aparece aqui.",
+    emptySub: "O sistema entende e a referência aparece aqui.",
   },
   capture: {
     placeholder: "Cole um link, solte um arquivo, ou escreva uma ideia…",
@@ -77,6 +75,9 @@ const pt = {
     failed: "Falharam",
     recent: "Entendidas recentemente",
     nothing48h: "Nada entendido nas últimas 48 horas.",
+    reprocessVideos: "Reentender todos os vídeos",
+    reprocessProgress: (done: number, total: number) => `${done} de ${total}…`,
+    reprocessDone: (n: number) => `${n} vídeo${n === 1 ? "" : "s"} na fila.`,
   },
   saved: {
     title: "Salvos",
@@ -113,11 +114,12 @@ const pt = {
   reference: {
     back: "Voltar",
     original: "Original",
+    openVideo: "Abrir o vídeo original",
     save: "Salvar",
     saved: "Salva",
-    addToCollection: "Adicionar a coleção",
+    addToCollection: "Adicionar à coleção",
     collections: (n: number) => `${n} coleç${n > 1 ? "ões" : "ão"}`,
-    addToProject: "Adicionar a projeto",
+    addToProject: "Adicionar ao projeto",
     projects: (n: number) => `${n} projeto${n > 1 ? "s" : ""}`,
     reUnderstand: "Reentender",
     delete: "Apagar",
@@ -184,7 +186,7 @@ const pt = {
     title: "Use meu repertório para desenvolver esta ideia",
     placeholder: "Use meu repertório para desenvolver esta ideia: um lançamento de app de finanças que pareça um evento cultural…",
     continue: "Continue…",
-    hint: "Desenvolve sua ideia usando apenas as suas referências.",
+    hint: "Desenvolve sua ideia usando apenas suas referências.",
     submit: "Desenvolver",
     working: "Trabalhando…",
     reading: "Lendo seu repertório…",
@@ -268,7 +270,7 @@ const pt = {
     eyebrow: "Gerador de moodboard",
     title: "Me dê um briefing",
     placeholder: "Monte um moodboard para uma campanha de moda futurista…",
-    hint: "Montado apenas com as suas referências.",
+    hint: "Montado apenas com suas referências.",
     submit: "Gerar",
     working: "Montando…",
     boards: "Boards",
@@ -366,7 +368,6 @@ const en: Dict = {
   },
   header: {
     search: "Search anything… or ask: campaigns that make the audience participate",
-    think: "Think",
     add: "Add",
     language: "Language",
   },
@@ -391,7 +392,6 @@ const en: Dict = {
     categoriesAppear: "Categories appear as references are understood.",
   },
   home: {
-    motto: "Never save a reference without understanding it",
     allReferences: "All references",
     emptyTitle: "Your brain is empty. Paste an Instagram reel, a TikTok, a YouTube link, a website or drop a PDF above.",
     emptySub: "The system will understand it and it will appear here.",
@@ -421,6 +421,9 @@ const en: Dict = {
     failed: "Failed",
     recent: "Understood recently",
     nothing48h: "Nothing understood in the last 48 hours.",
+    reprocessVideos: "Re-understand every video",
+    reprocessProgress: (done: number, total: number) => `${done} of ${total}…`,
+    reprocessDone: (n: number) => `${n} video${n === 1 ? "" : "s"} queued.`,
   },
   saved: {
     title: "Saved",
@@ -457,6 +460,7 @@ const en: Dict = {
   reference: {
     back: "Back",
     original: "Original",
+    openVideo: "Open the original video",
     save: "Save",
     saved: "Saved",
     addToCollection: "Add to collection",
@@ -726,7 +730,7 @@ const TAXONOMY_PT = {
   principles: {
     Surprise: "Surpresa", Participation: "Participação", Humor: "Humor", Scarcity: "Escassez", Personalization: "Personalização",
     Transformation: "Transformação", Provocation: "Provocação", Nostalgia: "Nostalgia", Utility: "Utilidade", Immersion: "Imersão",
-    Interaction: "Interação", Unexpectedness: "Inesperado", Community: "Comunidade", Simplicity: "Simplicidade", Craft: "Apuro",
+    Interaction: "Interação", Unexpectedness: "Inesperado", Community: "Comunidade", Simplicity: "Simplicidade", Craft: "Apuro técnico",
     "Data Storytelling": "Narrativa de dados", "Cultural Tension": "Tensão cultural", Shareability: "Compartilhabilidade",
   } as Record<string, string>,
 };

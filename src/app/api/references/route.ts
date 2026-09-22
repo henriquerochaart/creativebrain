@@ -20,6 +20,7 @@ export const GET = withAuth(async (req: NextRequest) => {
       tag: p.get("tag") ?? undefined,
       brand: p.get("brand") ?? undefined,
       collectionId: p.get("collection") ?? undefined,
+      mediaType: p.get("mediaType") ?? undefined,
     },
     Math.min(Number(p.get("limit") ?? 60), 200),
     Number(p.get("offset") ?? 0),
