@@ -16,6 +16,7 @@ import { recordEvent } from "@/server/insights";
 import { projectsOfReference, recentProjectsList } from "@/server/projects";
 import { ProjectPicker } from "@/components/project-picker";
 import { dict } from "@/server/lang";
+import { UnderstandingProgress } from "@/components/understanding-progress";
 import { platformLabel, taxonomyLabel } from "@/lib/i18n";
 
 export default async function ReferencePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
@@ -94,7 +95,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
       <header>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-semibold tracking-tight">{ref.title ?? d.card.untitled}</h1>
-          {!understood && <StatusDot status={ref.status} step={ref.processingStep} lang={lang} />}
+          {ref.status === "failed" && <StatusDot status={ref.status} lang={lang} />}
         </div>
         <p className="mt-2 text-sm text-ink-2">
           {[
@@ -107,6 +108,9 @@ export default async function ReferencePage({ params, searchParams }: { params: 
             .filter(Boolean)
             .join(" · ")}
         </p>
+        {(ref.status === "queued" || ref.status === "processing") && (
+          <UnderstandingProgress step={ref.processingStep} className="mt-4 max-w-md rounded-2xl border border-line bg-paper-2 p-4" />
+        )}
         <div className="mt-4 flex flex-wrap gap-2">
           {ref.brand && <Badge href={`/c/brand/${encodeURIComponent(ref.brand)}`} tone="accent">{ref.brand}</Badge>}
           {ref.formats.map((f) => (

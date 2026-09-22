@@ -69,3 +69,11 @@ body {
 
 @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 .pulse-soft { animation: pulse-soft 1.6s ease-in-out infinite; }
+
+/* The brain "thinking": a gentle scale-and-fade breath, not a spin — this is understanding, not loading. */
+@keyframes brain-think { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.12); opacity: 1; } }
+.brain-think { animation: brain-think 1.4s ease-in-out infinite; display: inline-block; transform-origin: center; }
+
+/* No step yet (queued, or a step outside PROCESSING_STEPS): a segment sweeps instead of a fixed width. */
+@keyframes brain-indeterminate { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+.brain-indeterminate { animation: brain-indeterminate 1.3s ease-in-out infinite; }

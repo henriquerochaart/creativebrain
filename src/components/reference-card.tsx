@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PublicReference } from "@/server/references";
 import { Thumb } from "./thumb";
 import { StatusDot } from "./status-dot";
+import { UnderstandingProgress } from "./understanding-progress";
 import { truncate, yearOf } from "@/lib/utils";
 import { platformLabel, t, taxonomyLabel, type Lang } from "@/lib/i18n";
 
@@ -47,9 +48,8 @@ export function ReferenceCard({ reference, showStatus = false, kinds, lang = "pt
         )}
         <p className="mt-3 text-[12px] text-ink-3">
           {platformLabel(lang, r.sourcePlatform)} · {yearOf(r.metadata.publishedAt ?? r.createdAt)}
-          {showStatus && processing ? " · " : ""}
-          {showStatus && processing && <StatusDot status={r.status} step={r.processingStep} lang={lang} />}
         </p>
+        {showStatus && processing && <UnderstandingProgress step={r.processingStep} className="mt-3" />}
       </div>
     </Link>
   );
