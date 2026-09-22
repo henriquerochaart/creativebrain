@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { BrainThink } from "./brain-think";
 import { useT } from "./lang-provider";
 
 type Toast = { kind: "ok" | "err" | "dup"; text: string };
@@ -131,12 +132,15 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
       {toast && (
         <div
           className={cn(
-            "absolute left-1/2 top-full mt-3 -translate-x-1/2 rounded-full px-4 py-1.5 text-[13px] shadow",
+            "absolute left-1/2 top-full mt-3 flex -translate-x-1/2 items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] shadow",
             toast.kind === "ok" && "bg-ink text-paper",
             toast.kind === "dup" && "bg-paper-2 text-ink",
             toast.kind === "err" && "bg-red-600 text-white",
           )}
         >
+          {/* Understanding just started in the background; this is the only feedback someone gets
+              on mobile without scrolling down to the card, so the brain thinks right here too. */}
+          {toast.kind === "ok" && <BrainThink className="text-base" />}
           {toast.text}
         </div>
       )}

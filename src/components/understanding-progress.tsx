@@ -1,6 +1,7 @@
 "use client";
 
 import { PROCESSING_STEPS, type ProcessingStep } from "@/server/taxonomy";
+import { BrainThink } from "./brain-think";
 import { useT } from "./lang-provider";
 
 /**
@@ -15,9 +16,7 @@ export function UnderstandingProgress({ step, className }: { step?: string | nul
   return (
     <div className={className}>
       <div className="flex items-center gap-3">
-        <span className="brain-think text-2xl leading-none" aria-hidden>
-          🧠
-        </span>
+        <BrainThink className="text-2xl" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-ink">{step ? d.status.processing(step) : d.status.queued}</p>
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-paper-2">
