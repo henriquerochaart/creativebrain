@@ -9,6 +9,12 @@ import { desc, inArray, sql } from "drizzle-orm";
 import { ReprocessButton } from "@/components/reference-actions";
 import { dict } from "@/server/lang";
 import { ReprocessVideos } from "@/components/reprocess-videos";
+import { ReprocessStale } from "@/components/reprocess-stale";
+
+// A bit past the pipeline routes' own maxDuration=300s. Past this, a reference still reading
+// "queued"/"processing" almost certainly isn't being worked on: the serverless function that was
+// understanding it got killed by the platform before its own try/catch could mark it failed.
+const STALE_MS = 6 * 60 * 1000;
 
 export default async function InboxPage() {
   const { lang, d } = await dict();
@@ -20,7 +26,9 @@ export default async function InboxPage() {
     .orderBy(desc(references.processedAt))
     .limit(60);
   const failed = active.filter((r) => r.status === "failed");
-  const running = active.filter((r) => r.status !== "failed");
+  const stale = active.filter((r) => r.status !== "failed" && Date.now() - r.updatedAt.getTime() > STALE_MS);
+  const staleIds = new Set(stale.map((r) => r.id));
+  const running = active.filter((r) => r.status !== "failed" && !staleIds.has(r.id));
   return (
     <div className="space-y-10">
       <header>
@@ -35,6 +43,31 @@ export default async function InboxPage() {
         <section>
           <h2 className="eyebrow mb-3">{d.inbox.processing} · {running.length}</h2>
           <ReferenceGrid references={running.map(toPublic)} lang={lang} showStatus />
+        </section>
+      )}
+
+      {stale.length > 0 && (
+        <section>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="eyebrow">{d.inbox.stale} · {stale.length}</h2>
+            <ReprocessStale ids={stale.map((r) => r.id)} />
+          </div>
+          <p className="mb-3 text-[13px] text-ink-2">{d.inbox.staleHint}</p>
+          <ul className="divide-y divide-line rounded-2xl border border-line">
+            {stale.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                <div className="min-w-0">
+                  <Link href={`/r/${r.id}`} className="font-medium hover:underline">
+                    {r.title ?? r.originalUrl ?? d.card.untitled}
+                  </Link>
+                </div>
+                <div className="flex items-center gap-3">
+                  <StatusDot status={r.status} step={r.processingStep} lang={lang} />
+                  <ReprocessButton id={r.id} />
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

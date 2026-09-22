@@ -81,6 +81,9 @@ const pt = {
     reprocessVideos: "Reentender todos os vídeos",
     reprocessProgress: (done: number, total: number) => `${done} de ${total}…`,
     reprocessDone: (n: number) => `${n} vídeo${n === 1 ? "" : "s"} na fila.`,
+    stale: "Travadas",
+    staleHint: "Passaram do tempo esperado sem terminar — a função provavelmente foi interrompida no meio. Reentenda para tentar de novo.",
+    reprocessStaleAll: (n: number) => `Reentender todas as travadas (${n})`,
   },
   saved: {
     title: "Salvos",
@@ -430,6 +433,9 @@ const en: Dict = {
     reprocessVideos: "Re-understand every video",
     reprocessProgress: (done: number, total: number) => `${done} of ${total}…`,
     reprocessDone: (n: number) => `${n} video${n === 1 ? "" : "s"} queued.`,
+    stale: "Stuck",
+    staleHint: "Past the expected time without finishing — the function was probably killed mid-run. Re-understand to try again.",
+    reprocessStaleAll: (n: number) => `Re-understand all stuck (${n})`,
   },
   saved: {
     title: "Saved",
