@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { useT } from "./lang-provider";
 
 export function NewCollection() {
   const router = useRouter();
+  const d = useT();
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("");
   return (
@@ -20,10 +22,10 @@ export function NewCollection() {
         router.refresh();
       }}
     >
-      <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="🔥" className="h-10 w-12 rounded-full border border-line bg-paper text-center text-sm outline-none" />
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Things I want to steal" className="h-10 w-56 rounded-full border border-line bg-paper px-4 text-sm outline-none placeholder:text-ink-3" />
+      <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="🔥" aria-label="Emoji" className="h-10 w-12 rounded-full border border-line bg-paper text-center text-sm outline-none" />
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.collections.namePlaceholder} aria-label={d.collections.namePlaceholder} className="h-10 w-56 rounded-full border border-line bg-paper px-4 text-sm outline-none placeholder:text-ink-3" />
       <button type="submit" className="h-10 rounded-full bg-ink px-4 text-sm text-paper">
-        Create
+        {d.collections.create}
       </button>
     </form>
   );
@@ -31,6 +33,7 @@ export function NewCollection() {
 
 export function DeleteCollection({ id }: { id: string }) {
   const router = useRouter();
+  const d = useT();
   const [confirm, setConfirm] = useState(false);
   return (
     <button
@@ -44,7 +47,7 @@ export function DeleteCollection({ id }: { id: string }) {
       }}
       className={confirm ? "text-[13px] text-red-600" : "text-[13px] text-ink-3 hover:text-ink"}
     >
-      {confirm ? "Confirm delete collection" : "Delete collection"}
+      {confirm ? d.collections.confirmDelete : d.collections.delete}
     </button>
   );
 }

@@ -5,7 +5,8 @@ import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "./db/client";
 import { boards, collectionItems, collections, conversations, references, type Reference } from "./db/schema";
 import { getLLM } from "./ai/router";
-import { ASSIST_SYSTEM, AUTO_COLLECTIONS_SYSTEM, MOODBOARD_SYSTEM, NARRATIVE_SYSTEM } from "./ai/prompts";
+import { ASSIST_SYSTEM, autoCollectionsSystem, moodboardSystem, narrativeSystem } from "./ai/prompts";
+import type { Lang } from "@/lib/i18n";
 import { AutoCollectionsSchema, MoodboardSchema, NarrativeSchema, type AutoCollections, type Moodboard, type Narrative } from "./ai/schemas";
 import { referenceDigest } from "./search/explain";
 import { search } from "./search";
@@ -14,12 +15,12 @@ import { trends, understoodSample } from "./insights";
 
 // ---------- Moodboard generator ----------
 
-export async function generateMoodboard(brief: string) {
+export async function generateMoodboard(brief: string, lang: Lang) {
   const result = await search(brief, { mode: "hybrid", limit: 40 });
   const refs = result.hits.map((h) => h.reference);
   const digest = refs.map((r) => referenceDigest(r, { withId: true })).join("\n\n");
   const board: Moodboard = await getLLM().analyze({
-    system: MOODBOARD_SYSTEM,
+    system: moodboardSystem(lang),
     prompt: `Brief: "${brief}"\n\nAvailable references (${refs.length}):\n\n${digest || "(none)"}\n\nAssemble the moodboard.`,
     schema: MoodboardSchema,
     schemaName: "moodboard",
@@ -72,14 +73,14 @@ export async function saveAssistConversation(idea: string, answer: string, refer
 
 export type AutoCollectionProposal = AutoCollections["collections"][number] & { existing: boolean };
 
-export async function proposeCollections(): Promise<{ proposals: AutoCollectionProposal[]; sample: number; references: Record<string, ReturnType<typeof toPublic>> }> {
+export async function proposeCollections(lang: Lang): Promise<{ proposals: AutoCollectionProposal[]; sample: number; references: Record<string, ReturnType<typeof toPublic>> }> {
   const refs = await understoodSample(150);
   const existing = await db.select({ name: collections.name }).from(collections);
   const digest = refs
     .map((r) => `[${r.id}] ${r.title}${r.brand ? ` — ${r.brand}` : ""} · ${r.ai.creativeMechanism ?? ""} · ${r.principles.join(", ")} · ${r.tags.slice(0, 6).join(" ")}`)
     .join("\n");
   const out: AutoCollections = await getLLM().analyze({
-    system: AUTO_COLLECTIONS_SYSTEM,
+    system: autoCollectionsSystem(lang),
     prompt: `Existing collections (do not duplicate): ${existing.map((e) => e.name).join(", ") || "none"}\n\nRepertoire (${refs.length}):\n${digest || "(empty)"}`,
     schema: AutoCollectionsSchema,
     schemaName: "auto_collections",
@@ -102,7 +103,7 @@ export async function acceptProposal(p: { name: string; emoji?: string | null; r
 
 // ---------- Taste narrative ("Things you seem to like") ----------
 
-export async function tasteNarrative(): Promise<Narrative> {
+export async function tasteNarrative(lang: Lang): Promise<Narrative> {
   const [principles, subjects, formats, concepts, brands, status, rising, sample] = await Promise.all([
     facetCounts("principles", 12),
     facetCounts("subjects", 8),
@@ -124,7 +125,7 @@ export async function tasteNarrative(): Promise<Narrative> {
   ].join("\n");
   const digest = sample.map((r: Reference) => referenceDigest(r)).join("\n\n");
   return getLLM().analyze({
-    system: NARRATIVE_SYSTEM,
+    system: narrativeSystem(lang),
     prompt: `Statistics:\n${stats}\n\nRecent sample (${sample.length}):\n\n${digest}`,
     schema: NarrativeSchema,
     schemaName: "narrative",

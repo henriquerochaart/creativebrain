@@ -2,15 +2,17 @@ import Link from "next/link";
 import { listCollections } from "@/server/references";
 import { NewCollection } from "@/components/collection-actions";
 import { AutoCollections } from "@/components/auto-collections";
+import { dict } from "@/server/lang";
 
 export default async function CollectionsPage() {
+  const { d } = await dict();
   const cols = await listCollections();
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My collections</h1>
-          <p className="mt-1 text-sm text-ink-2">Manual shelves. A reference can live in many at once.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{d.collections.title}</h1>
+          <p className="mt-1 text-sm text-ink-2">{d.collections.sub}</p>
         </div>
         <NewCollection />
       </header>
@@ -33,7 +35,7 @@ export default async function CollectionsPage() {
             </Link>
           </li>
         ))}
-        {!cols.length && <li className="px-5 py-10 text-center text-sm text-ink-3">No collections yet. Create one above, or from any reference page.</li>}
+        {!cols.length && <li className="px-5 py-10 text-center text-sm text-ink-3">{d.collections.empty}</li>}
       </ol>
       <AutoCollections />
     </div>

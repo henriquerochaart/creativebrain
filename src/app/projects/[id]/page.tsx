@@ -4,10 +4,12 @@ import { getProject, projectReferenceList, selectionSentence, selectionStats, ty
 import { Thumb } from "@/components/thumb";
 import { Badge } from "@/components/ui/badge";
 import { AnalyzeProject, CopyOutput, DeleteProject, ProjectBrief, ProjectPickerInline, ProjectsLink, RemoveFromProject } from "@/components/project-actions";
-
-const STAGES = ["References", "Concepts", "Patterns", "Directions", "Ideas", "Output"];
+import { dict } from "@/server/lang";
+import { taxonomyLabel } from "@/lib/i18n";
+import { localeOf } from "@/lib/utils";
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  const { lang, d } = await dict();
   const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
@@ -17,6 +19,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const a = stored?.analysis;
   const title = (rid: string) => refs.find((r) => r.id === rid)?.title ?? null;
   const stageDone = [refs.length > 0, Boolean(a?.concepts.length), Boolean(a?.patterns.length), Boolean(a?.directions.length), Boolean(a?.ideas.length), Boolean(a)];
+  const stages = [d.projects.stages.references, d.projects.stages.concepts, d.projects.stages.patterns, d.projects.stages.directions, d.projects.stages.ideas, d.projects.stages.output];
 
   return (
     <article className="mx-auto max-w-6xl space-y-10">
@@ -34,29 +37,29 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       </header>
 
       <ol className="flex flex-wrap items-center gap-2 text-[12px]">
-        {STAGES.map((s, i) => (
+        {stages.map((s, i) => (
           <li key={s} className="flex items-center gap-2">
             <span className={`rounded-full px-3 py-1 ${stageDone[i] ? "bg-ink text-paper" : "border border-line text-ink-3"}`}>{s}</span>
-            {i < STAGES.length - 1 && <span className="text-ink-3">↓</span>}
+            {i < stages.length - 1 && <span className="text-ink-3">↓</span>}
           </li>
         ))}
       </ol>
 
       <section>
         <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="eyebrow">References · {refs.length}</h2>
-          <p className="text-[13px] text-ink-2">{selectionSentence(stats)}</p>
+          <h2 className="eyebrow">{d.projects.stages.references} · {refs.length}</h2>
+          <p className="text-[13px] text-ink-2">{selectionSentence(stats, d)}</p>
         </div>
         {stats.principles.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {stats.principles.slice(0, 8).map((p) => (
               <Badge key={p.value} tone="accent">
-                {p.value} · {p.count}
+                {taxonomyLabel(lang, "principles", p.value)} · {p.count}
               </Badge>
             ))}
             {stats.subjects.slice(0, 4).map((s) => (
               <Badge key={s.value} tone="outline">
-                {s.value} · {s.count}
+                {taxonomyLabel(lang, "subjects", s.value)} · {s.count}
               </Badge>
             ))}
           </div>
@@ -66,7 +69,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <div key={r.id} className="group relative">
               <Link href={`/r/${r.id}`}>
                 <div className="overflow-hidden rounded-2xl border border-line bg-paper-2">
-                  <Thumb reference={r} className="aspect-[4/3] object-cover" />
+                  <Thumb reference={r} lang={lang} className="aspect-[4/3] object-cover" />
                 </div>
                 <p className="mt-2 line-clamp-2 text-[13px] leading-snug">{r.title}</p>
               </Link>
@@ -79,14 +82,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </div>
       </section>
 
-      {a && (
+      {a && stored && (
         <>
           <section className="rounded-3xl bg-paper-2 p-6">
             <p className="text-xl font-medium tracking-tight">{a.summary}</p>
             <p className="mt-3 text-[15px] text-ink-2">{a.combinationQuestion}</p>
           </section>
 
-          <Stage n="02" title="Concepts">
+          <Stage n="02" title={d.projects.stages.concepts}>
             <div className="flex flex-wrap gap-2">
               {a.concepts.map((c) => (
                 <span key={c.name} className="rounded-full border border-line px-3 py-1 text-sm" title={c.referenceIds.map(title).filter(Boolean).join(", ")}>
@@ -96,7 +99,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </div>
           </Stage>
 
-          <Stage n="03" title="Patterns">
+          <Stage n="03" title={d.projects.stages.patterns}>
             <ul className="space-y-2 text-[15px]">
               {a.patterns.map((p) => (
                 <li key={p.statement}>
@@ -106,17 +109,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </ul>
           </Stage>
 
-          <Stage n="04" title="Directions">
+          <Stage n="04" title={d.projects.stages.directions}>
             <div className="grid gap-5 md:grid-cols-2">
-              {a.directions.map((d) => (
-                <div key={d.title} className="rounded-2xl border border-line p-5">
-                  <h3 className="text-lg font-semibold tracking-tight">{d.title}</h3>
-                  <p className="mt-1 text-sm text-ink-2">{d.rationale}</p>
-                  <p className="mt-3 font-mono text-[12px] text-ink-3">{d.mechanism}</p>
+              {a.directions.map((dir) => (
+                <div key={dir.title} className="rounded-2xl border border-line p-5">
+                  <h3 className="text-lg font-semibold tracking-tight">{dir.title}</h3>
+                  <p className="mt-1 text-sm text-ink-2">{dir.rationale}</p>
+                  <p className="mt-3 font-mono text-[12px] text-ink-3">{dir.mechanism}</p>
                   <div className="mt-3 flex gap-2 overflow-x-auto">
-                    {d.referenceIds.map((rid) => refs.find((r) => r.id === rid)).filter(Boolean).map((r) => (
+                    {dir.referenceIds.map((rid) => refs.find((r) => r.id === rid)).filter(Boolean).map((r) => (
                       <Link key={r!.id} href={`/r/${r!.id}`} className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-paper-2" title={r!.title ?? ""}>
-                        <Thumb reference={r!} className="h-full w-full object-cover" />
+                        <Thumb reference={r!} lang={lang} className="h-full w-full object-cover" />
                       </Link>
                     ))}
                   </div>
@@ -125,30 +128,30 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </div>
           </Stage>
 
-          <Stage n="05" title="Ideas">
+          <Stage n="05" title={d.projects.stages.ideas}>
             <ol className="space-y-5">
-              {a.ideas.map((i, idx) => (
-                <li key={i.title} className="grid gap-3 md:grid-cols-[48px_1fr]">
+              {a.ideas.map((idea, idx) => (
+                <li key={idea.title} className="grid gap-3 md:grid-cols-[48px_1fr]">
                   <span className="font-mono text-sm text-ink-3">{String(idx + 1).padStart(2, "0")}</span>
                   <div>
-                    <h3 className="text-lg font-semibold tracking-tight">{i.title}</h3>
+                    <h3 className="text-lg font-semibold tracking-tight">{idea.title}</h3>
                     <p className="text-[12px] text-ink-3">
-                      {i.direction} · {i.mechanism}
+                      {idea.direction} · {idea.mechanism}
                     </p>
-                    <p className="mt-2 text-[15px] leading-relaxed">{i.description}</p>
-                    <p className="mt-1 text-[12px] text-ink-3">{i.referenceIds.map(title).filter(Boolean).join(" · ")}</p>
+                    <p className="mt-2 text-[15px] leading-relaxed">{idea.description}</p>
+                    <p className="mt-1 text-[12px] text-ink-3">{idea.referenceIds.map(title).filter(Boolean).join(" · ")}</p>
                   </div>
                 </li>
               ))}
             </ol>
           </Stage>
 
-          <Stage n="06" title="Output">
-            <p className="text-sm text-ink-2">The whole process as a document, ready for a deck or a doc.</p>
+          <Stage n="06" title={d.projects.stages.output}>
+            <p className="text-sm text-ink-2">{d.projects.outputSub}</p>
             <div className="mt-3">
               <CopyOutput id={project.id} />
             </div>
-            <p className="mt-3 text-[11px] text-ink-3">Analysed by {stored.model} · {project.analyzedAt?.toLocaleString()}</p>
+            <p className="mt-3 text-[11px] text-ink-3">{d.projects.analysedBy(stored.model, project.analyzedAt?.toLocaleString(localeOf(lang)) ?? "")}</p>
           </Stage>
         </>
       )}

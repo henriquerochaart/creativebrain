@@ -109,7 +109,9 @@ export type Discovery = {
   signals: number;
   favourites: { principles: string[]; subjects: string[] };
   forYou: { reference: PublicReference; score: number }[];
-  unexpected: { reference: PublicReference; score: number; because: string }[];
+  /** `newPrinciples` / `newSubjects` are what this reference adds beyond the favourites; the UI
+   *  turns them into a sentence, so the reason is not pinned to one language. */
+  unexpected: { reference: PublicReference; score: number; newPrinciples: string[]; newSubjects: string[] }[];
 };
 
 /**
@@ -143,12 +145,11 @@ export async function discover(limit = 12): Promise<Discovery | null> {
   const unexpected = candidates
     .filter((c) => !c.reference.principles.some((p) => favPrinciples.includes(p)) || !c.reference.subjects.some((s) => favSubjects.includes(s)))
     .slice(0, limit)
-    .map((c) => {
-      const newPrinciples = c.reference.principles.filter((p) => !favPrinciples.includes(p));
-      const newSubjects = c.reference.subjects.filter((s) => !favSubjects.includes(s));
-      const because = newPrinciples.length ? `brings ${newPrinciples.slice(0, 2).join(" + ")} into a territory you like` : newSubjects.length ? `same taste, but in ${newSubjects.slice(0, 2).join(" / ")}` : "close to your taste, different angle";
-      return { ...c, because };
-    });
+    .map((c) => ({
+      ...c,
+      newPrinciples: c.reference.principles.filter((p) => !favPrinciples.includes(p)),
+      newSubjects: c.reference.subjects.filter((s) => !favSubjects.includes(s)),
+    }));
   return { signals: taste.signals, favourites: { principles: favPrinciples, subjects: favSubjects }, forYou, unexpected };
 }
 

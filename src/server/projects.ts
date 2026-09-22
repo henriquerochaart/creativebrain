@@ -11,6 +11,7 @@ import { ProjectAnalysisSchema, type ProjectAnalysis } from "./ai/schemas";
 import { referenceDigest } from "./search/explain";
 import { isUuid, toPublic, type PublicReference } from "./references";
 import { recordEvent } from "./insights";
+import { t, type Dict, type Lang } from "@/lib/i18n";
 
 export async function listProjects() {
   const rows = await db.execute<{ id: string; name: string; brief: string | null; status: string; analyzed_at: string | null; created_at: string; updated_at: string; count: number; covers: string[] }>(sql`
@@ -92,18 +93,18 @@ export function selectionStats(refs: PublicReference[]) {
   };
 }
 
-export function selectionSentence(stats: ReturnType<typeof selectionStats>): string {
-  if (!stats.total) return "No references selected yet.";
-  const top = stats.principles.slice(0, 3).map((p) => `${p.count} with ${p.value.toLowerCase()}`);
-  return `You selected ${stats.total} reference${stats.total === 1 ? "" : "s"}. ${top.join(", ")}.`;
+export function selectionSentence(stats: ReturnType<typeof selectionStats>, d: Dict): string {
+  if (!stats.total) return d.projects.selectionEmpty;
+  const top = stats.principles.slice(0, 3).map((p) => d.projects.selectionWith(p.count, p.value));
+  return d.projects.selection(stats.total, top.join(", "));
 }
 
 export type StoredAnalysis = { analysis: ProjectAnalysis; stats: ReturnType<typeof selectionStats>; sentence: string; model: string };
 
-export async function analyzeProject(project: Project): Promise<StoredAnalysis> {
+export async function analyzeProject(project: Project, lang: Lang): Promise<StoredAnalysis> {
   const refs = await projectReferenceList(project.id);
   const stats = selectionStats(refs);
-  const sentence = selectionSentence(stats);
+  const sentence = selectionSentence(stats, t(lang));
   const full = refs.length ? await db.select().from(references).where(inArray(references.id, refs.map((r) => r.id))) : [];
   const digest = full.map((r) => referenceDigest(r, { withId: true, long: false })).join("\n\n");
   const llm = getLLM();
@@ -119,20 +120,20 @@ export async function analyzeProject(project: Project): Promise<StoredAnalysis> 
 }
 
 /** OUTPUT: the whole process as a markdown document to paste into a deck or a doc. */
-export function projectMarkdown(project: Project, refs: PublicReference[], stored: StoredAnalysis | null): string {
+export function projectMarkdown(project: Project, refs: PublicReference[], stored: StoredAnalysis | null, d: Dict): string {
   const title = (id: string) => refs.find((r) => r.id === id)?.title ?? id;
   const lines: string[] = [`# ${project.name}`, ""];
   if (project.brief) lines.push(project.brief, "");
-  lines.push(`## References (${refs.length})`, "");
+  lines.push(`## ${d.projects.stages.references} (${refs.length})`, "");
   for (const r of refs) lines.push(`- **${r.title}**${r.brand ? ` — ${r.brand}` : ""}${r.ai.creativeMechanism ? ` · ${r.ai.creativeMechanism}` : ""}${r.canonicalUrl ? ` · ${r.canonicalUrl}` : ""}`);
   if (!stored) return lines.join("\n");
   const a = stored.analysis;
-  lines.push("", `## Reading`, "", stored.sentence, "", a.summary, "");
-  lines.push(`## Concepts`, "", ...a.concepts.map((c) => `- **${c.name}** — ${c.referenceIds.map(title).join(", ")}`), "");
-  lines.push(`## Patterns`, "", ...a.patterns.map((p) => `- ${p.statement}`), "");
-  lines.push(`## Directions`, "");
-  for (const d of a.directions) lines.push(`### ${d.title}`, "", d.rationale, "", `Mechanism: ${d.mechanism}`, "", `References: ${d.referenceIds.map(title).join(", ")}`, "");
-  lines.push(`## Ideas`, "");
+  lines.push("", `## ${d.patterns.readByBrain}`, "", stored.sentence, "", a.summary, "");
+  lines.push(`## ${d.projects.stages.concepts}`, "", ...a.concepts.map((c) => `- **${c.name}** — ${c.referenceIds.map(title).join(", ")}`), "");
+  lines.push(`## ${d.projects.stages.patterns}`, "", ...a.patterns.map((p) => `- ${p.statement}`), "");
+  lines.push(`## ${d.projects.stages.directions}`, "");
+  for (const dir of a.directions) lines.push(`### ${dir.title}`, "", dir.rationale, "", `${d.reference.mechanism}: ${dir.mechanism}`, "", `${d.projects.stages.references}: ${dir.referenceIds.map(title).join(", ")}`, "");
+  lines.push(`## ${d.projects.stages.ideas}`, "");
   for (const i of a.ideas) lines.push(`### ${i.title}`, "", `_${i.direction}_ · ${i.mechanism}`, "", i.description, "");
   lines.push(`---`, "", a.combinationQuestion);
   return lines.join("\n");

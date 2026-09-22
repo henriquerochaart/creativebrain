@@ -17,7 +17,9 @@ The thumbnail is always the material's own, never generated: the OpenGraph or oE
 `BASE_PATH` (e.g. `/brain`) serves the app from a sub path. Next prefixes `<Link>`, `router.push`, route handlers and `public/` automatically. It does NOT prefix strings you build yourself, and `redirect()` from `next/navigation` DOES prefix — so use `withBase()` from `src/lib/base-path.ts` for `fetch`, `Response.redirect`, `new URL`, plain `<a href>` and manifest paths, and never for `<Link>` or `redirect()`. Verified both ways in `tests/share.test.ts` and by building at root and at `/brain`.
 
 ## Conventions
-- Code and UI in English; product docs (README) in Portuguese.
+- Code, identifiers and comments in English. The UI is bilingual: never inline user-facing text in a component, put it in `src/lib/i18n.ts` and read it with `dict()` on the server or `useT()` on the client. `pt` is the source of truth and `en` is typed against it, so a missing key fails the typecheck.
+- Controlled vocabularies stay in English in the database and in prompts; only their labels are translated, via `taxonomyLabel()`. That keeps existing rows valid and the model's output stable across a language switch.
+- The reader's language lives in the `brain_lang` cookie so server components can read it. What the *model writes* when understanding a reference is `BRAIN_CONTENT_LANGUAGE` instead, because it is written once at capture time.
 - Keep the UI a creation tool, not a dashboard: whitespace, clean type, masonry, minimal chrome.
 - Anthropic calls go through `@anthropic-ai/sdk` (`messages.parse` + `zodOutputFormat`, native image/PDF blocks). Default model `claude-opus-5`.
 - Run `npm run typecheck && npm test` before committing. `npm run build` must stay green.

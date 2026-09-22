@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { useLang, useT } from "./lang-provider";
+import { platformLabel } from "@/lib/i18n";
 
 type Node = { id: string; type: "reference" | "principle" | "brand"; label: string; thumb?: string | null; platform?: string; weight: number };
 type Edge = { source: string; target: string; kind: string; score: number };
@@ -23,6 +25,8 @@ const KIND_COLOR: Record<string, string> = {
  */
 export function KnowledgeGraph() {
   const router = useRouter();
+  const d = useT();
+  const lang = useLang();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [data, setData] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -179,20 +183,18 @@ export function KnowledgeGraph() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2 text-[12px]">
-        {Object.keys(kinds).map((k) => (
+        {(Object.keys(kinds) as (keyof typeof d.graph.kinds)[]).map((k) => (
           <button key={k} type="button" onClick={() => setKinds({ ...kinds, [k]: !kinds[k] })} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 ${kinds[k] ? "border-line" : "border-transparent opacity-40"}`}>
-            <span className="h-2 w-2 rounded-full" style={{ background: KIND_COLOR[k] }} /> {k}
+            <span className="h-2 w-2 rounded-full" style={{ background: KIND_COLOR[k] }} /> {d.graph.kinds[k]}
           </button>
         ))}
         {data && (
-          <span className="ml-auto text-ink-3">
-            {data.nodes.filter((n) => n.type === "reference").length} references · {activeEdges.length} connections
-          </span>
+          <span className="ml-auto text-ink-3">{d.graph.summary(data.nodes.filter((n) => n.type === "reference").length, activeEdges.length)}</span>
         )}
       </div>
       <div className="relative h-[70vh] overflow-hidden rounded-3xl border border-line bg-paper">
         {error && <p className="p-6 text-sm text-red-600">{error}</p>}
-        {!data && !error && <p className="pulse-soft p-6 text-sm text-ink-3">Loading the graph…</p>}
+        {!data && !error && <p className="pulse-soft p-6 text-sm text-ink-3">{d.graph.loading}</p>}
         <canvas
           ref={canvasRef}
           className="h-full w-full cursor-crosshair"
@@ -212,7 +214,7 @@ export function KnowledgeGraph() {
               <img src={hover.thumb} alt="" className="h-14 w-20 rounded-lg object-cover" />
             )}
             <div>
-              <p className="eyebrow">{hover.type === "reference" ? hover.platform : hover.type}</p>
+              <p className="eyebrow">{hover.type === "reference" ? platformLabel(lang, hover.platform ?? "") : d.graph.kinds[hover.type]}</p>
               <p className="text-sm font-medium leading-snug">{hover.label}</p>
             </div>
           </div>

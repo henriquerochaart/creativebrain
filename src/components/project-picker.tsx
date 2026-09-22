@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FolderPlus, Check } from "lucide-react";
 import { api } from "@/lib/api";
+import { useT } from "./lang-provider";
 
 type P = { id: string; name: string };
 
 export function ProjectPicker({ referenceId, projects, member }: { referenceId: string; projects: P[]; member: P[] }) {
   const router = useRouter();
+  const d = useT();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const memberIds = new Set(member.map((m) => m.id));
@@ -27,7 +29,7 @@ export function ProjectPicker({ referenceId, projects, member }: { referenceId: 
   return (
     <div className="relative">
       <button type="button" onClick={() => setOpen(!open)} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2">
-        <FolderPlus className="h-3.5 w-3.5" /> {member.length ? `${member.length} project${member.length > 1 ? "s" : ""}` : "Add to project"}
+        <FolderPlus className="h-3.5 w-3.5" /> {member.length ? d.reference.projects(member.length) : d.reference.addToProject}
       </button>
       {open && (
         <div className="absolute right-0 z-20 mt-2 w-64 rounded-2xl border border-line bg-paper p-2 shadow-lg">
@@ -40,7 +42,7 @@ export function ProjectPicker({ referenceId, projects, member }: { referenceId: 
                 </button>
               </li>
             ))}
-            {!projects.length && <li className="px-2 py-1.5 text-[13px] text-ink-3">No open projects.</li>}
+            {!projects.length && <li className="px-2 py-1.5 text-[13px] text-ink-3">{d.reference.noOpenProjects}</li>}
           </ul>
           <form
             className="mt-1 flex gap-1 border-t border-line pt-2"
@@ -49,9 +51,9 @@ export function ProjectPicker({ referenceId, projects, member }: { referenceId: 
               void create();
             }}
           >
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="New project…" className="h-8 w-full rounded-lg bg-paper-2 px-2 text-[13px] outline-none" />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.reference.newProject} className="h-8 w-full rounded-lg bg-paper-2 px-2 text-[13px] outline-none" />
             <button type="submit" className="h-8 rounded-lg bg-ink px-2 text-[12px] text-paper">
-              Add
+              {d.reference.add}
             </button>
           </form>
         </div>

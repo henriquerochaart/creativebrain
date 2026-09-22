@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { useT } from "./lang-provider";
 
 export function MoodboardGenerator() {
   const router = useRouter();
+  const d = useT();
   const [brief, setBrief] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,13 +32,14 @@ export function MoodboardGenerator() {
         value={brief}
         onChange={(e) => setBrief(e.target.value)}
         rows={2}
-        placeholder="Monte um moodboard para uma campanha de moda futurista…"
+        placeholder={d.moodboards.placeholder}
+        aria-label={d.moodboards.placeholder}
         className="w-full resize-none bg-transparent px-4 py-3 text-lg outline-none placeholder:text-ink-3"
       />
       <div className="flex items-center justify-between px-2 pb-1">
-        <span className="text-[12px] text-ink-3">{error ?? "Built only from your own references."}</span>
+        <span className="text-[12px] text-ink-3">{error ?? d.moodboards.hint}</span>
         <button type="submit" disabled={busy || !brief.trim()} className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-paper disabled:opacity-30">
-          {busy ? "Assembling…" : "Generate"}
+          {busy ? d.moodboards.working : d.moodboards.submit}
         </button>
       </div>
     </form>

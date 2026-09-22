@@ -6,11 +6,14 @@ import { Markdown } from "./markdown";
 import { Thumb } from "./thumb";
 import { api } from "@/lib/api";
 import { withBase } from "@/lib/base-path";
+import { useLang, useT } from "./lang-provider";
 import type { PublicReference } from "@/server/references";
 
 type Turn = { role: "user" | "assistant"; content: string };
 
 export function AssistMode() {
+  const d = useT();
+  const lang = useLang();
   const [idea, setIdea] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
@@ -39,20 +42,20 @@ export function AssistMode() {
         setTurns([...history, { role: "user", content: text }, { role: "assistant", content: full }]);
       }
     } catch (err) {
-      setTurns([...history, { role: "user", content: text }, { role: "assistant", content: `Error: ${err instanceof Error ? err.message : "failed"}` }]);
+      setTurns([...history, { role: "user", content: text }, { role: "assistant", content: `${err instanceof Error ? err.message : "failed"}` }]);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_260px]">
+    <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_250px]">
       <div className="space-y-8">
-        {turns.map((t, i) =>
-          t.role === "user" ? (
-            <p key={i} className="text-xl font-medium tracking-tight">› {t.content}</p>
+        {turns.map((turn, i) =>
+          turn.role === "user" ? (
+            <p key={i} className="text-xl font-medium tracking-tight">› {turn.content}</p>
           ) : (
-            <div key={i}>{t.content ? <Markdown text={t.content} /> : <p className="pulse-soft text-sm text-ink-3">Reading your repertoire…</p>}</div>
+            <div key={i}>{turn.content ? <Markdown text={turn.content} /> : <p className="pulse-soft text-sm text-ink-3">{d.assist.reading}</p>}</div>
           ),
         )}
         <form
@@ -67,26 +70,27 @@ export function AssistMode() {
             onChange={(e) => setIdea(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), void run(idea))}
             rows={3}
-            placeholder={turns.length ? "Continue…" : "Use meu repertório para desenvolver esta ideia: um lançamento de app de finanças que pareça um evento cultural…"}
+            placeholder={turns.length ? d.assist.continue : d.assist.placeholder}
+            aria-label={d.assist.placeholder}
             className="w-full resize-none bg-transparent px-4 py-3 text-lg outline-none placeholder:text-ink-3"
           />
           <div className="flex items-center justify-between px-2 pb-1">
-            <span className="text-[12px] text-ink-3">{degraded ?? "Develops your idea using only your own references."}</span>
+            <span className="text-[12px] text-ink-3">{degraded ?? d.assist.hint}</span>
             <button type="submit" disabled={busy || !idea.trim()} className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-paper disabled:opacity-30">
-              {busy ? "Working…" : "Develop"}
+              {busy ? d.assist.working : d.assist.submit}
             </button>
           </div>
         </form>
       </div>
       <aside>
-        <h2 className="eyebrow mb-3">Repertoire in play</h2>
+        <h2 className="eyebrow mb-3">{d.assist.rail}</h2>
         {used.length ? (
           <ul className="space-y-3">
             {used.map((r) => (
               <li key={r.id}>
                 <Link href={`/r/${r.id}`} className="flex gap-3">
                   <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-paper-2">
-                    <Thumb reference={r} className="h-full w-full object-cover" />
+                    <Thumb reference={r} lang={lang} className="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-[13px] font-medium">{r.title}</p>
@@ -97,7 +101,7 @@ export function AssistMode() {
             ))}
           </ul>
         ) : (
-          <p className="text-[13px] text-ink-3">The references retrieved for your idea appear here.</p>
+          <p className="text-[13px] text-ink-3">{d.assist.railEmpty}</p>
         )}
       </aside>
     </div>

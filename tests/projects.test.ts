@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { projectMarkdown, selectionSentence, selectionStats } from "@/server/projects";
 import type { PublicReference } from "@/server/references";
 import type { Project } from "@/server/db/schema";
+import { t } from "@/lib/i18n";
 import { MockLLM, MockEmbeddings } from "@/server/ai/providers/mock";
 import { AutoCollectionsSchema, MoodboardSchema, NarrativeSchema, ProjectAnalysisSchema, ThinkSchema, UnderstandingSchema, WhyTheseSchema } from "@/server/ai/schemas";
 
@@ -51,13 +52,15 @@ describe("project selection stats", () => {
     expect(s.principles[0]).toEqual({ value: "Participation", count: 3 });
     expect(s.brands).toEqual([{ value: "Nike", count: 2 }]);
   });
-  it("writes the 'you selected N references' sentence", () => {
-    expect(selectionSentence(selectionStats(refs))).toBe("You selected 3 references. 3 with participation, 1 with humor, 1 with transformation.");
-    expect(selectionSentence(selectionStats([]))).toBe("No references selected yet.");
+  it("writes the 'you selected N references' sentence in the reader's language", () => {
+    expect(selectionSentence(selectionStats(refs), t("en"))).toBe("You selected 3 references. 3 with participation, 1 with humor, 1 with transformation.");
+    expect(selectionSentence(selectionStats(refs), t("pt"))).toBe("Você selecionou 3 referências. 3 com participation, 1 com humor, 1 com transformation.");
+    expect(selectionSentence(selectionStats([]), t("en"))).toBe("No references selected yet.");
+    expect(selectionSentence(selectionStats([]), t("pt"))).toBe("Nenhuma referência selecionada ainda.");
   });
   it("renders the output markdown with and without analysis", () => {
     const project = { id: "p", name: "Campanha X", brief: "Lançar app", analysis: {}, analyzedAt: null } as unknown as Project;
-    const md = projectMarkdown(project, refs, null);
+    const md = projectMarkdown(project, refs, null, t("en"));
     expect(md).toContain("# Campanha X");
     expect(md).toContain("- **A**");
     const withAnalysis = projectMarkdown(project, refs, {
@@ -72,7 +75,7 @@ describe("project selection stats", () => {
         ideas: [{ title: "I", direction: "D", mechanism: "A → B", description: "Desc", referenceIds: [] }],
         combinationQuestion: "Q?",
       },
-    });
+    }, t("en"));
     expect(withAnalysis).toContain("## Directions");
     expect(withAnalysis).toContain("References: B");
     expect(withAnalysis).toContain("Q?");

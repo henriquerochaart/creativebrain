@@ -65,6 +65,15 @@ A thumbnail é sempre a do próprio material: imagem OpenGraph ou oEmbed do link
 - "Você selecionou 18 referências. 11 trabalham com participação, 7 com humor…" (determinístico) + análise do modelo: conceitos, padrões, 3-4 direções que combinam os elementos dominantes, 5-8 ideias executáveis com mecanismo, e a pergunta de combinação.
 - OUTPUT: todo o processo como markdown (`/api/projects/:id/output`), pronto para deck ou doc.
 
+## Idiomas
+
+A interface é bilíngue, português e inglês, com um botão no header. A escolha vai para o cookie `brain_lang`, que os server components leem, então a troca não recarrega a página nem pisca o idioma antigo. Todo texto vive em `src/lib/i18n.ts`; `pt` é a fonte da verdade e `en` é tipado contra ele, então uma chave faltando quebra o typecheck em vez de aparecer em produção.
+
+Duas decisões que valem explicar:
+
+- **Os vocabulários controlados continuam em inglês no banco e nos prompts.** Publicidade aparece na tela, `Advertising` fica na linha. Isso mantém as referências já entendidas válidas, os embeddings estáveis, e evita que uma troca de idioma invalide a taxonomia inteira. Só o rótulo é traduzido.
+- **O idioma do que o modelo escreve é `BRAIN_CONTENT_LANGUAGE`, não o botão.** O arquivo semântico é escrito uma vez, na captura. Se fosse seguir o botão, metade do acervo ficaria em um idioma e metade em outro. Já as respostas interativas, Think, Ask e assistente, seguem o idioma da sua pergunta.
+
 ## Stack
 
 Next.js 15 (App Router) · React 19 · Tailwind v4 · PostgreSQL + pgvector · Drizzle ORM · pg-boss (fila em Postgres) · storage local ou S3/R2 · ffmpeg · AI Router model-agnostic (Anthropic, OpenAI, Gemini, Voyage; `mock` para demos sem chave).

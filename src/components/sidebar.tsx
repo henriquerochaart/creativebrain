@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { listCollections, statusCounts, facetCounts } from "@/server/references";
 import { SUBJECTS } from "@/server/taxonomy";
+import { dict } from "@/server/lang";
+import { taxonomyLabel } from "@/lib/i18n";
 
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -11,6 +13,7 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function Sidebar() {
+  const { lang, d } = await dict();
   const [counts, collections, subjects] = await Promise.all([
     safe(statusCounts, {} as Record<string, number>),
     safe(listCollections, []),
@@ -24,53 +27,53 @@ export async function Sidebar() {
   return (
     <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 overflow-y-auto border-r border-line px-4 py-6 text-[13px] lg:block">
       <nav className="space-y-0.5">
-        <NavLink href="/" label="All" count={total} />
-        <NavLink href="/inbox" label="Inbox" count={inbox} accent={inbox > 0} />
-        <NavLink href="/saved" label="Saved" />
-        <NavLink href="/discover" label="Discover" />
+        <NavLink href="/" label={d.nav.all} count={total} />
+        <NavLink href="/inbox" label={d.nav.inbox} count={inbox} accent={inbox > 0} />
+        <NavLink href="/saved" label={d.nav.saved} />
+        <NavLink href="/discover" label={d.nav.discover} />
       </nav>
 
       <div className="mt-8">
-        <span className="eyebrow mb-2 block px-2">Brain</span>
+        <span className="eyebrow mb-2 block px-2">{d.nav.brain}</span>
         <nav className="space-y-0.5">
-          <NavLink href="/think" label="Think" />
-          <NavLink href="/assist" label="Creative assistant" />
-          <NavLink href="/moodboards" label="Moodboards" />
-          <NavLink href="/projects" label="Projects" />
-          <NavLink href="/graph" label="Knowledge graph" />
-          <NavLink href="/patterns" label="My patterns" />
+          <NavLink href="/think" label={d.nav.think} />
+          <NavLink href="/assist" label={d.nav.assistant} />
+          <NavLink href="/moodboards" label={d.nav.moodboards} />
+          <NavLink href="/projects" label={d.nav.projects} />
+          <NavLink href="/graph" label={d.nav.graph} />
+          <NavLink href="/patterns" label={d.nav.patterns} />
         </nav>
       </div>
 
       <div className="mt-8">
         <div className="mb-2 flex items-center justify-between px-2">
-          <span className="eyebrow">Collections</span>
+          <span className="eyebrow">{d.nav.collections}</span>
           <Link href="/collections" className="text-[11px] text-ink-3 hover:text-ink">
-            all
+            {d.nav.seeAll}
           </Link>
         </div>
         <nav className="space-y-0.5">
           {collections.slice(0, 12).map((c, i) => (
             <NavLink key={c.id} href={`/collections/${c.slug}`} label={`${c.emoji ? `${c.emoji} ` : ""}${c.name}`} count={c.count} index={i + 1} />
           ))}
-          {!collections.length && <p className="px-2 text-ink-3">No collections yet.</p>}
+          {!collections.length && <p className="px-2 text-ink-3">{d.nav.noCollections}</p>}
         </nav>
       </div>
 
       <div className="mt-8">
-        <span className="eyebrow mb-2 block px-2">Capture</span>
+        <span className="eyebrow mb-2 block px-2">{d.nav.capture}</span>
         <nav className="space-y-0.5">
-          <NavLink href="/share/setup" label="Share from your phone" />
+          <NavLink href="/share/setup" label={d.nav.shareFromPhone} />
         </nav>
       </div>
 
       <div className="mt-8">
-        <span className="eyebrow mb-2 block px-2">Categories</span>
+        <span className="eyebrow mb-2 block px-2">{d.nav.categories}</span>
         <nav className="space-y-0.5">
           {orderedSubjects.map((s) => (
-            <NavLink key={s} href={`/c/subject/${encodeURIComponent(s)}`} label={s} count={subjectCount.get(s)} />
+            <NavLink key={s} href={`/c/subject/${encodeURIComponent(s)}`} label={taxonomyLabel(lang, "subjects", s)} count={subjectCount.get(s)} />
           ))}
-          {!orderedSubjects.length && <p className="px-2 text-ink-3">Categories appear as references are understood.</p>}
+          {!orderedSubjects.length && <p className="px-2 text-ink-3">{d.nav.categoriesAppear}</p>}
         </nav>
       </div>
     </aside>

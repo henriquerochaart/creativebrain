@@ -1,27 +1,9 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { Dict } from "./i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
-}
-
-export const PLATFORM_LABEL: Record<string, string> = {
-  instagram: "Instagram",
-  tiktok: "TikTok",
-  youtube: "YouTube",
-  behance: "Behance",
-  pinterest: "Pinterest",
-  website: "Website",
-  pdf: "PDF",
-  image: "Image",
-  video: "Video",
-  app: "App",
-  text: "Text",
-  other: "Other",
-};
-
-export function platformLabel(p: string) {
-  return PLATFORM_LABEL[p] ?? p;
 }
 
 export function yearOf(date: Date | string | null | undefined): string {
@@ -42,12 +24,17 @@ export function truncate(s: string | null | undefined, n: number) {
   return s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s;
 }
 
-export function timeAgo(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  const diff = Math.max(0, Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 86400 * 30) return `${Math.floor(diff / 86400)}d ago`;
-  return d.toLocaleDateString();
+export function timeAgo(date: Date | string, d: Dict, locale?: string): string {
+  const dt = typeof date === "string" ? new Date(date) : date;
+  const diff = Math.max(0, Date.now() - dt.getTime()) / 1000;
+  if (diff < 60) return d.time.justNow;
+  if (diff < 3600) return d.time.minutes(Math.floor(diff / 60));
+  if (diff < 86400) return d.time.hours(Math.floor(diff / 3600));
+  if (diff < 86400 * 30) return d.time.days(Math.floor(diff / 86400));
+  return dt.toLocaleDateString(locale);
+}
+
+/** BCP 47 tag for Intl and the html lang attribute. */
+export function localeOf(lang: "pt" | "en"): string {
+  return lang === "pt" ? "pt-BR" : "en";
 }

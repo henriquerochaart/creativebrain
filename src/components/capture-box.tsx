@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useT } from "./lang-provider";
 
 type Toast = { kind: "ok" | "err" | "dup"; text: string };
 
@@ -14,6 +15,7 @@ type Toast = { kind: "ok" | "err" | "dup"; text: string };
 export function CaptureBox({ collectionId, compact }: { collectionId?: string; compact?: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
+  const d = useT();
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
@@ -27,8 +29,8 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 4000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
   }, [toast]);
 
   async function submitText() {
@@ -38,10 +40,10 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
     try {
       const res = await api<{ reference: { id: string }; duplicate: boolean }>("/api/references", { method: "POST", body: JSON.stringify({ input, collectionId }) });
       setValue("");
-      setToast(res.duplicate ? { kind: "dup", text: "Already in the Brain." } : { kind: "ok", text: "Captured. Understanding…" });
+      setToast(res.duplicate ? { kind: "dup", text: d.capture.duplicate } : { kind: "ok", text: d.capture.captured });
       router.refresh();
     } catch (err) {
-      setToast({ kind: "err", text: err instanceof Error ? err.message : "Failed" });
+      setToast({ kind: "err", text: err instanceof Error ? err.message : d.capture.failed });
     } finally {
       setBusy(false);
     }
@@ -60,10 +62,10 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
         await api("/api/upload", { method: "POST", body: form });
         ok++;
       } catch (err) {
-        setToast({ kind: "err", text: `${file.name}: ${err instanceof Error ? err.message : "failed"}` });
+        setToast({ kind: "err", text: `${file.name}: ${err instanceof Error ? err.message : d.capture.failed}` });
       }
     }
-    if (ok) setToast({ kind: "ok", text: `${ok} file${ok > 1 ? "s" : ""} captured. Understanding…` });
+    if (ok) setToast({ kind: "ok", text: d.capture.filesCaptured(ok) });
     setBusy(false);
     router.refresh();
   }
@@ -104,16 +106,17 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
             }
           }}
           rows={compact ? 1 : 2}
-          placeholder="Paste a link, drop a file, or write an idea…"
+          placeholder={d.capture.placeholder}
+          aria-label={d.capture.placeholder}
           className={cn("w-full resize-none bg-transparent px-6 outline-none placeholder:text-ink-3", compact ? "py-3 text-sm" : "py-5 text-lg")}
         />
         <div className="flex items-center justify-between px-4 pb-3">
           <div className="flex items-center gap-1 text-[12px] text-ink-3">
             <button type="button" onClick={() => fileRef.current?.click()} className="rounded-full px-3 py-1 hover:bg-paper-2 hover:text-ink">
-              Upload image · video · PDF
+              {d.capture.upload}
             </button>
             <input ref={fileRef} type="file" multiple accept="image/*,video/*,application/pdf,text/plain,text/markdown,audio/*" className="hidden" onChange={(e) => e.target.files && void submitFiles(e.target.files)} />
-            <span className="hidden sm:inline">Instagram · TikTok · YouTube · Behance · any site</span>
+            <span className="hidden sm:inline">{d.capture.platforms}</span>
           </div>
           <button
             type="button"
@@ -121,7 +124,7 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
             disabled={busy || !value.trim()}
             className="rounded-full bg-ink px-4 py-1.5 text-[13px] font-medium text-paper disabled:opacity-30"
           >
-            {busy ? "…" : "Enter ↵"}
+            {busy ? "…" : d.capture.enter}
           </button>
         </div>
       </div>

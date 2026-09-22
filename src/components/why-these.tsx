@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { useT } from "./lang-provider";
 
 type Why = { headline: string; mechanisms: { name: string; explanation: string; referenceIds: string[] }[]; direction: string };
 
 /** Turns a result set into creative direction: shared mechanisms, and why. */
 export function WhyThese({ query, ids, titles }: { query: string; ids: string[]; titles: Record<string, string> }) {
+  const d = useT();
   const [why, setWhy] = useState<Why | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -24,9 +26,9 @@ export function WhyThese({ query, ids, titles }: { query: string; ids: string[];
   if (!ids.length) return null;
   return (
     <section className="rounded-3xl border border-line p-6">
-      <h2 className="eyebrow mb-3">Why these references?</h2>
-      {error && <p className="text-sm text-ink-3">Could not explain: {error}</p>}
-      {!why && !error && <p className="pulse-soft text-sm text-ink-3">Reading the set…</p>}
+      <h2 className="eyebrow mb-3">{d.search.whyThese}</h2>
+      {error && <p className="text-sm text-ink-3">{d.search.couldNotExplain} {error}</p>}
+      {!why && !error && <p className="pulse-soft text-sm text-ink-3">{d.search.readingSet}</p>}
       {why && (
         <div className="space-y-5">
           <p className="text-lg font-medium tracking-tight">{why.headline}</p>
@@ -53,7 +55,7 @@ export function WhyThese({ query, ids, titles }: { query: string; ids: string[];
             ))}
           </ol>
           <p className="border-t border-line pt-4 text-sm text-ink-2">
-            <span className="eyebrow mr-2">Direction</span>
+            <span className="eyebrow mr-2">{d.search.direction}</span>
             {why.direction}
           </p>
         </div>

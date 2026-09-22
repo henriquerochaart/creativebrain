@@ -3,17 +3,19 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
+import { useT } from "./lang-provider";
 
 type Narrative = { headline: string; observations: string[]; blindSpots: string[]; provocation: string };
 
 export function TasteNarrative() {
+  const d = useT();
   const [busy, setBusy] = useState(false);
   const [n, setN] = useState<Narrative | null>(null);
   const [error, setError] = useState<string | null>(null);
   return (
     <section className="rounded-3xl border border-line p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="eyebrow">Read by the Brain</h2>
+        <h2 className="eyebrow">{d.patterns.readByBrain}</h2>
         <button
           type="button"
           disabled={busy}
@@ -30,7 +32,7 @@ export function TasteNarrative() {
           }}
           className="inline-flex h-9 items-center gap-2 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2 disabled:opacity-50"
         >
-          <Sparkles className="h-3.5 w-3.5" /> {busy ? "Reading…" : n ? "Read again" : "What do I seem to like?"}
+          <Sparkles className="h-3.5 w-3.5" /> {busy ? d.patterns.reading : n ? d.patterns.readAgain : d.patterns.whatDoILike}
         </button>
       </div>
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
@@ -40,7 +42,7 @@ export function TasteNarrative() {
           <ul className="space-y-2 text-[15px]">{n.observations.map((o) => <li key={o}>→ {o}</li>)}</ul>
           {n.blindSpots.length > 0 && (
             <div>
-              <p className="eyebrow mb-1">Blind spots</p>
+              <p className="eyebrow mb-1">{d.patterns.blindSpots}</p>
               <ul className="space-y-1 text-[15px] text-ink-2">{n.blindSpots.map((b) => <li key={b}>→ {b}</li>)}</ul>
             </div>
           )}

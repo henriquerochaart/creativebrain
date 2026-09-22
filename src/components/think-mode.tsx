@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { Thumb } from "./thumb";
+import { useLang, useT } from "./lang-provider";
 import type { PublicReference } from "@/server/references";
 
 type Think = {
@@ -18,6 +19,8 @@ type Res = { query: string; found: number; degraded?: string; analysis: Think; r
 type Turn = { role: "user" | "assistant"; content: string };
 
 export function ThinkMode() {
+  const d = useT();
+  const lang = useLang();
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState<Res | null>(null);
@@ -31,7 +34,7 @@ export function ThinkMode() {
     try {
       const r = await api<Res>("/api/think", { method: "POST", body: JSON.stringify({ query, history }) });
       setRes(r);
-      setHistory((h) => [...h, { role: "user", content: query }, { role: "assistant", content: `${r.analysis.intro} ${r.analysis.clusters.map((c) => c.title).join("; ")}. Patterns: ${r.analysis.patterns.join("; ")}` }]);
+      setHistory((h) => [...h, { role: "user", content: query }, { role: "assistant", content: `${r.analysis.intro} ${r.analysis.clusters.map((c) => c.title).join("; ")}` }]);
       setQ("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "failed");
@@ -56,19 +59,20 @@ export function ThinkMode() {
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), void think(q))}
           rows={2}
-          placeholder="referências para uma campanha de lançamento de IA que pareça culturalmente relevante…"
+          placeholder={d.think.placeholder}
+          aria-label={d.think.placeholder}
           className="w-full resize-none bg-transparent px-4 py-3 text-lg outline-none placeholder:text-ink-3"
         />
         <div className="flex items-center justify-between px-2 pb-1">
-          <span className="text-[12px] text-ink-3">{history.length ? `${history.length / 2} turn${history.length > 2 ? "s" : ""} in this conversation` : "Retrieves your repertoire, clusters it, names the patterns."}</span>
+          <span className="text-[12px] text-ink-3">{history.length ? d.think.turns(history.length / 2) : d.think.hint}</span>
           <button type="submit" disabled={busy || !q.trim()} className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-paper disabled:opacity-30">
-            {busy ? "Thinking…" : "Think"}
+            {busy ? d.think.working : d.think.submit}
           </button>
         </div>
       </form>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {busy && !res && <p className="pulse-soft text-center text-sm text-ink-3">Reading the repertoire…</p>}
+      {error && <p className="text-sm text-red-600">{d.think.failed} {error}</p>}
+      {busy && !res && <p className="pulse-soft text-center text-sm text-ink-3">{d.think.reading}</p>}
 
       {res && (
         <div className={busy ? "opacity-50 transition-opacity" : "transition-opacity"}>
@@ -86,7 +90,7 @@ export function ThinkMode() {
                     {c.referenceIds.map(refOf).filter(Boolean).map((r) => (
                       <Link key={r!.id} href={`/r/${r!.id}`} className="w-36 shrink-0">
                         <div className="overflow-hidden rounded-xl border border-line bg-paper-2">
-                          <Thumb reference={r!} className="aspect-[4/3] object-cover" />
+                          <Thumb reference={r!} lang={lang} className="aspect-[4/3] object-cover" />
                         </div>
                         <p className="mt-1.5 line-clamp-2 text-[12px] leading-snug text-ink-2">{r!.title}</p>
                       </Link>
@@ -99,12 +103,12 @@ export function ThinkMode() {
 
           {res.analysis.strongest.length > 0 && (
             <section className="mt-10">
-              <h2 className="eyebrow mb-3">Strongest references</h2>
+              <h2 className="eyebrow mb-3">{d.think.strongest}</h2>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {res.analysis.strongest.map(refOf).filter(Boolean).map((r) => (
                   <Link key={r!.id} href={`/r/${r!.id}`} className="group">
                     <div className="overflow-hidden rounded-2xl border border-line bg-paper-2">
-                      <Thumb reference={r!} className="aspect-[4/3] object-cover transition-transform group-hover:scale-[1.02]" />
+                      <Thumb reference={r!} lang={lang} className="aspect-[4/3] object-cover transition-transform group-hover:scale-[1.02]" />
                     </div>
                     <p className="mt-2 text-sm font-medium leading-snug">{r!.title}</p>
                     <p className="text-[12px] text-ink-3">{r!.ai.creativeMechanism}</p>
@@ -116,12 +120,12 @@ export function ThinkMode() {
 
           <section className="mt-10 grid gap-8 md:grid-cols-2">
             <div>
-              <h2 className="eyebrow mb-3">Patterns I found</h2>
+              <h2 className="eyebrow mb-3">{d.think.patternsFound}</h2>
               <ul className="space-y-2 text-[15px]">{res.analysis.patterns.map((p) => <li key={p}>→ {p}</li>)}</ul>
             </div>
             {res.analysis.gaps.length > 0 && (
               <div>
-                <h2 className="eyebrow mb-3">What your repertoire lacks</h2>
+                <h2 className="eyebrow mb-3">{d.think.lacks}</h2>
                 <ul className="space-y-2 text-[15px] text-ink-2">{res.analysis.gaps.map((g) => <li key={g}>→ {g}</li>)}</ul>
               </div>
             )}

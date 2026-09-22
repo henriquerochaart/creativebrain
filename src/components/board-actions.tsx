@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { useT } from "./lang-provider";
 
 export function DeleteBoard({ id }: { id: string }) {
   const router = useRouter();
+  const d = useT();
   const [confirm, setConfirm] = useState(false);
   return (
     <button
@@ -19,7 +21,7 @@ export function DeleteBoard({ id }: { id: string }) {
       }}
       className={confirm ? "text-[13px] text-red-600" : "text-[13px] text-ink-3 hover:text-ink"}
     >
-      {confirm ? "Confirm delete" : "Delete board"}
+      {confirm ? d.moodboards.confirmDelete : d.moodboards.delete}
     </button>
   );
 }

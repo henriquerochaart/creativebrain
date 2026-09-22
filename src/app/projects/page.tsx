@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { listProjects } from "@/server/projects";
 import { NewProject } from "@/components/project-actions";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, localeOf } from "@/lib/utils";
+import { dict } from "@/server/lang";
 
 export default async function ProjectsPage() {
+  const { lang, d } = await dict();
   const projects = await listProjects();
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Projects</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Your creative process, as an object</h1>
-          <p className="mt-1 text-sm text-ink-2">References → Concepts → Patterns → Directions → Ideas → Output.</p>
+          <p className="eyebrow">{d.projects.eyebrow}</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{d.projects.title}</h1>
+          <p className="mt-1 text-sm text-ink-2">{d.projects.sub}</p>
         </div>
         <NewProject />
       </header>
@@ -29,13 +31,13 @@ export default async function ProjectsPage() {
                 <p className="text-lg font-medium tracking-tight">{p.name}</p>
                 {p.brief && <p className="mt-1 line-clamp-2 text-[13px] text-ink-2">{p.brief}</p>}
                 <p className="mt-3 text-[12px] text-ink-3">
-                  {p.count} reference{p.count === 1 ? "" : "s"} · {p.analyzed_at ? "analysed" : "not analysed"} · {timeAgo(p.updated_at)}
+                  {d.projects.count(p.count)} · {p.analyzed_at ? d.projects.analysed : d.projects.notAnalysed} · {timeAgo(p.updated_at, d, localeOf(lang))}
                 </p>
               </div>
             </Link>
           </li>
         ))}
-        {!projects.length && <li className="col-span-full rounded-2xl border border-dashed border-line p-12 text-center text-sm text-ink-3">Open a project and start dragging references into it.</li>}
+        {!projects.length && <li className="col-span-full rounded-2xl border border-dashed border-line p-12 text-center text-sm text-ink-3">{d.projects.empty}</li>}
       </ul>
     </div>
   );

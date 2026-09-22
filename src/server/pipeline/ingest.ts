@@ -8,8 +8,9 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { references, type Reference, type ReferenceAI, type ReferenceContent, type ReferenceMetadata } from "../db/schema";
 import { getLLM, getTranscriber } from "../ai/router";
+import { env } from "../env";
 import { UnderstandingSchema, type Understanding } from "../ai/schemas";
-import { ANALYST_SYSTEM, synthesisPrompt } from "../ai/prompts";
+import { analystSystem, synthesisPrompt } from "../ai/prompts";
 import type { AIDocument, AIImage } from "../ai/types";
 import { resolveUrl } from "../connectors";
 import { extensionFor, getStorage } from "../storage";
@@ -185,7 +186,7 @@ async function runPipeline(ref: Reference): Promise<Reference> {
   await setStep(ref.id, "synthesis");
   const llm = getLLM();
   const understanding: Understanding = await llm.analyze({
-    system: ANALYST_SYSTEM,
+    system: analystSystem(env.contentLanguage),
     prompt: synthesisPrompt({
       platform,
       mediaType,

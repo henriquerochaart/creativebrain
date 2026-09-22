@@ -1,7 +1,8 @@
 import type { Reference } from "../db/schema";
 import { getLLM } from "../ai/router";
 import { ThinkSchema, WhyTheseSchema, type Think, type WhyThese } from "../ai/schemas";
-import { THINK_SYSTEM, WHY_THESE_SYSTEM, clip } from "../ai/prompts";
+import { THINK_SYSTEM, whyTheseSystem, clip } from "../ai/prompts";
+import type { Lang } from "@/lib/i18n";
 
 /** Compact semantic file of a reference for prompting. */
 export function referenceDigest(r: Reference, opts: { withId?: boolean; long?: boolean } = {}): string {
@@ -34,10 +35,10 @@ export function referenceDigest(r: Reference, opts: { withId?: boolean; long?: b
   return lines.filter(Boolean).join("\n");
 }
 
-export async function whyTheseReferences(query: string, refs: Reference[]): Promise<WhyThese> {
+export async function whyTheseReferences(query: string, refs: Reference[], lang: Lang): Promise<WhyThese> {
   const digest = refs.slice(0, 16).map((r) => referenceDigest(r, { withId: true })).join("\n\n");
   return getLLM().analyze({
-    system: WHY_THESE_SYSTEM,
+    system: whyTheseSystem(lang),
     prompt: `Query: "${query}"\n\nReferences found:\n\n${digest}\n\nExplain why these references answer the query.`,
     schema: WhyTheseSchema,
     schemaName: "why_these",

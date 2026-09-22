@@ -42,6 +42,10 @@ export const env = {
     },
   },
 
+  /** What the model writes when it understands a reference. The UI toggle is per reader; this is
+   *  written once, at capture time, so it is a deployment setting. */
+  contentLanguage: (str("BRAIN_CONTENT_LANGUAGE", "pt") === "en" ? "en" : "pt") as "pt" | "en",
+
   ai: {
     llmProvider: str("LLM_PROVIDER", "anthropic") as "anthropic" | "openai" | "gemini" | "mock",
     llmModel: str("LLM_MODEL", "claude-opus-5"),

@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Star, RefreshCw, Trash2, Plus, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useT } from "./lang-provider";
 
 export function SaveToggle({ id, saved }: { id: string; saved: boolean }) {
   const router = useRouter();
+  const d = useT();
   const [on, setOn] = useState(saved);
   return (
     <button
@@ -19,13 +21,14 @@ export function SaveToggle({ id, saved }: { id: string; saved: boolean }) {
       }}
       className={cn("inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2", on && "border-ink bg-ink text-paper hover:bg-ink")}
     >
-      <Star className={cn("h-3.5 w-3.5", on && "fill-current")} /> {on ? "Saved" : "Save"}
+      <Star className={cn("h-3.5 w-3.5", on && "fill-current")} /> {on ? d.reference.saved : d.reference.save}
     </button>
   );
 }
 
 export function ReprocessButton({ id }: { id: string }) {
   const router = useRouter();
+  const d = useT();
   const [pending, start] = useTransition();
   return (
     <button
@@ -39,13 +42,14 @@ export function ReprocessButton({ id }: { id: string }) {
       }
       className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2 disabled:opacity-50"
     >
-      <RefreshCw className={cn("h-3.5 w-3.5", pending && "animate-spin")} /> Re-understand
+      <RefreshCw className={cn("h-3.5 w-3.5", pending && "animate-spin")} /> {d.reference.reUnderstand}
     </button>
   );
 }
 
 export function DeleteButton({ id }: { id: string }) {
   const router = useRouter();
+  const d = useT();
   const [confirm, setConfirm] = useState(false);
   return (
     <button
@@ -59,7 +63,7 @@ export function DeleteButton({ id }: { id: string }) {
       onBlur={() => setConfirm(false)}
       className={cn("inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2", confirm && "border-red-500 text-red-600")}
     >
-      <Trash2 className="h-3.5 w-3.5" /> {confirm ? "Confirm delete" : "Delete"}
+      <Trash2 className="h-3.5 w-3.5" /> {confirm ? d.reference.confirmDelete : d.reference.delete}
     </button>
   );
 }
@@ -68,6 +72,7 @@ type Col = { id: string; name: string; emoji: string | null; slug: string };
 
 export function CollectionPicker({ referenceId, all, member }: { referenceId: string; all: Col[]; member: Col[] }) {
   const router = useRouter();
+  const d = useT();
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState("");
   const memberIds = new Set(member.map((m) => m.id));
@@ -87,7 +92,7 @@ export function CollectionPicker({ referenceId, all, member }: { referenceId: st
   return (
     <div className="relative">
       <button type="button" onClick={() => setOpen(!open)} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2">
-        <Plus className="h-3.5 w-3.5" /> {member.length ? `${member.length} collection${member.length > 1 ? "s" : ""}` : "Add to collection"}
+        <Plus className="h-3.5 w-3.5" /> {member.length ? d.reference.collections(member.length) : d.reference.addToCollection}
       </button>
       {open && (
         <div className="absolute right-0 z-20 mt-2 w-64 rounded-2xl border border-line bg-paper p-2 shadow-lg">
@@ -111,9 +116,9 @@ export function CollectionPicker({ referenceId, all, member }: { referenceId: st
               void create();
             }}
           >
-            <input value={creating} onChange={(e) => setCreating(e.target.value)} placeholder="New collection…" className="h-8 w-full rounded-lg bg-paper-2 px-2 text-[13px] outline-none" />
+            <input value={creating} onChange={(e) => setCreating(e.target.value)} placeholder={d.reference.newCollection} className="h-8 w-full rounded-lg bg-paper-2 px-2 text-[13px] outline-none" />
             <button type="submit" className="h-8 rounded-lg bg-ink px-2 text-[12px] text-paper">
-              Add
+              {d.reference.add}
             </button>
           </form>
         </div>

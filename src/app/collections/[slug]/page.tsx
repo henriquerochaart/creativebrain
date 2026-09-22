@@ -4,8 +4,10 @@ import { collectionReferences, getCollection, toPublic } from "@/server/referenc
 import { ReferenceGrid } from "@/components/reference-grid";
 import { CaptureBox } from "@/components/capture-box";
 import { DeleteCollection } from "@/components/collection-actions";
+import { dict } from "@/server/lang";
 
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { lang, d } = await dict();
   const { slug } = await params;
   const col = await getCollection(slug);
   if (!col) notFound();
@@ -14,7 +16,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Collection</p>
+          <p className="eyebrow">{col.auto ? d.collections.auto : d.collections.one}</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">
             {col.emoji ? `${col.emoji} ` : ""}
             {col.name}
@@ -26,7 +28,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
       <Suspense>
         <CaptureBox collectionId={col.id} compact />
       </Suspense>
-      <ReferenceGrid references={refs.map(toPublic)} showStatus empty="Empty. Add references from their page, or capture straight into this collection above." />
+      <ReferenceGrid references={refs.map(toPublic)} lang={lang} showStatus empty={d.collections.emptyOne} />
     </div>
   );
 }
