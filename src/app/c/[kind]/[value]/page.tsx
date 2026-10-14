@@ -23,7 +23,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ kind:
     <div className="space-y-6">
       <header>
         <p className="eyebrow">{d.category[kind]}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{heading}</h1>
+        <h1 className="large-title mt-1">{heading}</h1>
         <p className="mt-1 text-sm text-ink-2">{d.category.references(refs.length)}</p>
       </header>
       <ReferenceGrid references={refs.map(toPublic)} lang={lang} />

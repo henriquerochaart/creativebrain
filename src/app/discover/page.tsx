@@ -14,7 +14,7 @@ export default async function DiscoverPage() {
     <div className="space-y-12">
       <header>
         <p className="eyebrow">{d.discover.eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{d.discover.title}</h1>
+        <h1 className="large-title mt-1">{d.discover.title}</h1>
         {data ? (
           <p className="mt-1 text-sm text-ink-2">
             {d.discover.sub(data.signals)}
@@ -30,12 +30,12 @@ export default async function DiscoverPage() {
           <h2 className="eyebrow mb-4">{d.discover.unexpected}</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {data.unexpected.map((u) => (
-              <Link key={u.reference.id} href={`/r/${u.reference.id}`} className="group overflow-hidden rounded-2xl border border-line">
+              <Link key={u.reference.id} href={`/r/${u.reference.id}`} className="group overflow-hidden rounded-[20px] bg-surface shadow-[var(--card-shadow)] transition-shadow duration-300 hover:shadow-[var(--card-shadow-hover)]">
                 <div className="overflow-hidden bg-paper-2">
                   <Thumb reference={u.reference} lang={lang} className="aspect-[4/3] object-cover transition-transform group-hover:scale-[1.02]" />
                 </div>
                 <div className="p-4">
-                  <p className="text-[15px] font-semibold leading-snug tracking-tight">{u.reference.title}</p>
+                  <p className="text-[15px] font-semibold leading-snug">{u.reference.title}</p>
                   <p className="mt-1 text-[13px] text-ink-2">
                     {u.newPrinciples.length
                       ? d.discover.because.brings(list(u.newPrinciples, "principles").toLowerCase())

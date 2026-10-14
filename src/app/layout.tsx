@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fbfbfa" }, { media: "(prefers-color-scheme: dark)", color: "#0f0f10" }] };
+export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }, { media: "(prefers-color-scheme: dark)", color: "#000000" }] };
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <Sidebar />
                 </Suspense>
               </SidebarDrawer>
-              <main className="min-w-0 flex-1 px-6 py-8 lg:px-10">{children}</main>
+              <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">{children}</main>
             </div>
           </SidebarProvider>
         </LangProvider>

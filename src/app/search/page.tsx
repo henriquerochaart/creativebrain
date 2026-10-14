@@ -21,7 +21,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     <div className="space-y-8">
       <header>
         <p className="eyebrow">{d.search.eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{q || d.search.prompt}</h1>
+        <h1 className="large-title mt-1">{q || d.search.prompt}</h1>
         {result && (
           <p className="mt-1 text-sm text-ink-2">
             {d.search.references(result.total)}
@@ -30,7 +30,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         )}
         <div className="mt-4 flex flex-wrap gap-1">
           {MODES.map((m) => (
-            <Link key={m} href={`/search?q=${encodeURIComponent(q)}&mode=${m}`} title={d.search.modes[m].hint} className={cn("rounded-full px-3 py-1 text-[13px]", mode === m ? "bg-ink text-paper" : "text-ink-2 hover:bg-paper-2")}>
+            <Link key={m} href={`/search?q=${encodeURIComponent(q)}&mode=${m}`} title={d.search.modes[m].hint} className={cn("rounded-full px-3 py-1 text-[13px]", mode === m ? "bg-accent font-medium text-white" : "text-ink-2 hover:bg-fill")}>
               {d.search.modes[m].label}
             </Link>
           ))}

@@ -11,7 +11,7 @@ export function Markdown({ text, className }: { text: string; className?: string
         const h = /^(#{1,6})\s+(.*)$/.exec(lines[0]);
         if (h && lines.length === 1) {
           const level = h[1].length;
-          const cls = level <= 2 ? "mt-6 text-xl font-semibold tracking-tight" : "mt-5 text-base font-semibold";
+          const cls = level <= 2 ? "mt-6 text-xl font-semibold" : "mt-5 text-base font-semibold";
           return (
             <p key={i} className={cls}>
               <Inline text={h[2]} />

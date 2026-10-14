@@ -39,7 +39,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       <ol className="flex flex-wrap items-center gap-2 text-[12px]">
         {stages.map((s, i) => (
           <li key={s} className="flex items-center gap-2">
-            <span className={`rounded-full px-3 py-1 ${stageDone[i] ? "bg-ink text-paper" : "border border-line text-ink-3"}`}>{s}</span>
+            <span className={`rounded-full px-3 py-1 ${stageDone[i] ? "bg-accent font-medium text-white" : "bg-fill text-ink-3"}`}>{s}</span>
             {i < stages.length - 1 && <span className="text-ink-3">↓</span>}
           </li>
         ))}
@@ -68,7 +68,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           {refs.map((r) => (
             <div key={r.id} className="group relative">
               <Link href={`/r/${r.id}`}>
-                <div className="overflow-hidden rounded-2xl border border-line bg-paper-2">
+                <div className="overflow-hidden rounded-[16px] bg-paper-2">
                   <Thumb reference={r} lang={lang} className="aspect-[4/3] object-cover" />
                 </div>
                 <p className="mt-2 line-clamp-2 text-[13px] leading-snug">{r.title}</p>
@@ -85,14 +85,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       {a && stored && (
         <>
           <section className="rounded-3xl bg-paper-2 p-6">
-            <p className="text-xl font-medium tracking-tight">{a.summary}</p>
-            <p className="mt-3 text-[15px] text-ink-2">{a.combinationQuestion}</p>
+            <p className="text-xl font-medium">{a.summary}</p>
+            <p className="mt-3 text-[15px] text-ink">{a.combinationQuestion}</p>
           </section>
 
           <Stage n="02" title={d.projects.stages.concepts}>
             <div className="flex flex-wrap gap-2">
               {a.concepts.map((c) => (
-                <span key={c.name} className="rounded-full border border-line px-3 py-1 text-sm" title={c.referenceIds.map(title).filter(Boolean).join(", ")}>
+                <span key={c.name} className="btn-gray px-3 py-1 text-sm" title={c.referenceIds.map(title).filter(Boolean).join(", ")}>
                   {c.name} <span className="text-ink-3">{c.referenceIds.length}</span>
                 </span>
               ))}
@@ -112,8 +112,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <Stage n="04" title={d.projects.stages.directions}>
             <div className="grid gap-5 md:grid-cols-2">
               {a.directions.map((dir) => (
-                <div key={dir.title} className="rounded-2xl border border-line p-5">
-                  <h3 className="text-lg font-semibold tracking-tight">{dir.title}</h3>
+                <div key={dir.title} className="rounded-[20px] bg-paper-2 p-5">
+                  <h3 className="text-lg font-semibold">{dir.title}</h3>
                   <p className="mt-1 text-sm text-ink-2">{dir.rationale}</p>
                   <p className="mt-3 font-mono text-[12px] text-ink-3">{dir.mechanism}</p>
                   <div className="mt-3 flex gap-2 overflow-x-auto">
@@ -134,7 +134,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 <li key={idea.title} className="grid gap-3 md:grid-cols-[48px_1fr]">
                   <span className="font-mono text-sm text-ink-3">{String(idx + 1).padStart(2, "0")}</span>
                   <div>
-                    <h3 className="text-lg font-semibold tracking-tight">{idea.title}</h3>
+                    <h3 className="text-lg font-semibold">{idea.title}</h3>
                     <p className="text-[12px] text-ink-3">
                       {idea.direction} · {idea.mechanism}
                     </p>
@@ -164,7 +164,7 @@ function Stage({ n, title, children }: { n: string; title: string; children: Rea
     <section>
       <div className="mb-3 flex items-baseline gap-3">
         <span className="font-mono text-sm text-ink-3">{n}</span>
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+        <h2 className="title-2">{title}</h2>
       </div>
       {children}
     </section>

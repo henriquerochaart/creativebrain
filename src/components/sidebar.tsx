@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Bookmark, Compass, Folder, FolderKanban, Hash, Inbox, LayoutDashboard, LayoutGrid, LineChart, Network, Smartphone, Sparkles, WandSparkles } from "lucide-react";
+import { NavLink } from "./nav-link";
 import { listCollections, statusCounts, facetCounts } from "@/server/references";
 import { SUBJECTS } from "@/server/taxonomy";
 import { dict } from "@/server/lang";
@@ -28,69 +30,58 @@ export async function Sidebar() {
     // Position, width and mobile/desktop visibility all live on SidebarDrawer, the wrapper this
     // renders inside of. Kept here would double up with — and on the drawer's translated panel,
     // fight — the classes that make the off-canvas version work.
-    <aside className="px-4 py-6 pt-14 text-[13px] lg:pt-6">
+    <aside className="px-3 py-5 pt-14 lg:pt-5">
       <nav className="space-y-0.5">
-        <NavLink href="/" label={d.nav.all} count={total} />
-        <NavLink href="/inbox" label={d.nav.inbox} count={inbox} accent={inbox > 0} />
-        <NavLink href="/saved" label={d.nav.saved} />
-        <NavLink href="/discover" label={d.nav.discover} />
+        <NavLink href="/" label={d.nav.all} count={total} icon={<LayoutGrid />} />
+        <NavLink href="/inbox" label={d.nav.inbox} count={inbox} accent={inbox > 0} icon={<Inbox />} />
+        <NavLink href="/saved" label={d.nav.saved} icon={<Bookmark />} />
+        <NavLink href="/discover" label={d.nav.discover} icon={<Compass />} />
       </nav>
 
-      <div className="mt-8">
-        <span className="eyebrow mb-2 block px-2">{d.nav.brain}</span>
+      <div className="mt-6">
+        <span className="eyebrow mb-1 block px-2.5">{d.nav.brain}</span>
         <nav className="space-y-0.5">
-          <NavLink href="/think" label={d.nav.think} />
-          <NavLink href="/assist" label={d.nav.assistant} />
-          <NavLink href="/moodboards" label={d.nav.moodboards} />
-          <NavLink href="/projects" label={d.nav.projects} />
-          <NavLink href="/graph" label={d.nav.graph} />
-          <NavLink href="/patterns" label={d.nav.patterns} />
+          <NavLink href="/think" label={d.nav.think} icon={<Sparkles />} />
+          <NavLink href="/assist" label={d.nav.assistant} icon={<WandSparkles />} />
+          <NavLink href="/moodboards" label={d.nav.moodboards} icon={<LayoutDashboard />} />
+          <NavLink href="/projects" label={d.nav.projects} icon={<FolderKanban />} />
+          <NavLink href="/graph" label={d.nav.graph} icon={<Network />} />
+          <NavLink href="/patterns" label={d.nav.patterns} icon={<LineChart />} />
         </nav>
       </div>
 
-      <div className="mt-8">
-        <div className="mb-2 flex items-center justify-between px-2">
+      <div className="mt-6">
+        <div className="mb-1 flex items-center justify-between px-2.5">
           <span className="eyebrow">{d.nav.collections}</span>
-          <Link href="/collections" className="text-[11px] text-ink-3 hover:text-ink">
+          <Link href="/collections" className="text-[13px] text-accent hover:opacity-80">
             {d.nav.seeAll}
           </Link>
         </div>
         <nav className="space-y-0.5">
-          {collections.slice(0, 12).map((c, i) => (
-            <NavLink key={c.id} href={`/collections/${c.slug}`} label={`${c.emoji ? `${c.emoji} ` : ""}${c.name}`} count={c.count} index={i + 1} />
+          {collections.slice(0, 12).map((c) => (
+            <NavLink key={c.id} href={`/collections/${c.slug}`} label={c.name} count={c.count} icon={c.emoji ? <span className="text-[15px] leading-none">{c.emoji}</span> : <Folder />} />
           ))}
-          {!collections.length && <p className="px-2 text-ink-3">{d.nav.noCollections}</p>}
+          {!collections.length && <p className="px-2.5 py-1 text-[13px] text-ink-3">{d.nav.noCollections}</p>}
         </nav>
       </div>
 
-      <div className="mt-8">
-        <span className="eyebrow mb-2 block px-2">{d.nav.capture}</span>
+      <div className="mt-6">
+        <span className="eyebrow mb-1 block px-2.5">{d.nav.capture}</span>
         <nav className="space-y-0.5">
-          <NavLink href="/share/setup" label={d.nav.shareFromPhone} />
+          <NavLink href="/share/setup" label={d.nav.shareFromPhone} icon={<Smartphone />} />
         </nav>
       </div>
 
-      <div className="mt-8">
-        <span className="eyebrow mb-2 block px-2">{d.nav.categories}</span>
+      <div className="mt-6">
+        <span className="eyebrow mb-1 block px-2.5">{d.nav.categories}</span>
         <nav className="space-y-0.5">
           {orderedSubjects.map((s) => (
-            <NavLink key={s} href={`/c/subject/${encodeURIComponent(s)}`} label={taxonomyLabel(lang, "subjects", s)} count={subjectCount.get(s)} />
+            <NavLink key={s} href={`/c/subject/${encodeURIComponent(s)}`} label={taxonomyLabel(lang, "subjects", s)} count={subjectCount.get(s)} icon={<Hash />} />
           ))}
-          {!orderedSubjects.length && <p className="px-2 text-ink-3">{d.nav.categoriesAppear}</p>}
+          {!orderedSubjects.length && <p className="px-2.5 py-1 text-[13px] text-ink-3">{d.nav.categoriesAppear}</p>}
         </nav>
       </div>
     </aside>
   );
 }
 
-function NavLink({ href, label, count, accent, index }: { href: string; label: string; count?: number; accent?: boolean; index?: number }) {
-  return (
-    <Link href={href} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-ink-2 hover:bg-paper-2 hover:text-ink">
-      <span className="flex items-center gap-2 truncate">
-        {index !== undefined && <span className="w-5 font-mono text-[11px] text-ink-3">{String(index).padStart(2, "0")}</span>}
-        <span className="truncate">{label}</span>
-      </span>
-      {count !== undefined && count > 0 && <span className={accent ? "text-accent" : "text-ink-3"}>{count}</span>}
-    </Link>
-  );
-}

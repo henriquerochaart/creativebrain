@@ -22,7 +22,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
   return (
     <div className="mx-auto max-w-2xl space-y-8 pt-8 text-center">
       <p className="eyebrow">{d.share.eyebrow}</p>
-      <h1 className="text-2xl font-semibold tracking-tight">{d.share.nothingArrived}</h1>
+      <h1 className="large-title">{d.share.nothingArrived}</h1>
       <p className="text-sm text-ink-2">{d.share.pasteInstead}</p>
       <Suspense>
         <CaptureBox />

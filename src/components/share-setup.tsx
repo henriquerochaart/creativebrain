@@ -20,14 +20,14 @@ export function InstallButton() {
     if (window.matchMedia("(display-mode: standalone)").matches) setInstalled(true);
     return () => { window.removeEventListener("beforeinstallprompt", onPrompt); window.removeEventListener("appinstalled", onInstalled); };
   }, []);
-  if (installed) return <span className="inline-flex h-10 items-center rounded-full border border-line px-4 text-sm text-ink-2">{d.share.setup.installed}</span>;
+  if (installed) return <span className="btn-gray h-11 px-4 text-[15px] lg:h-10 lg:text-sm">{d.share.setup.installed}</span>;
   return (
     <button
       type="button"
       disabled={!evt}
       title={evt ? "" : d.share.setup.installHint}
       onClick={async () => { if (!evt) return; await evt.prompt(); const c = await evt.userChoice; if (c.outcome === "accepted") setInstalled(true); }}
-      className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-paper disabled:opacity-40"
+      className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm"
     >
       {d.share.setup.install}
     </button>

@@ -6,13 +6,13 @@ export function StatusDot({ status, step, className, lang = "pt" }: { status: st
   if (status === "understood")
     return (
       <span className={cn("inline-flex items-center gap-1.5 text-[12px] text-ink-2", className)}>
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {d.status.understood}
+        <span className="h-1.5 w-1.5 rounded-full bg-success" /> {d.status.understood}
       </span>
     );
   if (status === "failed")
     return (
-      <span className={cn("inline-flex items-center gap-1.5 text-[12px] text-red-600", className)}>
-        <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> {d.status.failed}
+      <span className={cn("inline-flex items-center gap-1.5 text-[12px] text-danger", className)}>
+        <span className="h-1.5 w-1.5 rounded-full bg-danger" /> {d.status.failed}
       </span>
     );
   return (

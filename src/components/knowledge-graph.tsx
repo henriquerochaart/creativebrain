@@ -10,13 +10,14 @@ type Node = { id: string; type: "reference" | "principle" | "brand"; label: stri
 type Edge = { source: string; target: string; kind: string; score: number };
 type Sim = Node & { x: number; y: number; vx: number; vy: number; r: number };
 
+// Apple system colors, one hue per kind: gray, pink, teal, orange, purple, green.
 const KIND_COLOR: Record<string, string> = {
-  conceptual: "#6b7280",
-  visual: "#ec4899",
-  strategic: "#0ea5e9",
-  execution: "#f59e0b",
-  principle: "#ff4d1c",
-  brand: "#10b981",
+  conceptual: "#8e8e93",
+  visual: "#ff2d55",
+  strategic: "#30b0c7",
+  execution: "#ff9500",
+  principle: "#af52de",
+  brand: "#34c759",
 };
 
 /**
@@ -133,7 +134,7 @@ export function KnowledgeGraph() {
       ctx.globalAlpha = 1;
       for (const n of nodes) {
         if (n.type === "reference") {
-          ctx.fillStyle = isDark ? "#f3f3f1" : "#111111";
+          ctx.fillStyle = isDark ? "#ffffff" : "#000000";
           ctx.beginPath();
           ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
           ctx.fill();
@@ -192,8 +193,8 @@ export function KnowledgeGraph() {
           <span className="ml-auto text-ink-3">{d.graph.summary(data.nodes.filter((n) => n.type === "reference").length, activeEdges.length)}</span>
         )}
       </div>
-      <div className="relative h-[70vh] overflow-hidden rounded-3xl border border-line bg-paper">
-        {error && <p className="p-6 text-sm text-red-600">{error}</p>}
+      <div className="relative h-[70vh] overflow-hidden rounded-[24px] border border-line bg-paper">
+        {error && <p className="p-6 text-sm text-danger">{error}</p>}
         {!data && !error && <p className="pulse-soft p-6 text-sm text-ink-3">{d.graph.loading}</p>}
         <canvas
           ref={canvasRef}
@@ -208,7 +209,7 @@ export function KnowledgeGraph() {
           }}
         />
         {hover && (
-          <div className="pointer-events-none absolute left-4 top-4 flex max-w-xs items-center gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-lg backdrop-blur">
+          <div className="material pointer-events-none absolute left-4 top-4 flex max-w-xs items-center gap-3 rounded-[14px] p-3 shadow-lg">
             {hover.thumb && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={hover.thumb} alt="" className="h-14 w-20 rounded-lg object-cover" />

@@ -33,7 +33,7 @@ export default async function InboxPage() {
   return (
     <div className="space-y-10">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{d.inbox.title}</h1>
+        <h1 className="large-title">{d.inbox.title}</h1>
         <p className="mt-1 text-sm text-ink-2">{d.inbox.sub}</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <ReprocessLinks />
@@ -55,7 +55,7 @@ export default async function InboxPage() {
             <ReprocessStale ids={stale.map((r) => r.id)} />
           </div>
           <p className="mb-3 text-[13px] text-ink-2">{d.inbox.staleHint}</p>
-          <ul className="divide-y divide-line rounded-2xl border border-line">
+          <ul className="divide-y divide-line overflow-hidden rounded-[14px] bg-paper-2">
             {stale.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
                 <div className="min-w-0">
@@ -76,14 +76,14 @@ export default async function InboxPage() {
       {failed.length > 0 && (
         <section>
           <h2 className="eyebrow mb-3">{d.inbox.failed} · {failed.length}</h2>
-          <ul className="divide-y divide-line rounded-2xl border border-line">
+          <ul className="divide-y divide-line overflow-hidden rounded-[14px] bg-paper-2">
             {failed.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
                 <div className="min-w-0">
                   <Link href={`/r/${r.id}`} className="font-medium hover:underline">
                     {r.title ?? r.originalUrl ?? d.card.untitled}
                   </Link>
-                  <p className="truncate text-[12px] text-red-600">{r.error}</p>
+                  <p className="truncate text-[12px] text-danger">{r.error}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusDot status={r.status} lang={lang} />

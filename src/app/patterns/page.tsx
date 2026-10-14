@@ -39,12 +39,12 @@ export default async function PatternsPage() {
     <div className="mx-auto max-w-4xl space-y-12">
       <header>
         <p className="eyebrow">{d.patterns.eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{d.patterns.title}</h1>
+        <h1 className="large-title mt-1">{d.patterns.title}</h1>
         <p className="mt-1 text-sm text-ink-2">{d.patterns.basedOn(understood)}</p>
       </header>
 
       {sentences.length > 0 ? (
-        <ul className="space-y-3 text-xl font-medium tracking-tight">
+        <ul className="space-y-3 text-xl font-medium">
           {sentences.map((s) => (
             <li key={s}>→ {s}</li>
           ))}
@@ -103,7 +103,7 @@ export default async function PatternsPage() {
                   {label("principles", p)}
                 </Link>
                 <div className="h-1.5 rounded-full bg-paper-2">
-                  <div className="h-1.5 rounded-full bg-ink" style={{ width: `${pct(n)}%` }} />
+                  <div className="h-1.5 rounded-full bg-accent" style={{ width: `${pct(n)}%` }} />
                 </div>
                 <span className="text-right font-mono text-[12px] text-ink-3">{n}</span>
               </li>

@@ -13,7 +13,7 @@ export function TasteNarrative() {
   const [n, setN] = useState<Narrative | null>(null);
   const [error, setError] = useState<string | null>(null);
   return (
-    <section className="rounded-3xl border border-line p-6">
+    <section className="rounded-[20px] bg-paper-2 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="eyebrow">{d.patterns.readByBrain}</h2>
         <button
@@ -30,23 +30,23 @@ export function TasteNarrative() {
               setBusy(false);
             }
           }}
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2 disabled:opacity-50"
+          className="btn-gray h-11 gap-2 px-3.5 text-[15px] lg:h-9 lg:text-[13px]"
         >
           <Sparkles className="h-3.5 w-3.5" /> {busy ? d.patterns.reading : n ? d.patterns.readAgain : d.patterns.whatDoILike}
         </button>
       </div>
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-3 text-sm text-danger">{error}</p>}
       {n && (
         <div className="mt-5 space-y-5">
-          <p className="text-xl font-medium tracking-tight">{n.headline}</p>
+          <p className="text-xl font-medium">{n.headline}</p>
           <ul className="space-y-2 text-[15px]">{n.observations.map((o) => <li key={o}>→ {o}</li>)}</ul>
           {n.blindSpots.length > 0 && (
             <div>
               <p className="eyebrow mb-1">{d.patterns.blindSpots}</p>
-              <ul className="space-y-1 text-[15px] text-ink-2">{n.blindSpots.map((b) => <li key={b}>→ {b}</li>)}</ul>
+              <ul className="space-y-1 text-[15px] text-ink">{n.blindSpots.map((b) => <li key={b}>→ {b}</li>)}</ul>
             </div>
           )}
-          <p className="border-t border-line pt-4 text-[15px] italic text-ink-2">{n.provocation}</p>
+          <p className="border-t border-line pt-4 text-[15px] italic text-ink">{n.provocation}</p>
         </div>
       )}
     </section>

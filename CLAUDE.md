@@ -24,3 +24,12 @@ The thumbnail is always the material's own, never generated: the OpenGraph or oE
 - Anthropic calls go through `@anthropic-ai/sdk` (`messages.parse` + `zodOutputFormat`, native image/PDF blocks). Default model `claude-opus-5`.
 - Run `npm run typecheck && npm test` before committing. `npm run build` must stay green.
 - Never commit `.env`. Local dev without keys: `LLM_PROVIDER=mock EMBEDDING_PROVIDER=mock`.
+
+## Design: Apple HIG
+The UI follows Apple's Human Interface Guidelines; `src/app/globals.css` is the whole system.
+- Colors are Apple semantic colors as tokens, light and dark: `ink` label, `ink-2` secondaryLabel, `ink-3` systemGray, `paper` systemBackground, `paper-2` secondarySystemBackground, `surface` cards, `line` separators, `fill`/`fill-2` for fields and gray buttons, `accent` systemBlue, `danger` systemRed, `success` systemGreen. Never a raw Tailwind palette color (`red-600`, `zinc-200`) or a hex in a component; the one exception is canvas drawing (`knowledge-graph.tsx`), which cannot read CSS variables and uses Apple system color values directly.
+- Type uses the iOS text styles: `large-title` for page titles, `title-2`/`title-3`/`headline` below it, `.eyebrow` for section headers. Sentence case everywhere; no uppercase tracked labels, no manual `tracking-*` (SF tracks itself).
+- Buttons: `btn-filled` for the one primary action on a screen, `btn-gray` for everything else, systemRed for destructive. Touch targets are 44pt below `lg` (`h-11 lg:h-9`).
+- Fields are fills (`bg-fill`, radius 10), not outlines. Containers are fills (`bg-paper-2`) or elevated cards (`bg-surface` + `--card-shadow`), not bordered boxes. Bars and menus use the `material` utility.
+- Long-form reading text is `ink`; `ink-2` is for supporting text only.
+- Reduce Motion and Increase Contrast are honoured in `globals.css`; keep new animation behind them.

@@ -16,14 +16,14 @@ export default async function ShareSetupPage() {
     <div className="mx-auto max-w-3xl space-y-12">
       <header>
         <p className="eyebrow">{d.share.eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{s.title}</h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-ink-2">{s.intro}</p>
+        <h1 className="large-title mt-1">{s.title}</h1>
+        <p className="mt-2 text-[15px] leading-relaxed text-ink">{s.intro}</p>
       </header>
 
-      <section className="rounded-3xl border border-line p-6">
+      <section className="rounded-[20px] bg-paper-2 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">{s.android}</h2>
+            <h2 className="title-3">{s.android}</h2>
             <p className="mt-1 text-sm text-ink-2">{s.androidSub}</p>
           </div>
           <InstallButton />
@@ -35,8 +35,8 @@ export default async function ShareSetupPage() {
         </ol>
       </section>
 
-      <section className="rounded-3xl border border-line p-6">
-        <h2 className="text-lg font-semibold tracking-tight">{s.iphone}</h2>
+      <section className="rounded-[20px] bg-paper-2 p-6">
+        <h2 className="title-3">{s.iphone}</h2>
         <p className="mt-1 text-sm text-ink-2">{s.iphoneSub}</p>
         {!apiKeySet && (
           <p className="mt-4 rounded-2xl bg-amber-50 p-3 text-[13px] text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">{s.noKeyWarning}</p>
@@ -69,12 +69,12 @@ export default async function ShareSetupPage() {
         </details>
       </section>
 
-      <section className="rounded-3xl border border-line p-6">
-        <h2 className="text-lg font-semibold tracking-tight">{s.desktop}</h2>
+      <section className="rounded-[20px] bg-paper-2 p-6">
+        <h2 className="title-3">{s.desktop}</h2>
         <p className="mt-1 text-sm text-ink-2">{s.desktopSub}</p>
         <a
           href={`javascript:void(window.open('${root}/share?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`}
-          className="mt-4 inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-paper"
+          className="btn-filled mt-4 h-11 px-4 text-[15px] lg:h-10 lg:text-sm"
         >
           + Brain
         </a>

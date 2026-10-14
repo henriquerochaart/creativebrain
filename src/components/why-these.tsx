@@ -25,13 +25,13 @@ export function WhyThese({ query, ids, titles }: { query: string; ids: string[];
   }, [query, ids.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!ids.length) return null;
   return (
-    <section className="rounded-3xl border border-line p-6">
+    <section className="rounded-[20px] bg-paper-2 p-6">
       <h2 className="eyebrow mb-3">{d.search.whyThese}</h2>
       {error && <p className="text-sm text-ink-3">{d.search.couldNotExplain} {error}</p>}
       {!why && !error && <p className="pulse-soft text-sm text-ink-3">{d.search.readingSet}</p>}
       {why && (
         <div className="space-y-5">
-          <p className="text-lg font-medium tracking-tight">{why.headline}</p>
+          <p className="text-lg font-medium">{why.headline}</p>
           <ol className="grid gap-4 md:grid-cols-3">
             {why.mechanisms.map((m, i) => (
               <li key={m.name}>

@@ -40,34 +40,34 @@ export function AutoCollections() {
   }
 
   return (
-    <section className="rounded-3xl border border-line p-6">
+    <section className="rounded-[20px] bg-paper-2 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="eyebrow">{d.collections.autoTitle}</h2>
           <p className="mt-1 text-sm text-ink-2">{d.collections.autoSub}</p>
         </div>
-        <button type="button" onClick={() => void propose()} disabled={busy} className="inline-flex h-10 items-center gap-2 rounded-full border border-line px-4 text-sm hover:bg-paper-2 disabled:opacity-50">
+        <button type="button" onClick={() => void propose()} disabled={busy} className="btn-gray h-11 gap-2 px-4 text-[15px] lg:h-10 lg:text-sm">
           <Sparkles className="h-4 w-4" /> {busy ? d.collections.reading : res ? d.collections.proposeAgain : d.collections.propose}
         </button>
       </div>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-danger">{error}</p>}
       {res && (
         <ul className="mt-6 grid gap-5 md:grid-cols-2">
           {res.proposals.map((p) => (
-            <li key={p.name} className="rounded-2xl border border-line p-4">
+            <li key={p.name} className="rounded-[20px] bg-paper-2 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-lg font-medium tracking-tight">
+                  <p className="text-lg font-medium">
                     {p.emoji} {p.name}
                   </p>
                   <p className="mt-1 text-[13px] text-ink-2">{p.rationale}</p>
                 </div>
                 {accepted.has(p.name) ? (
-                  <Link href="/collections" className="shrink-0 text-[13px] text-emerald-600">
+                  <Link href="/collections" className="shrink-0 text-[13px] text-success">
                     {d.collections.created}
                   </Link>
                 ) : (
-                  <button type="button" onClick={() => void accept(p)} disabled={p.existing} className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-[12px] text-paper disabled:opacity-40">
+                  <button type="button" onClick={() => void accept(p)} disabled={p.existing} className="btn-filled shrink-0 px-3 py-1.5 text-[12px]">
                     {p.existing ? d.collections.exists : d.collections.createN(p.referenceIds.length)}
                   </button>
                 )}

@@ -31,12 +31,12 @@ export function AskReference({ id }: { id: string }) {
   }
 
   return (
-    <section className="rounded-3xl border border-line p-6">
+    <section className="rounded-[20px] bg-paper-2 p-6">
       <h2 className="eyebrow mb-4">{d.reference.ask.title}</h2>
       {turns.length > 0 && (
         <div className="mb-5 space-y-4">
           {turns.map((turn, i) => (
-            <div key={i} className={turn.role === "user" ? "text-sm font-medium" : "prose-brain whitespace-pre-wrap text-sm text-ink-2"}>
+            <div key={i} className={turn.role === "user" ? "text-sm font-medium" : "prose-brain whitespace-pre-wrap text-sm text-ink"}>
               {turn.role === "user" ? `› ${turn.content}` : turn.content || <span className="pulse-soft">{d.reference.ask.thinking}</span>}
             </div>
           ))}
@@ -44,7 +44,7 @@ export function AskReference({ id }: { id: string }) {
       )}
       <div className="mb-3 flex flex-wrap gap-2">
         {d.reference.ask.suggestions.map((s) => (
-          <button key={s} type="button" onClick={() => void ask(s)} disabled={busy} className="rounded-full border border-line px-3 py-1 text-[12px] text-ink-2 hover:bg-paper-2 disabled:opacity-40">
+          <button key={s} type="button" onClick={() => void ask(s)} disabled={busy} className="btn-gray px-3 py-1 text-[12px]">
             {s}
           </button>
         ))}
@@ -57,7 +57,7 @@ export function AskReference({ id }: { id: string }) {
         className="flex gap-2"
       >
         <Textarea rows={1} value={q} onChange={(e) => setQ(e.target.value)} placeholder={d.reference.ask.placeholder} aria-label={d.reference.ask.placeholder} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), void ask(q))} />
-        <button type="submit" disabled={busy || !q.trim()} className="h-11 shrink-0 rounded-full bg-ink px-4 text-sm text-paper disabled:opacity-30">
+        <button type="submit" disabled={busy || !q.trim()} className="btn-filled h-11 shrink-0 px-4 text-[15px]">
           {d.reference.ask.send}
         </button>
       </form>

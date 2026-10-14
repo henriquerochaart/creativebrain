@@ -89,7 +89,8 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
         }
       }}
     >
-      <div className={cn("rounded-3xl border bg-paper transition-colors", drag ? "border-accent bg-accent/5" : "border-line", compact ? "" : "shadow-[0_2px_20px_rgba(0,0,0,0.04)]")}>
+      {/* A filled text field, not an outlined box; dropping a file tints it with the accent. */}
+      <div className={cn("rounded-[22px] bg-paper-2 transition-[background-color,box-shadow] focus-within:ring-2 focus-within:ring-accent/40", drag && "bg-accent/10 ring-2 ring-accent")}>
         <textarea
           ref={ref}
           value={value}
@@ -109,11 +110,11 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
           rows={compact ? 1 : 2}
           placeholder={d.capture.placeholder}
           aria-label={d.capture.placeholder}
-          className={cn("w-full resize-none bg-transparent px-6 outline-none placeholder:text-ink-3", compact ? "py-3 text-sm" : "py-5 text-lg")}
+          className={cn("w-full resize-none bg-transparent px-5 outline-none placeholder:text-ink-3", compact ? "py-3 text-[15px]" : "py-4 text-[17px] leading-[22px]")}
         />
         <div className="flex items-center justify-between px-4 pb-3">
-          <div className="flex items-center gap-1 text-[12px] text-ink-3">
-            <button type="button" onClick={() => fileRef.current?.click()} className="rounded-full px-3 py-1 hover:bg-paper-2 hover:text-ink">
+          <div className="flex items-center gap-1 text-[13px] text-ink-3">
+            <button type="button" onClick={() => fileRef.current?.click()} className="-ml-1 min-h-11 rounded-full px-3 font-medium text-accent hover:bg-fill lg:min-h-8">
               {d.capture.upload}
             </button>
             <input ref={fileRef} type="file" multiple accept="image/*,video/*,application/pdf,text/plain,text/markdown,audio/*" className="hidden" onChange={(e) => e.target.files && void submitFiles(e.target.files)} />
@@ -123,7 +124,7 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
             type="button"
             onClick={() => void submitText()}
             disabled={busy || !value.trim()}
-            className="rounded-full bg-ink px-4 py-1.5 text-[13px] font-medium text-paper disabled:opacity-30"
+            className="btn-filled h-9 px-4 text-[15px]"
           >
             {busy ? "…" : d.capture.enter}
           </button>
@@ -135,7 +136,7 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
             "absolute left-1/2 top-full mt-3 flex -translate-x-1/2 items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] shadow",
             toast.kind === "ok" && "bg-ink text-paper",
             toast.kind === "dup" && "bg-paper-2 text-ink",
-            toast.kind === "err" && "bg-red-600 text-white",
+            toast.kind === "err" && "bg-danger text-white",
           )}
         >
           {/* Understanding just started in the background; this is the only feedback someone gets

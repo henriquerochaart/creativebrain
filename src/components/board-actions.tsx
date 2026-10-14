@@ -19,7 +19,7 @@ export function DeleteBoard({ id }: { id: string }) {
         router.push("/moodboards");
         router.refresh();
       }}
-      className={confirm ? "text-[13px] text-red-600" : "text-[13px] text-ink-3 hover:text-ink"}
+      className={confirm ? "text-[13px] text-danger" : "text-[13px] text-ink-3 hover:text-ink"}
     >
       {confirm ? d.moodboards.confirmDelete : d.moodboards.delete}
     </button>

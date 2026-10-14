@@ -28,11 +28,11 @@ export function ProjectPicker({ referenceId, projects, member }: { referenceId: 
   }
   return (
     <div className="relative">
-      <button type="button" onClick={() => setOpen(!open)} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2">
+      <button type="button" onClick={() => setOpen(!open)} className="btn-gray h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]">
         <FolderPlus className="h-3.5 w-3.5" /> {member.length ? d.reference.projects(member.length) : d.reference.addToProject}
       </button>
       {open && (
-        <div className="absolute right-0 z-20 mt-2 w-64 rounded-2xl border border-line bg-paper p-2 shadow-lg">
+        <div className="material absolute right-0 z-20 mt-2 w-64 rounded-[14px] p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.18)] ring-1 ring-black/5 dark:ring-white/10">
           <ul className="max-h-64 overflow-y-auto">
             {projects.map((p) => (
               <li key={p.id}>
@@ -52,7 +52,7 @@ export function ProjectPicker({ referenceId, projects, member }: { referenceId: 
             }}
           >
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.reference.newProject} className="h-8 w-full rounded-lg bg-paper-2 px-2 text-[13px] outline-none" />
-            <button type="submit" className="h-8 rounded-lg bg-ink px-2 text-[12px] text-paper">
+            <button type="submit" className="btn-filled h-8 px-3 text-[12px]">
               {d.reference.add}
             </button>
           </form>

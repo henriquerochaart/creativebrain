@@ -24,7 +24,8 @@ export function LangSwitch() {
   }
 
   return (
-    <div className={cn("flex items-center rounded-full border border-line p-0.5 text-[12px]", pending && "opacity-60")} role="group" aria-label={t(lang).header.language}>
+    // UISegmentedControl: a gray track, the selected segment a raised thumb.
+    <div className={cn("flex h-8 items-center rounded-[9px] bg-fill p-0.5 text-[13px]", pending && "opacity-60")} role="group" aria-label={t(lang).header.language}>
       {LANGS.map((l) => (
         <button
           key={l}
@@ -32,7 +33,10 @@ export function LangSwitch() {
           onClick={() => choose(l)}
           aria-pressed={l === lang}
           title={labels[l]}
-          className={cn("rounded-full px-2 py-1 font-medium uppercase tracking-wide transition-colors", l === lang ? "bg-ink text-paper" : "text-ink-3 hover:text-ink")}
+          className={cn(
+            "h-full min-w-9 rounded-[7px] px-2 font-semibold uppercase transition-colors",
+            l === lang ? "bg-paper text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-fill-2" : "text-ink-2 hover:text-ink",
+          )}
         >
           {l}
         </button>

@@ -22,9 +22,9 @@ export function NewCollection() {
         router.refresh();
       }}
     >
-      <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="🔥" aria-label="Emoji" className="h-10 w-12 rounded-full border border-line bg-paper text-center text-sm outline-none" />
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.collections.namePlaceholder} aria-label={d.collections.namePlaceholder} className="h-10 w-56 rounded-full border border-line bg-paper px-4 text-sm outline-none placeholder:text-ink-3" />
-      <button type="submit" className="h-10 rounded-full bg-ink px-4 text-sm text-paper">
+      <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="🔥" aria-label="Emoji" className="h-11 w-12 rounded-[10px] bg-fill text-center text-[17px] outline-none focus:ring-2 focus:ring-accent/40 lg:h-10 lg:text-sm" />
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.collections.namePlaceholder} aria-label={d.collections.namePlaceholder} className="h-11 w-56 rounded-[10px] bg-fill px-3.5 text-[15px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent/40 lg:h-10 lg:text-sm" />
+      <button type="submit" className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm">
         {d.collections.create}
       </button>
     </form>
@@ -45,7 +45,7 @@ export function DeleteCollection({ id }: { id: string }) {
         router.push("/collections");
         router.refresh();
       }}
-      className={confirm ? "text-[13px] text-red-600" : "text-[13px] text-ink-3 hover:text-ink"}
+      className={confirm ? "text-[13px] text-danger" : "text-[13px] text-ink-3 hover:text-ink"}
     >
       {confirm ? d.collections.confirmDelete : d.collections.delete}
     </button>

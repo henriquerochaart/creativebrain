@@ -11,12 +11,12 @@ export default async function CollectionsPage() {
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{d.collections.title}</h1>
+          <h1 className="large-title">{d.collections.title}</h1>
           <p className="mt-1 text-sm text-ink-2">{d.collections.sub}</p>
         </div>
         <NewCollection />
       </header>
-      <ol className="divide-y divide-line rounded-3xl border border-line">
+      <ol className="divide-y divide-line overflow-hidden rounded-[14px] bg-paper-2">
         {cols.map((c, i) => (
           <li key={c.id}>
             <Link href={`/collections/${c.slug}`} className="flex items-center gap-5 px-5 py-4 hover:bg-paper-2">
@@ -27,7 +27,7 @@ export default async function CollectionsPage() {
                   <img src={c.cover} alt="" className="h-full w-full object-cover" />
                 ) : null}
               </span>
-              <span className="flex-1 text-lg font-medium tracking-tight">
+              <span className="flex-1 text-lg font-medium">
                 {c.emoji ? `${c.emoji} ` : ""}
                 {c.name}
               </span>

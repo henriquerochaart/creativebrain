@@ -17,7 +17,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">{col.auto ? d.collections.auto : d.collections.one}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          <h1 className="large-title mt-1">
             {col.emoji ? `${col.emoji} ` : ""}
             {col.name}
           </h1>

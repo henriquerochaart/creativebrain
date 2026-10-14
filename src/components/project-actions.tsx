@@ -24,8 +24,8 @@ export function NewProject() {
         router.push(`/projects/${res.project.id}`);
       }}
     >
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.projects.namePlaceholder} aria-label={d.projects.namePlaceholder} className="h-10 w-56 rounded-full border border-line bg-paper px-4 text-sm outline-none placeholder:text-ink-3" />
-      <button type="submit" className="h-10 rounded-full bg-ink px-4 text-sm text-paper">
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.projects.namePlaceholder} aria-label={d.projects.namePlaceholder} className="h-11 w-56 rounded-[10px] bg-fill px-3.5 text-[15px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent/40 lg:h-10 lg:text-sm" />
+      <button type="submit" className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm">
         {d.projects.newProject}
       </button>
     </form>
@@ -43,8 +43,8 @@ export function ProjectBrief({ id, name, brief }: { id: string; name: string; br
   }
   return (
     <div className="space-y-2">
-      <input value={n} onChange={(e) => setN(e.target.value)} onBlur={() => void save()} aria-label={d.projects.namePlaceholder} className="w-full bg-transparent text-3xl font-semibold tracking-tight outline-none" />
-      <textarea value={b} onChange={(e) => setB(e.target.value)} onBlur={() => void save()} rows={2} placeholder={d.projects.briefPlaceholder} aria-label={d.projects.briefPlaceholder} className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-ink-2 outline-none placeholder:text-ink-3" />
+      <input value={n} onChange={(e) => setN(e.target.value)} onBlur={() => void save()} aria-label={d.projects.namePlaceholder} className="large-title w-full bg-transparent outline-none" />
+      <textarea value={b} onChange={(e) => setB(e.target.value)} onBlur={() => void save()} rows={2} placeholder={d.projects.briefPlaceholder} aria-label={d.projects.briefPlaceholder} className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-3" />
     </div>
   );
 }
@@ -74,13 +74,13 @@ export function ProjectPickerInline({ projectId, memberIds }: { projectId: strin
     router.refresh();
   }
   return (
-    <section className="rounded-3xl border border-line p-5">
+    <section className="rounded-[20px] bg-paper-2 p-5">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void run();
         }}
-        className="flex items-center gap-2 rounded-full border border-line px-4"
+        className="flex items-center gap-2 rounded-[10px] bg-fill px-3.5 focus-within:ring-2 focus-within:ring-accent/40"
       >
         <Search className="h-4 w-4 text-ink-3" />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={d.projects.searchPlaceholder} aria-label={d.projects.searchPlaceholder} className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-ink-3" />
@@ -92,7 +92,7 @@ export function ProjectPickerInline({ projectId, memberIds }: { projectId: strin
         <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
           {hits.map((r) => (
             <div key={r.id} className="w-36 shrink-0">
-              <div className="overflow-hidden rounded-xl border border-line bg-paper-2">
+              <div className="overflow-hidden rounded-[14px] bg-paper-2">
                 <Thumb reference={r} lang={lang} className="aspect-[4/3] object-cover" />
               </div>
               <p className="mt-1.5 line-clamp-2 text-[12px] leading-snug">{r.title}</p>
@@ -133,7 +133,7 @@ export function AnalyzeProject({ id, analyzed, count }: { id: string; analyzed: 
   const [error, setError] = useState<string | null>(null);
   return (
     <div className="flex items-center gap-3">
-      {error && <span className="text-[13px] text-red-600">{error}</span>}
+      {error && <span className="text-[13px] text-danger">{error}</span>}
       <button
         type="button"
         disabled={busy || count === 0}
@@ -149,7 +149,7 @@ export function AnalyzeProject({ id, analyzed, count }: { id: string; analyzed: 
             setBusy(false);
           }
         }}
-        className="inline-flex h-10 items-center gap-2 rounded-full bg-ink px-4 text-sm font-medium text-paper disabled:opacity-40"
+        className="btn-filled h-11 gap-2 px-4 text-[15px] lg:h-10 lg:text-sm"
       >
         <Sparkles className="h-4 w-4" /> {busy ? d.projects.analysing : analyzed ? d.projects.analyseAgain : d.projects.analyse}
       </button>
@@ -173,7 +173,7 @@ export function CopyOutput({ id }: { id: string }) {
         }
         setTimeout(() => setState("idle"), 2000);
       }}
-      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2"
+      className="btn-gray h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]"
     >
       <Copy className="h-3.5 w-3.5" /> {state === "done" ? d.projects.copied : state === "blocked" ? d.projects.clipboardBlocked : d.projects.copyOutput}
     </button>
@@ -194,7 +194,7 @@ export function DeleteProject({ id }: { id: string }) {
         router.push("/projects");
         router.refresh();
       }}
-      className={confirm ? "text-[13px] text-red-600" : "text-[13px] text-ink-3 hover:text-ink"}
+      className={confirm ? "text-[13px] text-danger" : "text-[13px] text-ink-3 hover:text-ink"}
     >
       {confirm ? d.projects.confirmDelete : d.projects.delete}
     </button>

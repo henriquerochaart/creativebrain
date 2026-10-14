@@ -39,13 +39,18 @@ export function SidebarDrawer({ children }: { children: React.ReactNode }) {
       />
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 -translate-x-full overflow-y-auto bg-paper shadow-2xl transition-transform duration-200 ease-out",
-          "lg:sticky lg:top-16 lg:z-auto lg:h-[calc(100vh-4rem)] lg:w-56 lg:shrink-0 lg:translate-x-0 lg:border-r lg:border-line lg:bg-transparent lg:shadow-none lg:transition-none",
-          open && "translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-[300px] -translate-x-full overflow-y-auto bg-paper-2 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          // Mac sidebar: a gray column beside white content, separated by a hairline.
+          "lg:sticky lg:top-16 lg:z-auto lg:h-[calc(100vh-4rem)] lg:w-60 lg:shrink-0 lg:translate-x-0 lg:border-r lg:border-line lg:bg-paper-2/60 lg:shadow-none lg:transition-none",
+          // The shadow only when open: translated off-screen it still bled 25px into the left edge.
+          open && "translate-x-0 shadow-2xl",
         )}
       >
-        <button type="button" onClick={close} aria-label={d.header.close} className="absolute right-3 top-3 rounded-full p-1.5 text-ink-2 hover:bg-paper-2 lg:hidden">
-          <X className="h-4 w-4" />
+        {/* The iOS close button: an xmark in a gray circle, inside a 44pt target. */}
+        <button type="button" onClick={close} aria-label={d.header.close} className="absolute right-2 top-2 grid h-11 w-11 place-items-center lg:hidden">
+          <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-fill text-ink-2">
+            <X className="h-4 w-4" strokeWidth={2.5} />
+          </span>
         </button>
         {children}
       </div>

@@ -14,6 +14,18 @@ export function isLang(v: string | undefined | null): v is Lang {
   return v === "pt" || v === "en";
 }
 
+// Pipeline steps (PROCESSING_STEPS in taxonomy.ts) as the reader sees them. Unknown steps pass through.
+const STEP_PT: Record<string, string> = {
+  detect: "detecção", resolve: "resolvendo o link", metadata: "metadados", media: "mídia", frames: "frames",
+  audio: "áudio", transcribe: "transcrição", ocr: "leitura de texto", vision: "visão", synthesis: "síntese",
+  embeddings: "indexação", relationships: "conexões", save: "salvando",
+};
+const STEP_EN: Record<string, string> = {
+  detect: "detecting", resolve: "resolving the link", metadata: "metadata", media: "media", frames: "frames",
+  audio: "audio", transcribe: "transcription", ocr: "reading text", vision: "vision", synthesis: "synthesis",
+  embeddings: "indexing", relationships: "connections", save: "saving",
+};
+
 const pt = {
   langName: { pt: "Português", en: "English" },
   app: {
@@ -27,6 +39,8 @@ const pt = {
     language: "Idioma",
     menu: "Menu",
     close: "Fechar",
+    searchShort: "Buscar",
+    cancel: "Cancelar",
   },
   nav: {
     all: "Tudo",
@@ -67,7 +81,7 @@ const pt = {
     understood: "Entendida",
     failed: "Falhou",
     queued: "Na fila…",
-    processing: (step?: string | null) => `Processando${step ? ` · ${step}` : ""}…`,
+    processing: (step?: string | null) => `Processando${step ? ` · ${STEP_PT[step] ?? step}` : ""}…`,
   },
   card: { video: "Vídeo", pdf: "PDF", concepts: "conceitos", tags: "tags", untitled: "Sem título" },
   grid: { nothing: "Nada por aqui ainda." },
@@ -380,6 +394,8 @@ const en: Dict = {
     language: "Language",
     menu: "Menu",
     close: "Close",
+    searchShort: "Search",
+    cancel: "Cancel",
   },
   nav: {
     all: "All",
@@ -420,7 +436,7 @@ const en: Dict = {
     understood: "Understood",
     failed: "Failed",
     queued: "Queued…",
-    processing: (step?: string | null) => `Processing${step ? ` · ${step}` : ""}…`,
+    processing: (step?: string | null) => `Processing${step ? ` · ${STEP_EN[step] ?? step}` : ""}…`,
   },
   card: { video: "Video", pdf: "PDF", concepts: "concepts", tags: "tags", untitled: "Untitled" },
   grid: { nothing: "Nothing here yet." },

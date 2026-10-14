@@ -52,7 +52,7 @@ export function ThinkMode() {
           e.preventDefault();
           void think(q);
         }}
-        className="rounded-3xl border border-line bg-paper p-2 shadow-[0_2px_20px_rgba(0,0,0,0.04)]"
+        className="rounded-[22px] bg-paper-2 p-2 focus-within:ring-2 focus-within:ring-accent/40"
       >
         <textarea
           value={q}
@@ -65,18 +65,18 @@ export function ThinkMode() {
         />
         <div className="flex items-center justify-between px-2 pb-1">
           <span className="text-[12px] text-ink-3">{history.length ? d.think.turns(history.length / 2) : d.think.hint}</span>
-          <button type="submit" disabled={busy || !q.trim()} className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-paper disabled:opacity-30">
+          <button type="submit" disabled={busy || !q.trim()} className="btn-filled h-11 px-5 text-[15px] lg:h-10 lg:text-sm">
             {busy ? d.think.working : d.think.submit}
           </button>
         </div>
       </form>
 
-      {error && <p className="text-sm text-red-600">{d.think.failed} {error}</p>}
+      {error && <p className="text-sm text-danger">{d.think.failed} {error}</p>}
       {busy && !res && <p className="pulse-soft text-center text-sm text-ink-3">{d.think.reading}</p>}
 
       {res && (
         <div className={busy ? "opacity-50 transition-opacity" : "transition-opacity"}>
-          <p className="text-2xl font-medium tracking-tight">{res.analysis.intro}</p>
+          <p className="text-2xl font-medium">{res.analysis.intro}</p>
           {res.degraded && <p className="mt-1 text-[12px] text-ink-3">{res.degraded}</p>}
 
           <ol className="mt-6 space-y-6">
@@ -84,12 +84,12 @@ export function ThinkMode() {
               <li key={c.title} className="grid gap-4 md:grid-cols-[48px_1fr]">
                 <span className="font-mono text-sm text-ink-3">{String(i + 1).padStart(2, "0")}</span>
                 <div>
-                  <h3 className="text-lg font-semibold tracking-tight">{c.title}</h3>
+                  <h3 className="text-lg font-semibold">{c.title}</h3>
                   <p className="mt-1 text-sm text-ink-2">{c.rationale}</p>
                   <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
                     {c.referenceIds.map(refOf).filter(Boolean).map((r) => (
                       <Link key={r!.id} href={`/r/${r!.id}`} className="w-36 shrink-0">
-                        <div className="overflow-hidden rounded-xl border border-line bg-paper-2">
+                        <div className="overflow-hidden rounded-[14px] bg-paper-2">
                           <Thumb reference={r!} lang={lang} className="aspect-[4/3] object-cover" />
                         </div>
                         <p className="mt-1.5 line-clamp-2 text-[12px] leading-snug text-ink-2">{r!.title}</p>
@@ -107,7 +107,7 @@ export function ThinkMode() {
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {res.analysis.strongest.map(refOf).filter(Boolean).map((r) => (
                   <Link key={r!.id} href={`/r/${r!.id}`} className="group">
-                    <div className="overflow-hidden rounded-2xl border border-line bg-paper-2">
+                    <div className="overflow-hidden rounded-[16px] bg-paper-2">
                       <Thumb reference={r!} lang={lang} className="aspect-[4/3] object-cover transition-transform group-hover:scale-[1.02]" />
                     </div>
                     <p className="mt-2 text-sm font-medium leading-snug">{r!.title}</p>
@@ -126,7 +126,7 @@ export function ThinkMode() {
             {res.analysis.gaps.length > 0 && (
               <div>
                 <h2 className="eyebrow mb-3">{d.think.lacks}</h2>
-                <ul className="space-y-2 text-[15px] text-ink-2">{res.analysis.gaps.map((g) => <li key={g}>→ {g}</li>)}</ul>
+                <ul className="space-y-2 text-[15px] text-ink">{res.analysis.gaps.map((g) => <li key={g}>→ {g}</li>)}</ul>
               </div>
             )}
           </section>
@@ -134,7 +134,7 @@ export function ThinkMode() {
           {res.analysis.nextQuestions.length > 0 && (
             <div className="mt-8 flex flex-wrap gap-2">
               {res.analysis.nextQuestions.map((n) => (
-                <button key={n} type="button" onClick={() => void think(n)} className="rounded-full border border-line px-3 py-1.5 text-[13px] text-ink-2 hover:bg-paper-2">
+                <button key={n} type="button" onClick={() => void think(n)} className="btn-gray px-3 py-1.5 text-[13px]">
                   {n}
                 </button>
               ))}

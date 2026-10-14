@@ -26,7 +26,7 @@ export function MoodboardGenerator() {
           setBusy(false);
         }
       }}
-      className="mx-auto max-w-3xl rounded-3xl border border-line bg-paper p-2 shadow-[0_2px_20px_rgba(0,0,0,0.04)]"
+      className="mx-auto max-w-3xl rounded-[22px] bg-paper-2 p-2 focus-within:ring-2 focus-within:ring-accent/40"
     >
       <textarea
         value={brief}
@@ -38,7 +38,7 @@ export function MoodboardGenerator() {
       />
       <div className="flex items-center justify-between px-2 pb-1">
         <span className="text-[12px] text-ink-3">{error ?? d.moodboards.hint}</span>
-        <button type="submit" disabled={busy || !brief.trim()} className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-paper disabled:opacity-30">
+        <button type="submit" disabled={busy || !brief.trim()} className="btn-filled h-11 px-5 text-[15px] lg:h-10 lg:text-sm">
           {busy ? d.moodboards.working : d.moodboards.submit}
         </button>
       </div>

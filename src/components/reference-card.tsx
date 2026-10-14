@@ -14,18 +14,21 @@ export function ReferenceCard({ reference, showStatus = false, kinds, lang = "pt
   const r = reference;
   const d = t(lang);
   const cats = [...r.formats.slice(0, 1).map((f) => taxonomyLabel(lang, "formats", f)), ...r.subjects.slice(0, 2).map((s) => taxonomyLabel(lang, "subjects", s))];
-  const processing = r.status !== "understood";
+  // Two different questions: is it finished (the corner badge, which also says "failed"), and is
+  // work actually under way (the progress bar — never for a failed reference, which isn't queued).
+  const unfinished = r.status !== "understood";
+  const inFlight = r.status === "queued" || r.status === "processing";
   const summary = r.ai.whyInteresting ?? r.ai.summary;
   return (
-    <Link href={`/r/${r.id}`} className="group block overflow-hidden rounded-2xl border border-line bg-paper transition-shadow hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
+    <Link href={`/r/${r.id}`} className="group block overflow-hidden rounded-[20px] bg-surface shadow-[var(--card-shadow)] transition-shadow duration-300 hover:shadow-[var(--card-shadow-hover)]">
       <div className="relative overflow-hidden bg-paper-2">
         <Thumb reference={r} lang={lang} className="transition-transform duration-500 group-hover:scale-[1.02]" />
         {r.mediaType === "video" && (
-          <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">▶ {d.card.video}</span>
+          <span className="absolute left-3 top-3 rounded-full bg-black/45 px-2.5 py-1 text-[12px] font-semibold text-white backdrop-blur-md">▶ {d.card.video}</span>
         )}
-        {r.mediaType === "pdf" && <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">{d.card.pdf}</span>}
-        {processing && (
-          <span className="absolute right-3 top-3 rounded-full bg-paper/90 px-2 py-0.5 backdrop-blur">
+        {r.mediaType === "pdf" && <span className="absolute left-3 top-3 rounded-full bg-black/45 px-2.5 py-1 text-[12px] font-semibold text-white backdrop-blur-md">{d.card.pdf}</span>}
+        {unfinished && (
+          <span className="material absolute right-3 top-3 rounded-full px-2.5 py-1">
             <StatusDot status={r.status} step={r.processingStep} lang={lang} />
           </span>
         )}
@@ -41,7 +44,7 @@ export function ReferenceCard({ reference, showStatus = false, kinds, lang = "pt
         )}
       </div>
       <div className="p-4">
-        <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug tracking-tight">{r.title ?? d.card.untitled}</h3>
+        <h3 className="line-clamp-2 text-[15px] font-semibold leading-5">{r.title ?? d.card.untitled}</h3>
         {cats.length > 0 && <p className="mt-1 text-[13px] text-ink-2">{cats.join(" / ")}</p>}
         {r.tags.length > 0 && (
           <p className="mt-2 line-clamp-1 text-[12px] text-ink-3">{r.tags.slice(0, 4).map((t2) => `#${t2}`).join(" ")}</p>
@@ -49,7 +52,7 @@ export function ReferenceCard({ reference, showStatus = false, kinds, lang = "pt
         <p className="mt-3 text-[12px] text-ink-3">
           {platformLabel(lang, r.sourcePlatform)} · {yearOf(r.metadata.publishedAt ?? r.createdAt)}
         </p>
-        {showStatus && processing && <UnderstandingProgress step={r.processingStep} className="mt-3" />}
+        {showStatus && inFlight && <UnderstandingProgress step={r.processingStep} className="mt-3" />}
       </div>
     </Link>
   );

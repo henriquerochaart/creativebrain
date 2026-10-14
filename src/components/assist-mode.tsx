@@ -53,7 +53,7 @@ export function AssistMode() {
       <div className="space-y-8">
         {turns.map((turn, i) =>
           turn.role === "user" ? (
-            <p key={i} className="text-xl font-medium tracking-tight">› {turn.content}</p>
+            <p key={i} className="text-xl font-medium">› {turn.content}</p>
           ) : (
             <div key={i}>{turn.content ? <Markdown text={turn.content} /> : <p className="pulse-soft text-sm text-ink-3">{d.assist.reading}</p>}</div>
           ),
@@ -63,7 +63,7 @@ export function AssistMode() {
             e.preventDefault();
             void run(idea);
           }}
-          className="rounded-3xl border border-line bg-paper p-2 shadow-[0_2px_20px_rgba(0,0,0,0.04)]"
+          className="rounded-[22px] bg-paper-2 p-2 focus-within:ring-2 focus-within:ring-accent/40"
         >
           <textarea
             value={idea}
@@ -76,7 +76,7 @@ export function AssistMode() {
           />
           <div className="flex items-center justify-between px-2 pb-1">
             <span className="text-[12px] text-ink-3">{degraded ?? d.assist.hint}</span>
-            <button type="submit" disabled={busy || !idea.trim()} className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-paper disabled:opacity-30">
+            <button type="submit" disabled={busy || !idea.trim()} className="btn-filled h-11 px-5 text-[15px] lg:h-10 lg:text-sm">
               {busy ? d.assist.working : d.assist.submit}
             </button>
           </div>

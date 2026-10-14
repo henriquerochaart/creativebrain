@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Play } from "lucide-react";
+import { ChevronLeft, ExternalLink, Play } from "lucide-react";
 import { collectionsOfReference, getReference, listCollections, relatedReferences, similarReferences, toPublic } from "@/server/references";
 import { getStorage } from "@/server/storage";
 import { Thumb } from "@/components/thumb";
@@ -50,15 +50,15 @@ export default async function ReferencePage({ params, searchParams }: { params: 
 
   return (
     <article className="mx-auto max-w-5xl space-y-10">
-      {sp.shared && <p className="rounded-full bg-ink px-4 py-2 text-center text-[13px] text-paper">{d.reference.sharedBanner}</p>}
+      {sp.shared && <p className="rounded-full bg-accent px-4 py-2 text-center text-[13px] font-medium text-white">{d.reference.sharedBanner}</p>}
       {sp.dup && <p className="rounded-full bg-paper-2 px-4 py-2 text-center text-[13px] text-ink-2">{d.reference.dupBanner}</p>}
       <div className="flex items-center justify-between">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-ink-2 hover:text-ink">
-          <ArrowLeft className="h-4 w-4" /> {d.reference.back}
+        <Link href="/" className="-ml-1.5 inline-flex min-h-11 items-center gap-0.5 text-[17px] text-accent hover:opacity-70 lg:min-h-0">
+          <ChevronLeft className="h-6 w-6" strokeWidth={2.25} /> {d.reference.back}
         </Link>
         <div className="flex flex-wrap items-center gap-2">
           {ref.canonicalUrl && (
-            <a href={ref.canonicalUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-[13px] hover:bg-paper-2">
+            <a href={ref.canonicalUrl} target="_blank" rel="noreferrer" className="btn-gray h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]">
               <ExternalLink className="h-3.5 w-3.5" /> {d.reference.original}
             </a>
           )}
@@ -70,7 +70,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-line bg-paper-2">
+      <div className="overflow-hidden rounded-[24px] bg-paper-2">
         {videoHref ? (
           <a href={videoHref} target="_blank" rel="noreferrer" aria-label={d.reference.openVideo} className="group relative block">
             <Thumb reference={pub} lang={lang} className="max-h-[70vh] object-contain" />
@@ -94,7 +94,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
 
       <header>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight">{ref.title ?? d.card.untitled}</h1>
+          <h1 className="large-title">{ref.title ?? d.card.untitled}</h1>
           {ref.status === "failed" && <StatusDot status={ref.status} lang={lang} />}
         </div>
         <p className="mt-2 text-sm text-ink-2">
@@ -109,7 +109,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
             .join(" · ")}
         </p>
         {(ref.status === "queued" || ref.status === "processing") && (
-          <UnderstandingProgress step={ref.processingStep} className="mt-4 max-w-md rounded-2xl border border-line bg-paper-2 p-4" />
+          <UnderstandingProgress step={ref.processingStep} className="mt-4 max-w-md rounded-[16px] bg-paper-2 p-4" />
         )}
         <div className="mt-4 flex flex-wrap gap-2">
           {ref.brand && <Badge href={`/c/brand/${encodeURIComponent(ref.brand)}`} tone="accent">{ref.brand}</Badge>}
@@ -120,7 +120,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
             <Badge key={s} href={`/c/subject/${encodeURIComponent(s)}`} tone="outline">{taxonomyLabel(lang, "subjects", s)}</Badge>
           ))}
         </div>
-        {ref.status === "failed" && <p className="mt-4 rounded-2xl bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{ref.error}</p>}
+        {ref.status === "failed" && <p className="mt-4 rounded-2xl bg-danger/10 p-4 text-sm text-danger">{ref.error}</p>}
       </header>
 
       {understood && (
@@ -129,7 +129,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
             <Section title={d.reference.whatItIs}>{ai.whatItIs}</Section>
             <Section title={d.reference.whyInteresting}>{ai.whyInteresting}</Section>
             <Section title={d.reference.mechanism}>
-              <p className="text-lg font-medium tracking-tight">{ai.creativeMechanism}</p>
+              <p className="text-lg font-medium">{ai.creativeMechanism}</p>
               {ai.coreIdea && <p className="mt-2 text-ink-2">{ai.coreIdea}</p>}
             </Section>
             {ai.creativePrinciples?.length ? (
@@ -185,15 +185,15 @@ export default async function ReferencePage({ params, searchParams }: { params: 
               </Section>
             )}
             {ref.content.transcript && (
-              <details className="rounded-2xl border border-line p-4">
+              <details className="rounded-[20px] bg-paper-2 p-4">
                 <summary className="eyebrow cursor-pointer">{d.reference.transcript}</summary>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-ink-2">{ref.content.transcript}</p>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-ink">{ref.content.transcript}</p>
               </details>
             )}
             {ref.content.pageText && ref.mediaType !== "text" && (
-              <details className="rounded-2xl border border-line p-4">
+              <details className="rounded-[20px] bg-paper-2 p-4">
                 <summary className="eyebrow cursor-pointer">{d.reference.extractedText}</summary>
-                <p className="mt-3 max-h-96 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-ink-2">{ref.content.pageText.slice(0, 20000)}</p>
+                <p className="mt-3 max-h-96 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-ink">{ref.content.pageText.slice(0, 20000)}</p>
               </details>
             )}
             <AskReference id={ref.id} />
@@ -209,7 +209,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
             </Section>
             {ref.concepts.length > 0 && (
               <Section title={d.reference.concepts}>
-                <p className="text-[13px] leading-relaxed text-ink-2">{ref.concepts.join(" · ")}</p>
+                <p className="text-[13px] leading-relaxed text-ink">{ref.concepts.join(" · ")}</p>
               </Section>
             )}
             {ai.brands?.length || ai.people?.length ? (

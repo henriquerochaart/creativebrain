@@ -19,7 +19,7 @@ export function UnderstandingProgress({ step, className }: { step?: string | nul
         <BrainThink className="text-2xl" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-ink">{step ? d.status.processing(step) : d.status.queued}</p>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-paper-2">
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-fill">
             <div
               className={pct === null ? "brain-indeterminate h-full w-1/3 rounded-full bg-accent" : "h-full rounded-full bg-accent transition-[width] duration-700 ease-out"}
               style={pct === null ? undefined : { width: `${pct}%` }}

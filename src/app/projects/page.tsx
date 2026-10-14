@@ -12,7 +12,7 @@ export default async function ProjectsPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">{d.projects.eyebrow}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{d.projects.title}</h1>
+          <h1 className="large-title mt-1">{d.projects.title}</h1>
           <p className="mt-1 text-sm text-ink-2">{d.projects.sub}</p>
         </div>
         <NewProject />
@@ -20,7 +20,7 @@ export default async function ProjectsPage() {
       <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((p) => (
           <li key={p.id}>
-            <Link href={`/projects/${p.id}`} className="block overflow-hidden rounded-2xl border border-line hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
+            <Link href={`/projects/${p.id}`} className="block overflow-hidden rounded-[20px] bg-surface shadow-[var(--card-shadow)] transition-shadow duration-300 hover:shadow-[var(--card-shadow-hover)]">
               <div className="grid h-32 grid-cols-4 gap-px bg-paper-2">
                 {p.covers.slice(0, 4).map((c, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -28,7 +28,7 @@ export default async function ProjectsPage() {
                 ))}
               </div>
               <div className="p-4">
-                <p className="text-lg font-medium tracking-tight">{p.name}</p>
+                <p className="text-lg font-medium">{p.name}</p>
                 {p.brief && <p className="mt-1 line-clamp-2 text-[13px] text-ink-2">{p.brief}</p>}
                 <p className="mt-3 text-[12px] text-ink-3">
                   {d.projects.count(p.count)} · {p.analyzed_at ? d.projects.analysed : d.projects.notAnalysed} · {timeAgo(p.updated_at, d, localeOf(lang))}
