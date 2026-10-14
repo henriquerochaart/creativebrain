@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { detectPlatform, isProbablyUrl, normalizeUrl } from "@/server/connectors/detect";
 import { youtubeId } from "@/server/connectors/youtube";
+import { tiktokOEmbedTarget } from "@/server/connectors/tiktok";
 import { connectorFor } from "@/server/connectors";
 import { extractMeta, extractText } from "@/server/connectors/html";
 
@@ -86,5 +87,22 @@ describe("html helpers", () => {
     expect(text).toContain("Personal data becomes shareable content.");
     expect(text).not.toContain("menu");
     expect(text).not.toContain("var x");
+  });
+});
+
+describe("tiktokOEmbedTarget", () => {
+  it("asks oEmbed for a photo post under /video/ and remembers it is a photo post", () => {
+    expect(tiktokOEmbedTarget("https://www.tiktok.com/@anossarota/photo/7670302405119970580?_r=1&_t=ZS")).toEqual({
+      target: "https://www.tiktok.com/@anossarota/video/7670302405119970580",
+      isPhoto: true,
+      canonical: "https://www.tiktok.com/@anossarota/photo/7670302405119970580",
+    });
+  });
+  it("leaves a video post as it is, minus tracking params", () => {
+    expect(tiktokOEmbedTarget("https://www.tiktok.com/@nike/video/7255?lang=pt")).toEqual({
+      target: "https://www.tiktok.com/@nike/video/7255",
+      isPhoto: false,
+      canonical: "https://www.tiktok.com/@nike/video/7255",
+    });
   });
 });

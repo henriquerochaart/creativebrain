@@ -30,11 +30,19 @@ async function setStep(id: string, step: ProcessingStep) {
   await db.update(references).set({ status: "processing", processingStep: step, updatedAt: new Date() }).where(eq(references.id, id));
 }
 
-export async function processReference(id: string): Promise<Reference> {
+/**
+ * An understanding written outside the app's own model call — e.g. by an agent that read the
+ * material itself. The pipeline still runs every other step (resolve, metadata, thumbnail,
+ * embeddings, relations); only the synthesis call is replaced. `model` is what the reference page
+ * shows as "understood by".
+ */
+export type ProvidedUnderstanding = { understanding: Understanding; model: string };
+
+export async function processReference(id: string, provided?: ProvidedUnderstanding): Promise<Reference> {
   const [ref] = await db.select().from(references).where(eq(references.id, id));
   if (!ref) throw new Error(`Reference ${id} not found`);
   try {
-    const result = await runPipeline(ref);
+    const result = await runPipeline(ref, provided);
     return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -48,7 +56,7 @@ export async function processReference(id: string): Promise<Reference> {
   }
 }
 
-async function runPipeline(ref: Reference): Promise<Reference> {
+async function runPipeline(ref: Reference, provided?: ProvidedUnderstanding): Promise<Reference> {
   const storage = getStorage();
   const warnings: string[] = [];
   let metadata: ReferenceMetadata = { ...ref.metadata };
@@ -179,34 +187,42 @@ async function runPipeline(ref: Reference): Promise<Reference> {
   }
 
   // Websites and social posts without media: give the model the thumbnail/OG image to look at.
-  if (!images.length && !documents.length && thumbnailUrl) {
+  if (!provided && !images.length && !documents.length && thumbnailUrl) {
     const thumb = await downloadFile(thumbnailUrl, MAX_IMAGE_BYTES);
     if (thumb && thumb.mime.startsWith("image/")) images.push({ mime: normalizeImageMime(thumb.mime), data: thumb.data });
   }
 
   // 9-10. vision + LLM synthesis (one multimodal call produces the whole semantic file)
   await setStep(ref.id, "synthesis");
-  const llm = getLLM();
-  const understanding: Understanding = await llm.analyze({
-    system: analystSystem(env.contentLanguage),
-    prompt: synthesisPrompt({
-      platform,
-      mediaType,
-      url: canonicalUrl,
-      metadata: { ...metadata, description: content.description ?? undefined },
-      transcript: content.transcript,
-      pageText: content.pageText,
-      userNote: content.userNote,
-      frameCount,
-      documentAttached: documents.length > 0,
-    }),
-    images,
-    documents,
-    schema: UnderstandingSchema,
-    schemaName: "understanding",
-  });
+  let understanding: Understanding;
+  let model: string;
+  if (provided) {
+    understanding = provided.understanding;
+    model = provided.model;
+  } else {
+    const llm = getLLM();
+    model = llm.model;
+    understanding = await llm.analyze({
+      system: analystSystem(env.contentLanguage),
+      prompt: synthesisPrompt({
+        platform,
+        mediaType,
+        url: canonicalUrl,
+        metadata: { ...metadata, description: content.description ?? undefined },
+        transcript: content.transcript,
+        pageText: content.pageText,
+        userNote: content.userNote,
+        frameCount,
+        documentAttached: documents.length > 0,
+      }),
+      images,
+      documents,
+      schema: UnderstandingSchema,
+      schemaName: "understanding",
+    });
+  }
 
-  const ai = toReferenceAI(understanding, llm.model);
+  const ai = toReferenceAI(understanding, model);
   content.visualAnalysis = understanding.visualAnalysis;
   content.ocr = understanding.visualAnalysis.onScreenText.join("\n") || null;
   const title = understanding.title || metadata.title || ref.title || canonicalUrl || "Untitled";
