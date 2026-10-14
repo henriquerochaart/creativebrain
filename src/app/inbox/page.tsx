@@ -10,6 +10,7 @@ import { ReprocessButton } from "@/components/reference-actions";
 import { dict } from "@/server/lang";
 import { ReprocessVideos } from "@/components/reprocess-videos";
 import { ReprocessStale } from "@/components/reprocess-stale";
+import { ReprocessLinks } from "@/components/reprocess-links";
 
 // A bit past the pipeline routes' own maxDuration=300s. Past this, a reference still reading
 // "queued"/"processing" almost certainly isn't being worked on: the serverless function that was
@@ -34,7 +35,8 @@ export default async function InboxPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">{d.inbox.title}</h1>
         <p className="mt-1 text-sm text-ink-2">{d.inbox.sub}</p>
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap gap-3">
+          <ReprocessLinks />
           <ReprocessVideos />
         </div>
       </header>
