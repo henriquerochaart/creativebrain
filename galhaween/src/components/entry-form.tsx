@@ -6,8 +6,13 @@ import { firstName } from "@/lib/format";
 import { entrySchema, MAX_RECEIPT_BYTES, suggestEmail } from "@/lib/validation";
 import { Bat } from "./bat";
 import { BloodButton } from "./blood-button";
+import { ShareLink } from "./referral/share-link";
 
-type Status = { kind: "idle" } | { kind: "sending" } | { kind: "error"; message: string } | { kind: "done"; name: string; email: string };
+type Status =
+  | { kind: "idle" }
+  | { kind: "sending" }
+  | { kind: "error"; message: string }
+  | { kind: "done"; name: string; email: string; referralCode: string | null };
 
 // Above this, photos are re-encoded in the browser before upload; screenshots and PDFs are nearly
 // always under it and go untouched, so the duplicate check on the server still sees the original bytes.
@@ -31,7 +36,7 @@ function sizeLabel(bytes: number): string {
   return bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
-export function EntryForm() {
+export function EntryForm({ referralGoal, shareMessage }: { referralGoal: number; shareMessage: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -75,19 +80,26 @@ export function EntryForm() {
     body.set("website", (form.elements.namedItem("website") as HTMLInputElement | null)?.value ?? "");
     try {
       const response = await fetch("/api/entries", { method: "POST", body });
-      const result = (await response.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      const result = (await response.json().catch(() => null)) as { ok?: boolean; error?: string; referralCode?: string } | null;
       if (!response.ok || !result?.ok) {
         const message =
           result?.error ?? (response.status === 413 ? "O arquivo é grande demais. Mande um print da tela." : "Algo deu errado. Tente de novo.");
         return setStatus({ kind: "error", message });
       }
-      setStatus({ kind: "done", name: parsed.data.name, email: parsed.data.email });
+      setStatus({ kind: "done", name: parsed.data.name, email: parsed.data.email, referralCode: result.referralCode ?? null });
+      if (result.referralCode) {
+        try {
+          localStorage.setItem("gw_my_ref", result.referralCode);
+        } catch {}
+      }
     } catch {
       setStatus({ kind: "error", message: "Sem conexão. Confira a internet e tente de novo." });
     }
   }
 
-  if (status.kind === "done") return <Success name={status.name} email={status.email} />;
+  if (status.kind === "done") {
+    return <Success name={status.name} email={status.email} referralCode={status.referralCode} referralGoal={referralGoal} shareMessage={shareMessage} />;
+  }
 
   const sending = status.kind === "sending";
 
@@ -220,7 +232,19 @@ const BURST = Array.from({ length: 9 }, (_, i) => {
   };
 });
 
-function Success({ name, email }: { name: string; email: string }) {
+function Success({
+  name,
+  email,
+  referralCode,
+  referralGoal,
+  shareMessage,
+}: {
+  name: string;
+  email: string;
+  referralCode: string | null;
+  referralGoal: number;
+  shareMessage: string;
+}) {
   return (
     <div className="relative flex flex-col items-center py-6 text-center" role="status">
       <div className="relative h-36 w-36">
@@ -234,7 +258,7 @@ function Success({ name, email }: { name: string; email: string }) {
           </span>
         ))}
         <div className="ghost-rise absolute inset-0">
-          <svg viewBox="0 0 100 110" className="ghost h-full w-full drop-shadow-[0_0_30px_rgb(239_230_220/0.35)]" aria-hidden>
+          <svg viewBox="0 0 100 110" className="ghost h-full w-full" aria-hidden>
             <path
               d="M50 6C27 6 14 24 14 48v52l10-8 9 9 9-9 8 9 8-9 9 9 9-9 10 8V48C86 24 73 6 50 6z"
               fill="var(--color-bone)"
@@ -251,6 +275,20 @@ function Success({ name, email }: { name: string; email: string }) {
         <span className="text-blood-2">{email}</span>.
       </p>
       <p className="mt-3 max-w-sm text-base text-bone-2">Se não aparecer na caixa de entrada, procure no spam e em Promoções.</p>
+      {referralCode && (
+        <div className="mt-10 w-full border-t border-rule pt-8 text-left">
+          <p className="font-display text-2xl leading-tight text-blood-2 uppercase">
+            Indique {referralGoal} morcegos, sua entrada sai de graça
+          </p>
+          <p className="mt-2 mb-4 text-base text-bone-2">
+            Cada amigo que entrar pelo seu link com o Pix confirmado conta um. Chegou a {referralGoal}, a gente devolve o seu Pix.
+          </p>
+          <ShareLink code={referralCode} message={shareMessage} />
+          <Link href={`/indique/${referralCode}`} className="btn-ghost mt-3 w-full">
+            Ver meu placar
+          </Link>
+        </div>
+      )}
       <Link href="/" className="btn-ghost mt-8">
         Voltar ao início
       </Link>

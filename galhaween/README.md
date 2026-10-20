@@ -9,6 +9,23 @@ Landing page da festa, pedido de entrada por Pix e um painel para conferir compr
 3. **Painel (`/admin`)**: lista os comprovantes. Você confere no extrato do banco e aprova ou recusa. Aprovar gera um código (`GW-XXXXXX`) e manda por e-mail um QR Code de entrada.
 4. **Porta (`/entrada/<código>`)**: o QR Code abre a entrada. No celular de quem está logado no painel aparece o botão "Deixar entrar"; cada entrada passa uma vez só. Uma segunda leitura mostra "Já usada" e o horário.
 
+## Indicação: 10 morcegos, entrada de graça
+
+- Qualquer pessoa pega um link de convite em `/indique` (nome e e-mail, sem pagar nada). Quem manda comprovante também recebe o seu, na tela de confirmação e no e-mail da entrada.
+- O link é `/?i=<código>` (ex.: `?i=ana-k7pq`). Ele grava um cookie por 30 dias; quando o convidado manda o comprovante, a entrada fica marcada com quem convidou. Na página do Pix aparece "Convite de Ana".
+- Conta um morcego por **convidado diferente com o Pix aprovado**. Pendentes e recusados não contam, nem a própria pessoa.
+- No 10º aprovado: se a pessoa ainda não tinha pago, a entrada grátis é emitida e enviada na hora. Se já tinha pago (ou mandado comprovante), ela aparece na aba **Indicações** do painel como "devolver R$ 25"; devolva pelo app do banco (Devolver Pix, no próprio lançamento) e clique em "Marquei a devolução".
+- Cada um acompanha o próprio placar em `/indique/<código>`, que mostra só o primeiro nome e a contagem.
+- A meta está em `src/config/event.ts` (`referralGoal`).
+
+Risco financeiro: cada recompensa custa R$ 25 contra R$ 250 que entraram de verdade, e só conta Pix que você aprovou no extrato, então não há como ganhar entrada com convidado falso sem pagar 10 entradas.
+
+## Trilha, menu e bar
+
+- **Trilha**: `public/trilha.mp3` é uma música original composta e sintetizada para o site (`scripts/compose-trilha.py`, sem samples nem material de terceiros), em loop de 38 s. Navegadores só liberam som depois de um toque, então ela começa no primeiro toque em qualquer lugar da página; o botão de alto-falante no canto liga e desliga, e a escolha fica salva no aparelho.
+- **Menu** (canto superior direito): data, endereço com mapa, open bar, os palcos, concurso de fantasia, indicação e o botão de entrada.
+- **Bar**: "Ver bebidas" abre `#bebidas`, um balcão escuro com neon e as garrafas desfocadas no formato de cada bebida. Os nomes ficam em `src/config/event.ts` (`bar.drinks`) e só chegam ao navegador quando `bar.revealed` for `true`; aí as garrafas entram em foco com o nome embaixo.
+
 ## O que o sistema confere sozinho, e o que não
 
 - **Confere**: tipo do arquivo (só imagem ou PDF, pelo conteúdo, não pelo nome), tamanho, envio repetido do mesmo arquivo pelo mesmo e-mail (vira um só), o **mesmo arquivo** usado por pessoas diferentes (aparece um aviso no painel), e-mail com erro de digitação comum (`gmial.com`), e entrada usada duas vezes na porta.

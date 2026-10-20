@@ -1,6 +1,7 @@
 import nodemailer, { type SendMailOptions, type Transporter } from "nodemailer";
 import { event } from "@/config/event";
 import { firstName } from "@/lib/format";
+import { referralUrl } from "@/lib/referral";
 import type { Entry } from "./store";
 import { qrPng, ticketUrl } from "./ticket";
 
@@ -66,11 +67,12 @@ function eventLines(): string[] {
   return [event.date, event.time, event.venue, event.address].filter((line): line is string => Boolean(line));
 }
 
-export async function sendTicketEmail(entry: Entry, siteUrl: string): Promise<MailResult> {
+export async function sendTicketEmail(entry: Entry, siteUrl: string, referralCode?: string | null): Promise<MailResult> {
   if (!entry.ticketToken || !entry.ticketCode) return { ok: false, error: "Entrada sem código" };
   const url = ticketUrl(siteUrl, entry.ticketToken);
   const qr = await qrPng(url, 520);
   const details = eventLines();
+  const invite = referralCode && entry.kind === "paid" ? referralUrl(siteUrl, referralCode) : null;
   const html = layout(siteUrl, `
 <tr><td style="padding:8px 32px 0;text-align:center;font-size:18px;line-height:1.6;">
   ${escape(firstName(entry.name))}, seu Pix foi confirmado.<br>Esta é a sua entrada.
@@ -85,8 +87,16 @@ export async function sendTicketEmail(entry: Entry, siteUrl: string): Promise<Ma
   ${details.length ? `<br><br>${details.map(escape).join("<br>")}` : ""}
 </td></tr>
 <tr><td align="center" style="padding:28px 32px 0;">
-  <a href="${escape(url)}" style="display:inline-block;background:${COLORS.blood};color:#ffffff;text-decoration:none;font-size:16px;padding:14px 28px;border-radius:999px;">Abrir minha entrada</a>
-</td></tr>`);
+  <a href="${escape(url)}" style="display:inline-block;background:${COLORS.blood};color:#ffffff;text-decoration:none;font-size:16px;padding:14px 28px;border-radius:2px;">Abrir minha entrada</a>
+</td></tr>${
+    invite
+      ? `
+<tr><td style="padding:28px 32px 0;text-align:center;font-size:15px;line-height:1.6;color:${COLORS.muted};">
+  Indique ${event.referralGoal} morcegos e a sua entrada sai de graça (a gente devolve o seu Pix):<br>
+  <a href="${escape(invite)}" style="color:${COLORS.bone};">${escape(invite)}</a>
+</td></tr>`
+      : ""
+  }`);
   const text = [
     `${firstName(entry.name)}, seu Pix foi confirmado. Esta é a sua entrada para a ${event.name}.`,
     "",
@@ -96,6 +106,7 @@ export async function sendTicketEmail(entry: Entry, siteUrl: string): Promise<Ma
     "Mostre o QR Code na porta. Ele vale para uma pessoa e é lido uma vez só.",
     `Sua entrada: ${url}`,
     ...(details.length ? ["", ...details] : []),
+    ...(invite ? ["", `Indique ${event.referralGoal} morcegos e a sua entrada sai de graça: ${invite}`] : []),
   ].join("\n");
   return send({
     to: entry.email,

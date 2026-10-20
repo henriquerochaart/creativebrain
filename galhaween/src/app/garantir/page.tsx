@@ -7,6 +7,13 @@ import { PixPanel } from "@/components/pix-panel";
 import { event } from "@/config/event";
 import { brl } from "@/lib/format";
 import { pixDetails } from "@/server/pix-config";
+import { dbConfigured } from "@/server/db";
+import { getStore, isReferralCode } from "@/server/store";
+import { REFERRAL_COOKIE } from "@/lib/referral";
+import { inviteMessage } from "@/lib/share";
+import { firstName } from "@/lib/format";
+import { cookies } from "next/headers";
+import { SparkleHeading } from "@/components/sparkle";
 import { qrSvg } from "@/server/ticket";
 
 export const metadata: Metadata = { title: "Garanta sua entrada" };
@@ -26,8 +33,20 @@ function StepHeading({ numeral, title, children }: { numeral: string; title: str
   );
 }
 
-export default async function Garantir() {
+async function findInviter(code: string) {
+  try {
+    return await (await getStore()).referrerByCode(code);
+  } catch {
+    return null;
+  }
+}
+
+export default async function Garantir({ searchParams }: { searchParams: Promise<{ i?: string }> }) {
   const pix = pixDetails();
+  // Who invited this guest: the link they came by, or the cookie it left earlier.
+  const code = (await searchParams).i ?? (await cookies()).get(REFERRAL_COOKIE)?.value ?? null;
+  const inviter = code && isReferralCode(code) && dbConfigured() ? await findInviter(code) : null;
+  const open = dbConfigured();
   const qr = pix ? await qrSvg(pix.payload) : null;
 
   return (
@@ -39,14 +58,16 @@ export default async function Garantir() {
         <Link href="/" aria-label="Voltar ao início">
           <Logo size="sm" />
         </Link>
-        <Link href="/" className="eyebrow hover:text-bone">
-          Voltar
-        </Link>
       </header>
 
       <div className="relative z-10 mx-auto max-w-3xl px-4">
         <div className="pt-2 pb-8 text-center sm:pt-8 sm:pb-12">
           <h1 className="section-title">Garanta sua entrada</h1>
+          {inviter && (
+            <SparkleHeading as="p" className="mb-4 !text-lg">
+              Convite de {firstName(inviter.name)}
+            </SparkleHeading>
+          )}
           <p className="mx-auto mt-3 max-w-md text-xl text-bone-2 italic">
             Três passos e o seu nome entra na lista. A entrada custa {brl(event.price)}.
           </p>
@@ -80,7 +101,13 @@ export default async function Garantir() {
             Com o seu nome e o e-mail onde quer receber a entrada.
           </StepHeading>
           <div className="mt-8">
-            <EntryForm />
+            {open ? (
+              <EntryForm referralGoal={event.referralGoal} shareMessage={inviteMessage()} />
+            ) : (
+              <p className="rounded-[2px] border border-blood/50 bg-ember/30 px-4 py-4 text-lg text-bone">
+                O envio de comprovantes abre em breve. Guarde o seu: ele vai valer.
+              </p>
+            )}
           </div>
         </section>
 

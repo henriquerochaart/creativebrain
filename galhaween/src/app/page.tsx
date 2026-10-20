@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { BloodLink } from "@/components/blood-button";
+import { BatMeter } from "@/components/referral/bat-meter";
 import { Divider } from "@/components/divider";
 import { Eyes } from "@/components/eyes";
 import { Logo } from "@/components/logo";
@@ -152,6 +153,43 @@ export default function Home() {
         </div>
       </section>
 
+      {/* The night: open bar and two stages */}
+      <section id="a-noite" className="relative mx-auto max-w-3xl px-4 py-20 text-center">
+        <Reveal>
+          <SparkleHeading as="h2">A noite</SparkleHeading>
+          <p className="section-title mt-5">
+            Open bar.
+            <br />
+            {event.stages.length} palcos.
+          </p>
+          <Divider mark="sparkle" className="mx-auto mt-7 max-w-xs" />
+        </Reveal>
+
+        <Reveal className="mt-12">
+          <div className="card relative overflow-hidden px-5 py-8">
+            <p className="font-display text-5xl leading-none text-bone uppercase">Open bar</p>
+            <p className="mt-3 text-base text-bone-2">Bebida liberada. O que vai ter no balcão ainda está no escuro.</p>
+            <a href="#bebidas" className="btn-ghost mt-6 w-full sm:w-auto">
+              Ver bebidas
+            </a>
+          </div>
+        </Reveal>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {event.stages.map((stage, i) => (
+            <Reveal key={stage.name} delay={i * 180}>
+              <div className="card h-full px-5 py-7 text-left">
+                <p className="flex items-center gap-2 font-display text-lg leading-none text-blood-2 uppercase">
+                  <Sparkle className="text-bone" size={14} delay={i * 1.1} />
+                  {stage.name}
+                </p>
+                <p className="mt-3 font-display text-4xl leading-[0.95] text-bone uppercase">{stage.sound}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* When and where */}
       <section className="relative px-4 py-10">
         <Reveal>
@@ -161,6 +199,30 @@ export default function Home() {
             <Detail label="Entrada" value={brl(event.price)} />
           </dl>
           {event.venue && event.address && <p className="mt-6 text-center text-base text-bone-2">{event.address}</p>}
+        </Reveal>
+      </section>
+
+      {/* Referral */}
+      <section id="indique" className="relative mx-auto max-w-3xl px-4 py-20 text-center">
+        <Reveal>
+          <SparkleHeading as="h2">Indique e ganhe</SparkleHeading>
+          <p className="section-title mt-5">
+            {event.referralGoal} morcegos.
+            <br />
+            Sua entrada de graça.
+          </p>
+        </Reveal>
+        <Reveal className="mt-10">
+          <BatMeter count={0} goal={event.referralGoal} demo />
+        </Reveal>
+        <Reveal className="mt-10">
+          <p className="mx-auto max-w-md text-lg leading-relaxed text-bone">
+            Pegue seu link e mande para os amigos. Cada um que entrar por ele, com o Pix confirmado, vira um morcego no seu placar. Chegou a{" "}
+            {event.referralGoal}, sua entrada sai de graça; se você já pagou, a gente devolve.
+          </p>
+          <BloodLink href="/indique" className="mt-8 w-full sm:w-auto">
+            Quero meu link
+          </BloodLink>
         </Reveal>
       </section>
 

@@ -30,6 +30,24 @@ const MIGRATIONS = [
   )`,
   `create index if not exists entries_receipt_hash_idx on entries (receipt_hash)`,
   `create index if not exists entries_created_at_idx on entries (created_at desc)`,
+  // Referrals: who brought whom, and free entries (earned by referring) that carry no receipt.
+  `alter table entries add column if not exists referred_by text`,
+  `alter table entries add column if not exists kind text not null default 'paid'`,
+  `alter table entries alter column receipt drop not null`,
+  `alter table entries alter column receipt_name drop not null`,
+  `alter table entries alter column receipt_type drop not null`,
+  `alter table entries alter column receipt_size drop not null`,
+  `alter table entries alter column receipt_hash drop not null`,
+  `create index if not exists entries_referred_by_idx on entries (referred_by)`,
+  `create table if not exists referrers (
+    id uuid primary key,
+    code text not null unique,
+    name text not null,
+    email text not null unique,
+    created_at timestamptz not null default now(),
+    reward_status text not null default 'none' check (reward_status in ('none', 'ticket_issued', 'refunded')),
+    reward_at timestamptz
+  )`,
 ];
 
 export async function migrate(db: Db): Promise<void> {
@@ -51,6 +69,11 @@ async function open(): Promise<Db> {
   const { PGlite } = await import("@electric-sql/pglite");
   const pg = new PGlite(process.env.DATA_DIR ?? ".data/db");
   return { query: (sql, params) => pg.query(sql, params) as never };
+}
+
+/** False on Vercel without DATABASE_URL: pages render, but nothing that writes can run. */
+export function dbConfigured(): boolean {
+  return Boolean(process.env.DATABASE_URL) || !process.env.VERCEL;
 }
 
 // Cached on globalThis so dev reloads reuse one connection; two PGlite instances on one directory

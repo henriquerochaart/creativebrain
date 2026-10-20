@@ -71,7 +71,7 @@ export function PixPanel({ payload, pixKey, keyDisplay, keyKind, recipient, amou
 
       <figure className="mx-auto w-full max-w-[15rem]">
         <div
-          className="overflow-hidden rounded-[2px] border-4 border-blood/70 bg-parchment shadow-[0_0_50px_-10px_rgb(193_18_31/0.6)] [&_svg]:block [&_svg]:h-auto [&_svg]:w-full"
+          className="overflow-hidden rounded-[2px] border-4 border-blood/70 bg-parchment [&_svg]:block [&_svg]:h-auto [&_svg]:w-full"
           role="img"
           aria-label={`QR Code Pix de ${amount}`}
           dangerouslySetInnerHTML={{ __html: qrSvg }}

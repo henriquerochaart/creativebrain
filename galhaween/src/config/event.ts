@@ -25,6 +25,26 @@ export const event = {
     "A Galhaween é a nossa noite de Halloween. Luz baixa, gente fantasiada e aquele frio na espinha que ninguém sabe explicar.",
     "Para entrar, garanta antes: faça o Pix, mande o comprovante e a sua entrada chega por e-mail, com um QR Code para mostrar na porta.",
   ],
+  openBar: true,
+  stages: [
+    { name: "Palco 1", sound: "House e techno" },
+    { name: "Palco 2", sound: "Funk, brasilidades e groove" },
+  ],
+  /**
+   * Behind "Ver bebidas". Until `revealed` is true the bar shows only blurred silhouettes in each
+   * drink's shape; the names never leave the server.
+   */
+  bar: {
+    revealed: false,
+    drinks: [
+      { name: "Absolut", shape: "vodka" },
+      { name: "Gin Tanqueray", shape: "gin" },
+      { name: "Red Bull", shape: "can-slim" },
+      { name: "Xeque Mate", shape: "can" },
+    ] as { name: string; shape: "vodka" | "gin" | "can-slim" | "can" }[],
+  },
+  /** Bring this many guests whose Pix is confirmed and your own entry is free. */
+  referralGoal: 10,
   highlights: [
     { title: "Concurso de fantasia", text: "Capricha no visual. Vai ter concurso, e a concorrência promete." },
     { title: "Lista na porta", text: "Sua entrada chega por e-mail com um QR Code. É só mostrar na chegada." },

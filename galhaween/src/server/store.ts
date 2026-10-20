@@ -1,8 +1,10 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Db } from "./db";
 import { newTicketCode, newTicketToken } from "./ticket";
 
 export type EntryStatus = "pending" | "approved" | "rejected";
+/** paid: came with a Pix receipt. free: earned by bringing REFERRAL_GOAL paying guests. */
+export type EntryKind = "paid" | "free";
 
 export interface Entry {
   id: string;
@@ -10,10 +12,14 @@ export interface Entry {
   email: string;
   status: EntryStatus;
   createdAt: string;
-  receiptName: string;
-  receiptType: string;
-  receiptSize: number;
-  receiptHash: string;
+  kind: EntryKind;
+  /** Free entries carry no receipt. */
+  receiptName: string | null;
+  receiptType: string | null;
+  receiptSize: number | null;
+  receiptHash: string | null;
+  /** Referral code of whoever invited this guest. */
+  referredBy: string | null;
   reviewedAt: string | null;
   note: string | null;
   ticketCode: string | null;
@@ -31,9 +37,32 @@ export interface Receipt {
 
 export type CheckInResult = "checked_in" | "already_checked_in" | "not_valid";
 
+export type RewardStatus = "none" | "ticket_issued" | "refunded";
+
+export interface Referrer {
+  id: string;
+  code: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  rewardStatus: RewardStatus;
+  rewardAt: string | null;
+}
+
+export interface ReferrerSummary extends Referrer {
+  /** Distinct paying guests this person brought whose Pix was confirmed. */
+  count: number;
+  /** The referrer's own paid entry, if any: decides between a free ticket and a refund. */
+  ownEntry: "approved" | "pending" | null;
+}
+
+export type ReferralOutcome = "free_ticket" | "refund_owed" | null;
+
 // Every query but the receipt one leaves the bytes out.
 const COLUMNS =
-  "id, name, email, status, created_at, receipt_name, receipt_type, receipt_size, receipt_hash, reviewed_at, note, ticket_code, ticket_token, email_sent_at, email_error, checked_in_at";
+  "id, name, email, status, kind, created_at, receipt_name, receipt_type, receipt_size, receipt_hash, referred_by, reviewed_at, note, ticket_code, ticket_token, email_sent_at, email_error, checked_in_at";
+const REFERRER_COLUMNS = "id, code, name, email, created_at, reward_status, reward_at";
+const REFERRAL_CODE = /^[a-z]{1,10}-[a-z2-9]{4}$/;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -50,11 +79,13 @@ function toEntry(row: Row): Entry {
     name: String(row.name),
     email: String(row.email),
     status: row.status as EntryStatus,
+    kind: (row.kind as EntryKind) ?? "paid",
     createdAt: iso(row.created_at)!,
-    receiptName: String(row.receipt_name),
-    receiptType: String(row.receipt_type),
-    receiptSize: Number(row.receipt_size),
-    receiptHash: String(row.receipt_hash),
+    receiptName: (row.receipt_name as string | null) ?? null,
+    receiptType: (row.receipt_type as string | null) ?? null,
+    receiptSize: row.receipt_size === null || row.receipt_size === undefined ? null : Number(row.receipt_size),
+    receiptHash: (row.receipt_hash as string | null) ?? null,
+    referredBy: (row.referred_by as string | null) ?? null,
     reviewedAt: iso(row.reviewed_at),
     note: (row.note as string | null) ?? null,
     ticketCode: (row.ticket_code as string | null) ?? null,
@@ -63,6 +94,40 @@ function toEntry(row: Row): Entry {
     emailError: (row.email_error as string | null) ?? null,
     checkedInAt: iso(row.checked_in_at),
   };
+}
+
+function toReferrer(row: Row): Referrer {
+  return {
+    id: String(row.id),
+    code: String(row.code),
+    name: String(row.name),
+    email: String(row.email),
+    createdAt: iso(row.created_at)!,
+    rewardStatus: row.reward_status as RewardStatus,
+    rewardAt: iso(row.reward_at),
+  };
+}
+
+// Lowercase, no 0/o, 1/l/i: a code read off a phone screen is unambiguous.
+const CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
+
+/** "Ana Beatriz" → "ana-k7pq": the guest's first name, so a shared link says whose invite it is. */
+export function newReferralCode(name: string): string {
+  const slug =
+    name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim()
+      .split(/\s+/)[0]
+      ?.replace(/[^a-z]/g, "")
+      .slice(0, 10) || "morcego";
+  const suffix = Array.from(randomBytes(4), (byte) => CODE_ALPHABET[byte % CODE_ALPHABET.length]).join("");
+  return `${slug}-${suffix}`;
+}
+
+export function isReferralCode(code: string): boolean {
+  return REFERRAL_CODE.test(code);
 }
 
 function isUniqueViolation(error: unknown): boolean {
@@ -89,9 +154,130 @@ export function createStore(db: Db) {
     return one(`select ${COLUMNS} from entries where ticket_token = $1`, [token]);
   }
 
+  async function oneReferrer(sql: string, params: unknown[]): Promise<Referrer | null> {
+    const { rows } = await db.query<Row>(sql, params);
+    return rows[0] ? toReferrer(rows[0]) : null;
+  }
+
+  async function referrerByCode(code: string): Promise<Referrer | null> {
+    if (!isReferralCode(code)) return null;
+    return oneReferrer(`select ${REFERRER_COLUMNS} from referrers where code = $1`, [code]);
+  }
+
+  /** Distinct guests with a confirmed Pix who came through this code, not counting its owner. */
+  async function referralCount(code: string): Promise<number> {
+    const { rows } = await db.query<{ n: number }>(
+      `select count(distinct e.email)::int as n from entries e join referrers r on r.code = e.referred_by
+       where e.referred_by = $1 and e.status = 'approved' and e.kind = 'paid' and e.email <> r.email`,
+      [code],
+    );
+    return Number(rows[0]?.n ?? 0);
+  }
+
+  async function issueFreeTicket(referrerId: string): Promise<Entry | null> {
+    if (!UUID.test(referrerId)) return null;
+    // Claim the reward first, so two approvals landing together cannot issue two tickets.
+    const claimed = await oneReferrer(
+      `update referrers set reward_status = 'ticket_issued', reward_at = now() where id = $1 and reward_status = 'none' returning ${REFERRER_COLUMNS}`,
+      [referrerId],
+    );
+    if (!claimed) return null;
+    try {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          return await one(
+            `insert into entries (id, name, email, status, kind, reviewed_at, ticket_code, ticket_token, note)
+             values ($1, $2, $3, 'approved', 'free', now(), $4, $5, $6) returning ${COLUMNS}`,
+            [randomUUID(), claimed.name, claimed.email, newTicketCode(), newTicketToken(), "Entrada grátis por indicação"],
+          );
+        } catch (error) {
+          if (!isUniqueViolation(error)) throw error;
+        }
+      }
+      throw new Error("Could not generate a unique ticket code");
+    } catch (error) {
+      await db.query(`update referrers set reward_status = 'none', reward_at = null where id = $1`, [referrerId]);
+      throw error;
+    }
+  }
+
   return {
     get,
     byToken,
+    referrerByCode,
+    referralCount,
+    issueFreeTicket,
+
+    /** One referral code per e-mail: asking again returns the same code. */
+    async upsertReferrer(input: { name: string; email: string }): Promise<Referrer> {
+      const existing = await oneReferrer(`select ${REFERRER_COLUMNS} from referrers where email = $1`, [input.email]);
+      if (existing) return existing;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          const created = await oneReferrer(
+            `insert into referrers (id, code, name, email) values ($1, $2, $3, $4)
+             on conflict (email) do nothing returning ${REFERRER_COLUMNS}`,
+            [randomUUID(), newReferralCode(input.name), input.name, input.email],
+          );
+          if (created) return created;
+          // Lost a race with a concurrent request for the same e-mail.
+          const raced = await oneReferrer(`select ${REFERRER_COLUMNS} from referrers where email = $1`, [input.email]);
+          if (raced) return raced;
+        } catch (error) {
+          if (!isUniqueViolation(error)) throw error;
+        }
+      }
+      throw new Error("Could not generate a unique referral code");
+    },
+
+    async listReferrers(): Promise<ReferrerSummary[]> {
+      const { rows } = await db.query<Row>(
+        `select ${REFERRER_COLUMNS.split(", ").map((c) => "r." + c).join(", ")},
+           coalesce(c.n, 0)::int as n,
+           (select case when bool_or(o.status = 'approved') then 'approved' when bool_or(o.status = 'pending') then 'pending' end
+              from entries o where o.email = r.email and o.kind = 'paid') as own
+         from referrers r
+         left join (
+           select e.referred_by, count(distinct e.email)::int as n
+           from entries e join referrers x on x.code = e.referred_by
+           where e.status = 'approved' and e.kind = 'paid' and e.email <> x.email
+           group by e.referred_by
+         ) c on c.referred_by = r.code
+         order by n desc, r.created_at`,
+      );
+      return rows.map((row) => ({
+        ...toReferrer(row),
+        count: Number(row.n),
+        ownEntry: (row.own as "approved" | "pending" | null) ?? null,
+      }));
+    },
+
+    /**
+     * Run after a referred entry is approved. Reaching the goal with no paid entry of one's own
+     * issues the free ticket right away; someone who already paid is owed the R$ back instead,
+     * which the panel shows until it is marked as refunded.
+     */
+    async settleReferral(code: string, goal: number): Promise<{ referrer: Referrer; count: number; outcome: ReferralOutcome; entry?: Entry } | null> {
+      const referrer = await referrerByCode(code);
+      if (!referrer) return null;
+      const count = await referralCount(code);
+      if (count < goal || referrer.rewardStatus !== "none") return { referrer, count, outcome: null };
+      const { rows } = await db.query<Row>(
+        `select 1 from entries where email = $1 and kind = 'paid' and status <> 'rejected' limit 1`,
+        [referrer.email],
+      );
+      if (rows.length > 0) return { referrer, count, outcome: "refund_owed" };
+      const entry = await issueFreeTicket(referrer.id);
+      return entry ? { referrer, count, outcome: "free_ticket", entry } : { referrer, count, outcome: null };
+    },
+
+    async markRefunded(referrerId: string): Promise<Referrer | null> {
+      if (!UUID.test(referrerId)) return null;
+      return oneReferrer(
+        `update referrers set reward_status = 'refunded', reward_at = now() where id = $1 and reward_status = 'none' returning ${REFERRER_COLUMNS}`,
+        [referrerId],
+      );
+    },
 
     /**
      * A second submission of the same file from the same e-mail (a double tap, a retry after a bad
@@ -101,6 +287,8 @@ export function createStore(db: Db) {
       name: string;
       email: string;
       receipt: { bytes: Uint8Array; type: string; name: string };
+      /** Referral code from the invite link; ignored when unknown or when it is the guest's own. */
+      referredBy?: string | null;
     }): Promise<{ entry: Entry; repeated: boolean }> {
       const hash = receiptHash(input.receipt.bytes);
       const existing = await one(
@@ -108,9 +296,14 @@ export function createStore(db: Db) {
         [input.email, hash],
       );
       if (existing) return { entry: existing, repeated: true };
+      let referredBy: string | null = null;
+      if (input.referredBy && isReferralCode(input.referredBy)) {
+        const referrer = await referrerByCode(input.referredBy);
+        if (referrer && referrer.email !== input.email) referredBy = referrer.code;
+      }
       const entry = await one(
-        `insert into entries (id, name, email, receipt_name, receipt_type, receipt_size, receipt_hash, receipt)
-         values ($1, $2, $3, $4, $5, $6, $7, $8) returning ${COLUMNS}`,
+        `insert into entries (id, name, email, receipt_name, receipt_type, receipt_size, receipt_hash, receipt, referred_by)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning ${COLUMNS}`,
         [
           randomUUID(),
           input.name,
@@ -120,6 +313,7 @@ export function createStore(db: Db) {
           input.receipt.bytes.byteLength,
           hash,
           Buffer.from(input.receipt.bytes),
+          referredBy,
         ],
       );
       return { entry: entry!, repeated: false };
@@ -137,7 +331,7 @@ export function createStore(db: Db) {
         [id],
       );
       const row = rows[0];
-      if (!row) return null;
+      if (!row || row.receipt === null || row.receipt === undefined) return null;
       return {
         bytes: Buffer.from(row.receipt as Uint8Array),
         type: String(row.receipt_type),
@@ -231,11 +425,11 @@ export function duplicateSignals(entries: Entry[]) {
   const byHash = new Map<string, Entry[]>();
   const byEmail = new Map<string, Entry[]>();
   for (const entry of entries) {
-    byHash.set(entry.receiptHash, [...(byHash.get(entry.receiptHash) ?? []), entry]);
+    if (entry.receiptHash) byHash.set(entry.receiptHash, [...(byHash.get(entry.receiptHash) ?? []), entry]);
     byEmail.set(entry.email, [...(byEmail.get(entry.email) ?? []), entry]);
   }
   return (entry: Entry) => ({
-    sameReceipt: (byHash.get(entry.receiptHash) ?? []).filter((other) => other.id !== entry.id),
+    sameReceipt: entry.receiptHash ? (byHash.get(entry.receiptHash) ?? []).filter((other) => other.id !== entry.id) : [],
     sameEmail: (byEmail.get(entry.email) ?? []).filter((other) => other.id !== entry.id),
   });
 }

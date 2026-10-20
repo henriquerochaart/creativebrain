@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { copyText } from "@/lib/clipboard";
 import { brl, dateTime, time } from "@/lib/format";
-import type { Entry } from "@/server/store";
+import type { Entry, ReferrerSummary } from "@/server/store";
 import { Logo } from "../logo";
 import { Toast } from "../toast";
 
@@ -15,19 +15,20 @@ export interface BoardEntry extends Entry {
   sameEmail: number;
 }
 
-type Filter = "pending" | "approved" | "rejected" | "all";
+type Filter = "pending" | "approved" | "rejected" | "all" | "referrals";
 type Action =
   | { action: "approve" }
   | { action: "reject"; note: string | null; notify: boolean }
   | { action: "resend" }
   | { action: "email"; email: string };
-type Outcome = { ok?: boolean; error?: string; mail?: "sent" | "failed" | "not_configured" | "skipped"; mailError?: string };
+type Outcome = { ok?: boolean; error?: string; mail?: "sent" | "failed" | "not_configured" | "skipped"; mailError?: string; reward?: string | null };
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "pending", label: "Pendentes" },
   { id: "approved", label: "Aprovadas" },
   { id: "rejected", label: "Recusadas" },
   { id: "all", label: "Todas" },
+  { id: "referrals", label: "Indicações" },
 ];
 
 const rejectReasons = (price: number) => ["Pix não encontrado no extrato", `Valor diferente de ${brl(price)}`, "Comprovante repetido"];
@@ -62,7 +63,19 @@ function describe(action: Action["action"], result: Outcome): string {
   }
 }
 
-export function AdminBoard({ entries, price, mailReady }: { entries: BoardEntry[]; price: number; mailReady: boolean }) {
+export function AdminBoard({
+  entries,
+  referrers,
+  referralGoal,
+  price,
+  mailReady,
+}: {
+  entries: BoardEntry[];
+  referrers: ReferrerSummary[];
+  referralGoal: number;
+  price: number;
+  mailReady: boolean;
+}) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("pending");
   const [query, setQuery] = useState("");
@@ -91,7 +104,9 @@ export function AdminBoard({ entries, price, mailReady }: { entries: BoardEntry[
       approved: approved.length,
       rejected: entries.filter((e) => e.status === "rejected").length,
       all: entries.length,
+      referrals: referrers.length,
       checkedIn: approved.filter((e) => e.checkedInAt).length,
+      paidApproved: approved.filter((e) => e.kind === "paid").length,
     };
   }, [entries]);
 
@@ -123,9 +138,21 @@ export function AdminBoard({ entries, price, mailReady }: { entries: BoardEntry[
       notify(result.error ?? "Sem conexão. Tente de novo.");
       return false;
     }
-    notify(describe(body.action, result));
+    notify([describe(body.action, result), result.reward].filter(Boolean).join(" "));
     router.refresh();
     return true;
+  }
+
+  async function settle(id: string, action: "issue_free" | "mark_refunded"): Promise<void> {
+    const response = await fetch(`/api/admin/referrers/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    }).catch(() => null);
+    if (response?.status === 401) return router.replace("/admin/login");
+    const result = ((await response?.json().catch(() => null)) ?? {}) as { ok?: boolean; error?: string; message?: string };
+    notify(result.ok ? (result.message ?? "Feito.") : (result.error ?? "Sem conexão. Tente de novo."));
+    router.refresh();
   }
 
   async function logout() {
@@ -156,7 +183,11 @@ export function AdminBoard({ entries, price, mailReady }: { entries: BoardEntry[
         <Stat label="Pendentes" value={String(counts.pending)} accent={counts.pending > 0} />
         <Stat label="Aprovadas" value={String(counts.approved)} />
         <Stat label="Na porta" value={`${counts.checkedIn} / ${counts.approved}`} />
-        <Stat label="Aprovado em Pix" value={brl(counts.approved * price)} hint={`${counts.approved} × ${brl(price)}`} />
+        <Stat
+          label="Aprovado em Pix"
+          value={brl(counts.paidApproved * price)}
+          hint={`${counts.paidApproved} × ${brl(price)}${counts.approved > counts.paidApproved ? ` + ${counts.approved - counts.paidApproved} grátis` : ""}`}
+        />
       </section>
 
       <p className="mt-5 rounded-[2px] border border-line bg-crypt px-4 py-3 text-base text-bone-2">
@@ -196,7 +227,9 @@ export function AdminBoard({ entries, price, mailReady }: { entries: BoardEntry[
         />
       </div>
 
-      {visible.length === 0 ? (
+      {filter === "referrals" ? (
+        <ReferrersList referrers={referrers} goal={referralGoal} price={price} onSettle={settle} />
+      ) : visible.length === 0 ? (
         <p className="py-24 text-center text-xl text-bone-3 italic">
           {entries.length === 0 ? "Nenhum comprovante ainda. Silêncio de cemitério." : "Nada por aqui."}
         </p>
@@ -278,7 +311,7 @@ function EntryCard({
   const [notifyGuest, setNotifyGuest] = useState(true);
   const [email, setEmail] = useState(entry.email);
   const status = STATUS[entry.status];
-  const inline = INLINE_IMAGES.includes(entry.receiptType);
+  const inline = entry.receiptType !== null && INLINE_IMAGES.includes(entry.receiptType);
 
   async function run(body: Action) {
     setBusy(true);
@@ -295,7 +328,12 @@ function EntryCard({
 
   return (
     <li className="card flex gap-4 p-4">
-      {inline ? (
+      {entry.kind === "free" ? (
+        <span className="flex h-40 w-24 shrink-0 flex-col items-center justify-center gap-1 self-start rounded-[2px] bg-blood/15 ring-1 ring-blood/50 sm:w-28">
+          <span className="font-display text-lg leading-none text-blood-2 uppercase">Grátis</span>
+          <span className="px-2 text-center text-xs text-bone-2">10 indicações</span>
+        </span>
+      ) : inline ? (
         <button type="button" onClick={onView} className="shrink-0 self-start overflow-hidden rounded-[2px] ring-1 ring-line hover:ring-blood" aria-label="Ver comprovante">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={receiptUrl(entry.id)} alt="" loading="lazy" className="h-40 w-24 object-cover object-top sm:w-28" />
@@ -440,5 +478,79 @@ function EntryCard({
         )}
       </div>
     </li>
+  );
+}
+
+function ReferrersList({
+  referrers,
+  goal,
+  price,
+  onSettle,
+}: {
+  referrers: ReferrerSummary[];
+  goal: number;
+  price: number;
+  onSettle: (id: string, action: "issue_free" | "mark_refunded") => Promise<void>;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  if (referrers.length === 0) {
+    return <p className="py-24 text-center text-xl text-bone-3 italic">Ninguém trouxe morcegos ainda.</p>;
+  }
+  return (
+    <ul className="mt-4 grid gap-3 lg:grid-cols-2">
+      {referrers.map((r) => {
+        const done = r.count >= goal;
+        const run = async (action: "issue_free" | "mark_refunded") => {
+          setBusy(r.id);
+          await onSettle(r.id, action);
+          setBusy(null);
+        };
+        return (
+          <li key={r.id} className="card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xl leading-tight text-bone">{r.name}</p>
+                <p className="text-base break-all text-bone-2">{r.email}</p>
+                <p className="text-sm text-bone-3">Link: ?i={r.code}</p>
+              </div>
+              <p className={`shrink-0 font-display text-3xl leading-none ${done ? "text-blood-2" : "text-bone"}`}>
+                {r.count}/{goal}
+              </p>
+            </div>
+            <div className="mt-3 h-1.5 w-full bg-white/10">
+              <div className="h-full bg-blood" style={{ width: `${Math.min(r.count / goal, 1) * 100}%` }} />
+            </div>
+            {done && (
+              <div className="mt-4">
+                {r.rewardStatus === "ticket_issued" ? (
+                  <p className="text-base text-bone-2">Entrada grátis emitida.</p>
+                ) : r.rewardStatus === "refunded" ? (
+                  <p className="text-base text-bone-2">Pix de {brl(price)} devolvido.</p>
+                ) : r.ownEntry ? (
+                  <div className="space-y-2">
+                    <p className="text-base text-bone">
+                      Já tinha {r.ownEntry === "approved" ? "pago" : "mandado comprovante"}: devolva {brl(price)} pelo app do banco (Devolver Pix, no próprio
+                      lançamento) e marque aqui.
+                    </p>
+                    <button type="button" className="btn-ghost" disabled={busy === r.id} onClick={() => run("mark_refunded")}>
+                      Marquei a devolução
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={busy === r.id}
+                    onClick={() => run("issue_free")}
+                    className="inline-flex min-h-11 items-center rounded-[2px] bg-blood px-4 font-display text-base leading-none tracking-[0.03em] text-white uppercase disabled:opacity-60"
+                  >
+                    Emitir entrada grátis
+                  </button>
+                )}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }

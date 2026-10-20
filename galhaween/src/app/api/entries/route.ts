@@ -1,10 +1,18 @@
 import { entrySchema, MAX_RECEIPT_BYTES, sniffReceiptType } from "@/lib/validation";
 import { fail, json } from "@/server/http";
+import { REFERRAL_COOKIE } from "@/lib/referral";
+import { dbConfigured } from "@/server/db";
 import { getStore } from "@/server/store";
 
 export const runtime = "nodejs";
 
+function readCookie(request: Request, name: string): string | null {
+  const match = (request.headers.get("cookie") ?? "").match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export async function POST(request: Request) {
+  if (!dbConfigured()) return fail("Os pedidos de entrada abrem em breve.", 503);
   if (Number(request.headers.get("content-length") ?? 0) > MAX_RECEIPT_BYTES + 64 * 1024) {
     return fail("O arquivo passou de 4 MB. Mande um print da tela do comprovante.", 413);
   }
@@ -28,6 +36,13 @@ export async function POST(request: Request) {
   if (!type) return fail("Esse arquivo não parece uma imagem ou um PDF. Mande um print ou o PDF do comprovante.");
 
   const store = await getStore();
-  const { entry } = await store.create({ ...parsed.data, receipt: { bytes, type, name: file.name || "comprovante" } });
-  return json({ ok: true, email: entry.email });
+  const referredBy = readCookie(request, REFERRAL_COOKIE);
+  const { entry } = await store.create({
+    ...parsed.data,
+    receipt: { bytes, type, name: file.name || "comprovante" },
+    referredBy,
+  });
+  // Every guest gets their own invite link on the confirmation screen.
+  const referrer = await store.upsertReferrer(parsed.data);
+  return json({ ok: true, email: entry.email, referralCode: referrer.code });
 }

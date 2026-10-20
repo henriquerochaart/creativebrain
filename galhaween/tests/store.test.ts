@@ -19,6 +19,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await db.query("delete from entries");
+  await db.query("delete from referrers");
 });
 
 async function submit(name: string, email: string, seed: number) {
@@ -109,5 +110,74 @@ describe("entries", () => {
     expect(await store.get("1; drop table entries")).toBeNull();
     expect(await store.approve("nope")).toBeNull();
     expect(await store.receipt("nope")).toBeNull();
+  });
+});
+
+describe("referrals", () => {
+  async function referred(name: string, email: string, seed: number, code: string) {
+    const { entry } = await store.create({
+      name,
+      email,
+      receipt: { bytes: png(seed), type: "image/png", name: "pix.png" },
+      referredBy: code,
+    });
+    return entry;
+  }
+
+  it("gives one code per e-mail, built from the first name", async () => {
+    const a = await store.upsertReferrer({ name: "Ána Beatriz", email: "ana@example.com" });
+    const b = await store.upsertReferrer({ name: "Outro Nome", email: "ana@example.com" });
+    expect(a.code).toMatch(/^ana-[a-z2-9]{4}$/);
+    expect(b.code).toBe(a.code);
+  });
+
+  it("counts only distinct guests whose Pix was confirmed, never the referrer", async () => {
+    const ana = await store.upsertReferrer({ name: "Ana", email: "ana@example.com" });
+    const one = await referred("Bia", "bia@example.com", 1, ana.code);
+    await referred("Bia de novo", "bia@example.com", 2, ana.code); // same guest twice
+    await referred("Caio", "caio@example.com", 3, ana.code); // still pending
+    const self = await referred("Ana", "ana@example.com", 4, ana.code); // own link
+    expect(self.referredBy).toBeNull();
+    expect(await store.referralCount(ana.code)).toBe(0);
+    await store.approve(one.id);
+    expect(await store.referralCount(ana.code)).toBe(1);
+    const unknown = await referred("Dani", "dani@example.com", 5, "ninguem-zzzz");
+    expect(unknown.referredBy).toBeNull();
+  });
+
+  it("issues a free ticket at the goal when the referrer has not paid, exactly once", async () => {
+    const ana = await store.upsertReferrer({ name: "Ana", email: "ana@example.com" });
+    for (let i = 0; i < 3; i++) {
+      const entry = await referred(`Convidado ${i}`, `g${i}@example.com`, 10 + i, ana.code);
+      await store.approve(entry.id);
+    }
+    const settled = await store.settleReferral(ana.code, 3);
+    expect(settled?.outcome).toBe("free_ticket");
+    expect(settled?.entry?.kind).toBe("free");
+    expect(settled?.entry?.status).toBe("approved");
+    expect(settled?.entry?.ticketCode).toMatch(/^GW-/);
+    expect(settled?.entry?.receiptHash).toBeNull();
+    expect((await store.settleReferral(ana.code, 3))?.outcome).toBeNull();
+    const free = (await store.list()).filter((e) => e.kind === "free");
+    expect(free).toHaveLength(1);
+    expect(await store.receipt(free[0].id)).toBeNull();
+    const [summary] = await store.listReferrers();
+    expect(summary.count).toBe(3);
+    expect(summary.rewardStatus).toBe("ticket_issued");
+  });
+
+  it("marks a refund as owed when the referrer already paid, until it is recorded", async () => {
+    const ana = await store.upsertReferrer({ name: "Ana", email: "ana@example.com" });
+    await store.create({ name: "Ana", email: "ana@example.com", receipt: { bytes: png(99), type: "image/png", name: "pix.png" } });
+    for (let i = 0; i < 2; i++) {
+      const entry = await referred(`Convidado ${i}`, `g${i}@example.com`, 20 + i, ana.code);
+      await store.approve(entry.id);
+    }
+    expect((await store.settleReferral(ana.code, 2))?.outcome).toBe("refund_owed");
+    const [summary] = await store.listReferrers();
+    expect(summary.ownEntry).toBe("pending");
+    expect((await store.markRefunded(ana.id))?.rewardStatus).toBe("refunded");
+    expect(await store.markRefunded(ana.id)).toBeNull();
+    expect((await store.settleReferral(ana.code, 2))?.outcome).toBeNull();
   });
 });

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { event } from "@/config/event";
+import { firstName } from "@/lib/format";
 import { entrySchema } from "@/lib/validation";
 import { denyUnlessAdmin, fail, json, siteUrl } from "@/server/http";
 import { mailConfigured, sendRejectionEmail, sendTicketEmail, type MailResult } from "@/server/mail";
@@ -22,6 +24,20 @@ async function deliver(store: Store, entry: Entry, send: () => Promise<MailResul
   return result.ok ? { mail: "sent" } : { mail: "failed", mailError: result.error };
 }
 
+/**
+ * A confirmed guest may complete their referrer's goal: a referrer who has not paid gets the free
+ * ticket e-mailed now; one who has paid shows up in the panel as owed a refund.
+ */
+async function settleReward(store: Store, entry: Entry, base: string): Promise<string | null> {
+  if (!entry.referredBy) return null;
+  const settled = await store.settleReferral(entry.referredBy, event.referralGoal);
+  if (!settled?.outcome) return null;
+  const who = firstName(settled.referrer.name);
+  if (settled.outcome === "refund_owed") return `${who} completou ${event.referralGoal} indicações e já tinha pago: devolva o Pix (aba Indicações).`;
+  if (settled.entry && mailConfigured()) await deliver(store, settled.entry, () => sendTicketEmail(settled.entry!, base));
+  return `${who} completou ${event.referralGoal} indicações: entrada grátis emitida.`;
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await denyUnlessAdmin();
   if (denied) return denied;
@@ -38,7 +54,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       if (!result) return fail("Entrada não encontrada.", 404);
       // Only the call that issued the ticket e-mails it, so a double click sends one e-mail.
       if (!result.issued) return json({ ok: true, mail: "skipped" satisfies MailOutcome });
-      return json({ ok: true, ...(await deliver(store, result.entry, () => sendTicketEmail(result.entry, base))) });
+      const code = (await store.upsertReferrer({ name: result.entry.name, email: result.entry.email })).code;
+      const delivery = await deliver(store, result.entry, () => sendTicketEmail(result.entry, base, code));
+      return json({ ok: true, ...delivery, reward: await settleReward(store, result.entry, base) });
     }
     case "reject": {
       const entry = await store.reject(id, body.note || null);
@@ -50,7 +68,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const entry = await store.get(id);
       if (!entry) return fail("Entrada não encontrada.", 404);
       if (entry.status !== "approved") return fail("Só dá para reenviar uma entrada aprovada.", 409);
-      return json({ ok: true, ...(await deliver(store, entry, () => sendTicketEmail(entry, base))) });
+      const code = (await store.upsertReferrer({ name: entry.name, email: entry.email })).code;
+      return json({ ok: true, ...(await deliver(store, entry, () => sendTicketEmail(entry, base, code))) });
     }
     case "email": {
       const entry = await store.updateEmail(id, body.email);

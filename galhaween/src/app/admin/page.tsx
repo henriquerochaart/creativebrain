@@ -11,11 +11,20 @@ export const dynamic = "force-dynamic";
 
 export default async function Admin() {
   if (!(await isAdmin())) redirect("/admin/login");
-  const entries = await (await getStore()).list();
+  const store = await getStore();
+  const [entries, referrers] = await Promise.all([store.list(), store.listReferrers()]);
   const signals = duplicateSignals(entries);
   const rows: BoardEntry[] = entries.map((entry) => {
     const { sameReceipt, sameEmail } = signals(entry);
     return { ...entry, sameReceipt: sameReceipt.map((other) => other.name), sameEmail: sameEmail.length };
   });
-  return <AdminBoard entries={rows} price={event.price} mailReady={mailConfigured()} />;
+  return (
+    <AdminBoard
+      entries={rows}
+      referrers={referrers.filter((r) => r.count > 0 || r.rewardStatus !== "none")}
+      referralGoal={event.referralGoal}
+      price={event.price}
+      mailReady={mailConfigured()}
+    />
+  );
 }
