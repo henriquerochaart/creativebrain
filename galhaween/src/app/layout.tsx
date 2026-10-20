@@ -24,10 +24,15 @@ const summary = [event.dateShort && event.time ? `${event.dateShort}, ${event.ti
   .filter(Boolean)
   .join(" · ");
 
-// The share image is app/opengraph-image.jpg (logo and footer strip from the poster). Links in
-// WhatsApp previews need an absolute base: SITE_URL when set, Vercel's own URL otherwise.
+// Share previews (app/opengraph-image.jpg) need an absolute URL, fixed at build time: SITE_URL when
+// set, then the project's production domain on Vercel, then the site's intended home. Without this a
+// build made outside Vercel would point WhatsApp at localhost.
+const siteBase =
+  process.env.SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "https://galhaween.vercel.app");
+
 export const metadata: Metadata = {
-  ...(process.env.SITE_URL ? { metadataBase: new URL(process.env.SITE_URL) } : {}),
+  metadataBase: new URL(siteBase),
   title: { default: event.name, template: `%s · ${event.name}` },
   description: `${summary}. Garanta sua entrada.`,
   openGraph: { title: event.name, description: `${summary}. Garanta sua entrada.`, locale: "pt_BR", type: "website" },
