@@ -9,7 +9,7 @@ Personal multimodal creative memory. Product rule: **never save a reference with
 - `src/server/connectors` — one connector per platform, within public APIs/terms. Return URL + metadata + thumbnail even when media cannot be fetched. `web.ts` is the catch-all.
 - `src/server/search` — hybrid search with RRF over Postgres FTS + four pgvector columns.
 - `src/server/db/schema.ts` — Drizzle schema. `EMBEDDING_DIMENSIONS` is baked into the migration.
-- `galia-win/` — a separate Next.js app (party landing page, Pix ticket requests, admin panel) with its own `package.json`, lockfile, tests and `CLAUDE.md`. It is excluded from this app's `tsconfig` and Tailwind sources, and none of the Brain conventions below (Apple HIG, i18n) apply to it.
+- `galhaween/` — a separate Next.js app (party landing page, Pix ticket requests, admin panel) with its own `package.json`, lockfile, tests and `CLAUDE.md`. It is excluded from this app's `tsconfig` and Tailwind sources, and none of the Brain conventions below (Apple HIG, i18n) apply to it.
 
 ## Thumbnails
 The thumbnail is always the material's own, never generated: the OpenGraph or oEmbed image for a link, a frame for video, the file itself for an image, and the rendered first page for a PDF (`renderPdfFirstPage` in `pipeline/pdf.ts`, via the optional `@napi-rs/canvas`). Do not synthesise an image to stand in for a reference. When the material carries none, a text idea or an Instagram login wall, fall back to type in `components/thumb.tsx` rather than to invented imagery.
