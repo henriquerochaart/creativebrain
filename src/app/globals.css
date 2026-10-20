@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* galia-win/ is a separate app with its own theme; keep its classes out of this bundle. */
+@source not "../../galia-win";
 
 /*
  * Apple Human Interface Guidelines, on the web.
