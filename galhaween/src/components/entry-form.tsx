@@ -281,7 +281,7 @@ function Success({
             Indique {referralGoal} morcegos, sua entrada sai de graça
           </p>
           <p className="mt-2 mb-4 text-base text-bone-2">
-            Cada amigo que entrar pelo seu link com o Pix confirmado conta um. Chegou a {referralGoal}, a gente devolve o seu Pix.
+            Cada amigo que entrar pelo seu link, com o Pix confirmado, acende um morcego. Chegou a {referralGoal}, devolvemos o seu Pix.
           </p>
           <ShareLink code={referralCode} message={shareMessage} />
           <Link href={`/indique/${referralCode}`} className="btn-ghost mt-3 w-full">

@@ -23,7 +23,7 @@ export interface SiteInfo {
   mapsHref: string | null;
   price: string;
   openBar: boolean;
-  stages: { name: string; sound: string; note: string | null }[];
+  stages: { name: string; sound: string }[];
   referralGoal: number;
   contact: { label: string; href: string } | null;
 }
@@ -175,7 +175,7 @@ function Menu({ info, onClose }: { info: SiteInfo; onClose: () => void }) {
             </li>
           )}
           <li className="menu-item" style={next()}>
-            <p className="eyebrow text-bone-3">{info.stages.length} palcos</p>
+            <p className="eyebrow text-bone-3">Música</p>
             <ul className="mt-1 space-y-2">
               {info.stages.map((stage) => (
                 <li key={stage.name} className="flex items-baseline gap-3">

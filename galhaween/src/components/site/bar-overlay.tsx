@@ -144,7 +144,7 @@ export function BarOverlay({ drinks }: { drinks: BarDrink[] }) {
         <div className="bar-counter mt-10" aria-hidden />
 
         <p className="mt-6 text-center text-base text-bone-2">
-          {revealed ? "Tudo isso no open bar." : "Os rótulos ainda estão no escuro. A gente revela mais perto da festa."}
+          {revealed ? "Tudo isso no open bar." : "Os rótulos ainda estão no escuro. Eles aparecem mais perto da festa."}
         </p>
         <div className="mt-6 flex flex-col gap-3">
           <BloodLink href="/garantir" className="w-full">

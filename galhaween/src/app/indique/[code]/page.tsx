@@ -9,6 +9,8 @@ import { SparkleHeading } from "@/components/sparkle";
 import { event } from "@/config/event";
 import { brl, firstName } from "@/lib/format";
 import { inviteMessage } from "@/lib/share";
+import { NoDatabase } from "@/components/no-database";
+import { dbConfigured } from "@/server/db";
 import { getStore } from "@/server/store";
 
 export const metadata: Metadata = { title: "Placar de morcegos", robots: { index: false, follow: false } };
@@ -17,6 +19,7 @@ export const dynamic = "force-dynamic";
 /** A referrer's scoreboard. Public by code, so it shows a first name and a count, nothing else. */
 export default async function Placar({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
+  if (!dbConfigured()) return <NoDatabase />;
   const store = await getStore();
   const referrer = await store.referrerByCode(code);
   if (!referrer) notFound();
@@ -49,7 +52,7 @@ export default async function Placar({ params }: { params: Promise<{ code: strin
               ? "Conseguiu. Sua entrada grátis foi para o seu e-mail."
               : referrer.rewardStatus === "refunded"
                 ? `Conseguiu. Os ${brl(event.price)} do seu Pix foram devolvidos.`
-                : "Conseguiu. A organização vai liberar sua entrada grátis ou devolver o seu Pix."}
+                : "Conseguiu. A organização vai liberar sua entrada grátis ou devolver o seu Pix em breve."}
         </p>
         <div className="mt-8 text-left">
           <p className="label">Seu link de convite</p>

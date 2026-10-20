@@ -6,6 +6,8 @@ import { NightSky } from "@/components/night-sky";
 import { event } from "@/config/event";
 import { keepNumber, time } from "@/lib/format";
 import { isAdmin } from "@/server/auth";
+import { NoDatabase } from "@/components/no-database";
+import { dbConfigured } from "@/server/db";
 import { getStore } from "@/server/store";
 import { qrSvg, ticketUrl } from "@/server/ticket";
 
@@ -18,6 +20,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function Ticket({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  if (!dbConfigured()) return <NoDatabase />;
   const entry = await (await getStore()).byToken(token);
   if (!entry || !entry.ticketCode) notFound();
 

@@ -9,7 +9,6 @@ export const event = {
   name: "Galhaween",
   /** Ticket price in reais. It goes into the Pix QR Code, so the payer's bank fills it in. */
   price: 25,
-  tagline: "A noite mais assombrada do ano tem nome.",
   /** 30/10/2026 is a Friday. */
   date: "Sexta, 30 de outubro" as string | null,
   /** Short forms for the poster strip at the top of the landing page. */
@@ -23,14 +22,14 @@ export const event = {
   contact: null as { label: string; href: string } | null,
   about: [
     "A Galhaween é a nossa noite de Halloween. Luz baixa, gente fantasiada e aquele frio na espinha que ninguém sabe explicar.",
-    "Para entrar, garanta antes: faça o Pix, mande o comprovante e a sua entrada chega por e-mail, com um QR Code para mostrar na porta.",
+    "Open bar, música do funk ao darkwave e um concurso de fantasia. O resto, só indo para ver.",
   ],
   openBar: true,
-  /** The main stage first. */
+  /** The rooms and what plays in each, main room first. */
   stages: [
-    { name: "Sala", sound: "Funk, brasilidades e groove", note: "Palco principal" },
-    { name: "Caverna", sound: "House e techno", note: null },
-  ] as { name: string; sound: string; note: string | null }[],
+    { name: "Sala", sound: "Funk, brasilidades e groove" },
+    { name: "Caverna", sound: "Darkwave, post punk e techno" },
+  ],
   /**
    * Behind "Ver bebidas". Until `revealed` is true the bar shows only blurred silhouettes in each
    * drink's shape; the names never leave the server.
@@ -47,8 +46,8 @@ export const event = {
   /** Bring this many guests whose Pix is confirmed and your own entry is free. */
   referralGoal: 10,
   highlights: [
-    { title: "Concurso de fantasia", text: "Capricha no visual. Vai ter concurso, e a concorrência promete." },
-    { title: "Lista na porta", text: "Sua entrada chega por e-mail com um QR Code. É só mostrar na chegada." },
+    { title: "Concurso de fantasia", text: "Capriche no visual: tem concurso, e a concorrência promete." },
+    { title: "Lista na porta", text: "A entrada chega por e-mail com um QR Code. Mostre na porta e pronto." },
     { title: "Pix direto", text: "Sem site de ingresso no meio e sem taxa de conveniência." },
   ],
 };

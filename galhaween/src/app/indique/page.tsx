@@ -32,19 +32,19 @@ export default function Indique() {
         <ol className="mt-10 space-y-4 text-base leading-relaxed text-bone">
           <li className="flex gap-3">
             <span className="font-display text-2xl leading-none text-blood">I</span>
-            Pegue seu link aqui embaixo e mande para os amigos.
+            Pegue seu link aqui embaixo e espalhe.
           </li>
           <li className="flex gap-3">
             <span className="font-display text-2xl leading-none text-blood">II</span>
-            Cada amigo que garantir a entrada pelo seu link, com o Pix confirmado, vira um morcego no seu placar.
+            Cada amigo que garantir a entrada pelo seu link, com o Pix confirmado, acende um morcego no seu placar.
           </li>
           <li className="flex gap-3">
             <span className="font-display text-2xl leading-none text-blood">III</span>
-            Chegou a {event.referralGoal}: sua entrada sai de graça. Se você já tiver pago, a gente devolve os {brl(event.price)} pelo Pix.
+            Chegou a {event.referralGoal}: sua entrada sai de graça. Se você já tiver pago, devolvemos os {brl(event.price)} pelo Pix.
           </li>
         </ol>
         <p className="mt-4 text-sm text-bone-3">
-          Conta uma vez por pessoa, e a própria pessoa não conta. Ninguém precisa pagar para pegar o link.
+          Cada amigo conta uma vez, e você não conta no próprio placar. Não precisa pagar para pegar o link.
         </p>
         <Divider mark="sparkle" className="my-10" />
         <div className="card px-5 py-7">

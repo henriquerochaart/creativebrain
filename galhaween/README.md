@@ -23,7 +23,7 @@ Risco financeiro: cada recompensa custa R$ 25 contra R$ 250 que entraram de verd
 ## Trilha, menu e bar
 
 - **Trilha**: `public/trilha.mp3` é uma música original composta e sintetizada para o site (`scripts/compose-trilha.py`, sem samples nem material de terceiros), em loop de 38 s. Navegadores só liberam som depois de um toque, então ela começa no primeiro toque em qualquer lugar da página; o botão de alto-falante no canto liga e desliga, e a escolha fica salva no aparelho.
-- **Menu** (canto superior direito): data, endereço com mapa, open bar, os palcos, concurso de fantasia, indicação e o botão de entrada.
+- **Menu** (canto superior direito): data, endereço com mapa, open bar, os palcos (Sala: funk, brasilidades e groove; Caverna: darkwave, post punk e techno), concurso de fantasia, indicação e o botão de entrada.
 - **Bar**: "Ver bebidas" abre `#bebidas`, um balcão escuro com neon e as garrafas desfocadas no formato de cada bebida. Os nomes ficam em `src/config/event.ts` (`bar.drinks`) e só chegam ao navegador quando `bar.revealed` for `true`; aí as garrafas entram em foco com o nome embaixo.
 
 ## O que o sistema confere sozinho, e o que não
@@ -70,7 +70,9 @@ Tudo vem do cartaz animado da festa:
 - `public/textura.jpg`: textura de papel fotocopiado no preto do cartaz, repetida no fundo de todas as páginas.
 - Tipografia: Libre Caslon Condensed, a mesma família do rodapé do cartaz (hospedada no app, licença OFL em `src/fonts`), e Libre Caslon Text para os textos corridos.
 - `src/app/opengraph-image.jpg` (e `twitter-image.jpg`): a imagem que aparece quando o link é colado no WhatsApp ou nas redes, montada com os elementos da hero (logo sobre a colagem, data, endereço, Pix, concurso e o botão), em 1200×630.
-- `src/app/icon.png`, `apple-icon.png` e `favicon.ico`: o "G" recortado do logo. Para o link da prévia sair certo, defina `SITE_URL` com o domínio final.
+- `src/app/icon.svg`, `apple-icon.png` e `favicon.ico`: o morcego, em vermelho sangue sobre preto.
+
+A prévia do link usa `https://galhaween.vercel.app` como endereço base; para outro domínio, defina `SITE_URL`.
 
 No topo da página o logo e a colagem são posicionados pelas coordenadas que tinham no cartaz (veja `POSTER`, `LOGO_BOX` e `VIDEO_BOX` em `src/app/page.tsx`), então os pingos de sangue do logo caem exatamente sobre a colagem em qualquer largura de tela. Se a arte mudar, recorte de novo e atualize esses números.
 

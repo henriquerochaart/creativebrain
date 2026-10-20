@@ -1,4 +1,5 @@
 import { denyUnlessAdmin, fail, json } from "@/server/http";
+import { dbConfigured } from "@/server/db";
 import { getStore } from "@/server/store";
 
 export const runtime = "nodejs";
@@ -7,6 +8,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const denied = await denyUnlessAdmin();
   if (denied) return denied;
+  if (!dbConfigured()) return fail("Banco de dados desligado: conecte o Neon na Vercel.", 503);
   const body = (await request.json().catch(() => null)) as { code?: unknown } | null;
   const store = await getStore();
   const entry = typeof body?.code === "string" ? await store.byTicketCode(body.code) : null;

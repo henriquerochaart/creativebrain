@@ -288,6 +288,53 @@ body {
     animation: candle 1.8s ease-in-out infinite;
   }
 
+  /* ---------- Desktop scenes ---------- */
+
+  /* Each scene is --len screens tall; its inner block stays pinned while --p runs 0 → 1. Elements
+     marked .appear surface between --from and --from + --span; .parallax drifts by --depth. All of
+     it only on wide screens once SceneDriver has switched scenes on. */
+  @media (min-width: 1024px) {
+    html[data-scenes="on"] .scene {
+      height: calc(var(--len, 2) * 100vh);
+    }
+    html[data-scenes="on"] .scene-inner {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+    html[data-scenes="on"] .appear {
+      --t: clamp(0, calc((var(--p, 0) - var(--from, 0)) / var(--span, 0.18)), 1);
+      opacity: var(--t);
+      transform: none;
+      translate: calc((1 - var(--t)) * var(--dx, 0px)) calc((1 - var(--t)) * var(--dy, 56px));
+      filter: blur(calc((1 - var(--t)) * 6px));
+      transition: none;
+    }
+    html[data-scenes="on"] .parallax {
+      translate: 0 calc((0.5 - var(--p, 0)) * var(--depth, 120px));
+    }
+    /* The hero is fully there at first; scrolling pushes the poster back and lets the rest go. */
+    html[data-scenes="on"] .hero-poster {
+      scale: calc(1 - var(--p, 0) * 0.12);
+      filter: brightness(calc(1 - var(--p, 0) * 0.65));
+    }
+    html[data-scenes="on"] .hero-info {
+      opacity: clamp(0, calc(1 - (var(--p, 0) - 0.35) * 2.5), 1);
+      translate: 0 calc(var(--p, 0) * -60px);
+    }
+    html[data-scenes="on"] .scene-hint {
+      opacity: clamp(0, calc(1 - var(--p, 0) * 6), 1);
+    }
+    /* Bats light up one by one as the referral scene scrolls. */
+    html[data-scenes="on"] .bat-slot.is-scroll {
+      --t: clamp(0, calc((var(--p, 0) - var(--from, 0)) / 0.05), 1);
+      animation: none;
+      color: color-mix(in srgb, var(--color-blood) calc(var(--t) * 100%), rgb(255 255 255 / 0.14));
+      scale: calc(1 + var(--t) * 0.08);
+    }
+  }
+
   /* ---------- Entry loader ---------- */
 
   /* Black curtain over everything; the logo is revealed top to bottom by a sliding mask, holds,
@@ -452,12 +499,13 @@ body {
   .bat-slot.is-lit {
     color: var(--color-blood);
   }
-  .bat-slot.is-demo {
+  .bat-slot.is-demo,
+  .bat-slot.is-scroll {
     animation: bat-light 7s ease-in-out infinite;
   }
   /* Only the bats already earned flap their wings. */
-  .bat-slot:not(.is-lit):not(.is-demo) .bat .wing-l,
-  .bat-slot:not(.is-lit):not(.is-demo) .bat .wing-r {
+  .bat-slot:not(.is-lit):not(.is-demo):not(.is-scroll) .bat .wing-l,
+  .bat-slot:not(.is-lit):not(.is-demo):not(.is-scroll) .bat .wing-r {
     animation: none;
   }
 

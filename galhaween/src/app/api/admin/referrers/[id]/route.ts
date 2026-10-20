@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { denyUnlessAdmin, fail, json, siteUrl } from "@/server/http";
 import { mailConfigured, sendTicketEmail } from "@/server/mail";
+import { dbConfigured } from "@/server/db";
 import { getStore } from "@/server/store";
 
 export const runtime = "nodejs";
@@ -10,6 +11,7 @@ const actionSchema = z.object({ action: z.enum(["issue_free", "mark_refunded"]) 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await denyUnlessAdmin();
   if (denied) return denied;
+  if (!dbConfigured()) return fail("Banco de dados desligado: conecte o Neon na Vercel.", 503);
   const { id } = await params;
   const parsed = actionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail("Ação inválida.");

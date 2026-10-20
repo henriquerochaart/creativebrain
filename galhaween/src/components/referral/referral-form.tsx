@@ -25,7 +25,7 @@ export function ReferralForm({ shareMessage }: { shareMessage: string }) {
   if (code) {
     return (
       <div className="space-y-5">
-        <p className="text-lg text-bone">Este é o seu link. Cada amigo que entrar por ele e tiver o Pix confirmado vira um morcego no seu placar.</p>
+        <p className="text-lg text-bone">Este é o seu link. Cada amigo que entrar por ele, com o Pix confirmado, acende um morcego no seu placar.</p>
         <ShareLink code={code} message={shareMessage} />
         <Link href={`/indique/${code}`} className="btn-ghost w-full">
           Ver meu placar

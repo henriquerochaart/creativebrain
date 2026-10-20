@@ -4,6 +4,7 @@ import { firstName } from "@/lib/format";
 import { entrySchema } from "@/lib/validation";
 import { denyUnlessAdmin, fail, json, siteUrl } from "@/server/http";
 import { mailConfigured, sendRejectionEmail, sendTicketEmail, type MailResult } from "@/server/mail";
+import { dbConfigured } from "@/server/db";
 import { getStore, type Entry, type Store } from "@/server/store";
 
 export const runtime = "nodejs";
@@ -41,6 +42,7 @@ async function settleReward(store: Store, entry: Entry, base: string): Promise<s
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await denyUnlessAdmin();
   if (denied) return denied;
+  if (!dbConfigured()) return fail("Banco de dados desligado: conecte o Neon na Vercel.", 503);
   const { id } = await params;
   const parsed = actionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Ação inválida.");

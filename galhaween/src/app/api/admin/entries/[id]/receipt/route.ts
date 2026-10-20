@@ -1,4 +1,5 @@
 import { denyUnlessAdmin, fail } from "@/server/http";
+import { dbConfigured } from "@/server/db";
 import { getStore } from "@/server/store";
 
 export const runtime = "nodejs";
@@ -6,6 +7,7 @@ export const runtime = "nodejs";
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await denyUnlessAdmin();
   if (denied) return denied;
+  if (!dbConfigured()) return fail("Banco de dados desligado: conecte o Neon na Vercel.", 503);
   const { id } = await params;
   const receipt = await (await getStore()).receipt(id);
   if (!receipt) return fail("Comprovante não encontrado.", 404);

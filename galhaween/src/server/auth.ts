@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
  */
 export const ADMIN_COOKIE = "gw_admin";
 export const SESSION_SECONDS = 14 * 24 * 60 * 60;
-export const MIN_PASSWORD_LENGTH = 10;
+export const MIN_PASSWORD_LENGTH = 8;
 
 export function adminPassword(): string | null {
   const password = process.env.ADMIN_PASSWORD ?? "";
