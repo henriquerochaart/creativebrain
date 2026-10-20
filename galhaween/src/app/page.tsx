@@ -67,7 +67,7 @@ export default function Home() {
         <NightSky />
         <div className="relative w-full max-w-[34rem]" style={{ aspectRatio: `${POSTER.width} / ${stageHeight}` }}>
           <PosterVideo
-            className="poster-video absolute left-0 w-full"
+            className="absolute left-0 w-full"
             style={{ top: pct(VIDEO_BOX.top - POSTER.top, stageHeight), height: pct(VIDEO_BOX.height, stageHeight) }}
           />
           <h1

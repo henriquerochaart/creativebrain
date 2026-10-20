@@ -288,6 +288,34 @@ body {
     animation: candle 1.8s ease-in-out infinite;
   }
 
+  /* ---------- Entry loader ---------- */
+
+  /* Black curtain over everything; the logo is revealed top to bottom by a sliding mask, holds,
+     then the curtain fades and stops catching taps. ~2.9 s in all. */
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-night);
+    animation: loader-out 0.7s ease 2.2s forwards;
+  }
+  .loader-logo {
+    width: min(78vw, 420px);
+    height: auto;
+    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 60%);
+    mask-image: linear-gradient(to bottom, #000 40%, transparent 60%);
+    -webkit-mask-size: 100% 250%;
+    mask-size: 100% 250%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: 0 100%;
+    mask-position: 0 100%;
+    animation: loader-reveal 1.6s cubic-bezier(0.45, 0, 0.25, 1) 0.3s forwards;
+  }
+
   /* ---------- Menu ---------- */
 
   .burger {
@@ -617,6 +645,18 @@ body {
     opacity: 1;
   }
 }
+@keyframes loader-reveal {
+  to {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+  }
+}
+@keyframes loader-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
 @keyframes menu-in {
   from {
     opacity: 0;
@@ -831,6 +871,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .loader {
+    display: none;
+  }
   *,
   *::before,
   *::after {

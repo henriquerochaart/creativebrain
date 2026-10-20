@@ -9,6 +9,7 @@ import { BloodLink } from "../blood-button";
 import { Pumpkin } from "../pumpkin";
 import { Sparkle } from "../sparkle";
 import { BarOverlay, type BarDrink } from "./bar-overlay";
+import { Loader } from "./loader";
 import { useSoundtrack } from "./soundtrack";
 // Imported directly rather than through <Logo>, which reads config/event.ts: that file holds the
 // unrevealed drink names and must not end up in the browser bundle.
@@ -70,6 +71,7 @@ function Chrome({ info, drinks }: { info: SiteInfo; drinks: BarDrink[] }) {
 
   return (
     <>
+      <Loader name={info.name} />
       <header
         className={`fixed inset-x-0 top-0 z-[70] flex h-16 items-center justify-between px-3 transition-colors duration-500 ${
           scrolled || menuOpen ? "border-b border-rule bg-black/90 backdrop-blur-sm" : "border-b border-transparent"
