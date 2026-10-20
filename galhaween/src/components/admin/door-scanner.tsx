@@ -177,7 +177,7 @@ export function DoorScanner() {
 
   return (
     <main className="mx-auto flex min-h-[100svh] max-w-md flex-col px-4 pt-4 pb-8">
-      <header className="flex items-center justify-between gap-3 pr-28">
+      <header className="flex items-center justify-between gap-3">
         <Link href="/admin" className="flex items-baseline gap-3">
           <Logo size="sm" />
           <span className="eyebrow">Porta</span>

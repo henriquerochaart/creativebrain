@@ -80,7 +80,7 @@ export function PixPanel({ payload, pixKey, keyDisplay, keyKind, recipient, amou
       </figure>
 
       <div className="md:col-span-2">
-        <a href="#comprovante" className="eyebrow inline-flex items-center gap-2 text-bone hover:text-blood-2">
+        <a href="#comprovante" className="eyebrow inline-flex items-center gap-2 text-bone hover:text-blood">
           Já fiz o Pix <span aria-hidden>↓</span>
         </a>
       </div>

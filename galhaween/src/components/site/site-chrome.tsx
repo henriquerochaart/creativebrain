@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,8 +10,12 @@ import { Pumpkin } from "../pumpkin";
 import { Sparkle } from "../sparkle";
 import { BarOverlay, type BarDrink } from "./bar-overlay";
 import { useSoundtrack } from "./soundtrack";
+// Imported directly rather than through <Logo>, which reads config/event.ts: that file holds the
+// unrevealed drink names and must not end up in the browser bundle.
+import logo from "../../../public/logo.png";
 
 export interface SiteInfo {
+  name: string;
   date: string | null;
   time: string | null;
   address: string | null;
@@ -22,7 +27,7 @@ export interface SiteInfo {
   contact: { label: string; href: string } | null;
 }
 
-/** Fixed sound and menu buttons, the menu, the hidden bar and invite-link capture, on every public page. */
+/** The header (logo, sound, menu), the menu, the hidden bar and invite-link capture, on every public page. */
 export function SiteChrome({ info, drinks }: { info: SiteInfo; drinks: BarDrink[] }) {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
@@ -32,7 +37,16 @@ export function SiteChrome({ info, drinks }: { info: SiteInfo; drinks: BarDrink[
 function Chrome({ info, drinks }: { info: SiteInfo; drinks: BarDrink[] }) {
   const sound = useSoundtrack();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+
+  // Clear over the poster at the top; a black bar once the page moves under it.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // ?i=<code> on any page: remember who invited this guest until they send their receipt.
   useEffect(() => {
@@ -56,7 +70,15 @@ function Chrome({ info, drinks }: { info: SiteInfo; drinks: BarDrink[] }) {
 
   return (
     <>
-      <div className="fixed top-3 right-3 z-[70] flex gap-2">
+      <header
+        className={`fixed inset-x-0 top-0 z-[70] flex h-16 items-center justify-between px-3 transition-colors duration-500 ${
+          scrolled || menuOpen ? "border-b border-rule bg-black/90 backdrop-blur-sm" : "border-b border-transparent"
+        }`}
+      >
+        <Link href="/" aria-label={`${info.name}, início`} className="flex h-11 items-center">
+          <Image src={logo} alt={info.name} sizes="120px" priority className="h-10 w-auto" />
+        </Link>
+        <div className="flex gap-2">
         <button
           type="button"
           data-sound-toggle
@@ -81,7 +103,8 @@ function Chrome({ info, drinks }: { info: SiteInfo; drinks: BarDrink[] }) {
             <span />
           </span>
         </button>
-      </div>
+        </div>
+      </header>
 
       {menuOpen && <Menu info={info} onClose={() => setMenuOpen(false)} />}
       <BarOverlay drinks={drinks} />
@@ -117,7 +140,7 @@ function Menu({ info, onClose }: { info: SiteInfo; onClose: () => void }) {
           <li className="menu-item" style={next()}>
             <p className="eyebrow text-bone-3">Quando</p>
             <p className="font-display text-4xl leading-none text-bone uppercase">{info.date ?? "Em breve"}</p>
-            {info.time && <p className="mt-1 font-display text-3xl leading-none text-blood-2 uppercase">{info.time}</p>}
+            {info.time && <p className="mt-1 font-display text-3xl leading-none text-blood uppercase">{info.time}</p>}
           </li>
           <li className="menu-item" style={next()}>
             <p className="eyebrow text-bone-3">Onde</p>
@@ -144,19 +167,19 @@ function Menu({ info, onClose }: { info: SiteInfo; onClose: () => void }) {
                 <li key={stage.name} className="flex items-baseline gap-3">
                   <Sparkle className="text-blood" size={14} still />
                   <span className="font-display text-2xl leading-tight text-bone uppercase">
-                    {stage.name} <span className="text-blood-2">·</span> {stage.sound}
+                    {stage.name} <span className="text-blood">·</span> {stage.sound}
                   </span>
                 </li>
               ))}
             </ul>
           </li>
           <li className="menu-item" style={next()}>
-            <p className="font-display text-3xl leading-none text-blood-2 uppercase">Concurso de fantasia</p>
+            <p className="font-display text-3xl leading-none text-blood uppercase">Concurso de fantasia</p>
           </li>
           <li className="menu-item" style={next()}>
             <Link href="/indique" onClick={onClose} className="group block">
               <p className="eyebrow text-bone-3">Indique</p>
-              <p className="font-display text-3xl leading-tight text-bone uppercase group-hover:text-blood-2">
+              <p className="font-display text-3xl leading-tight text-bone uppercase group-hover:text-blood">
                 {info.referralGoal} morcegos, sua entrada sai de graça
               </p>
             </Link>

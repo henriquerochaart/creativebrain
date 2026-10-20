@@ -4,8 +4,7 @@
  * Galhaween follows its poster: photocopy-black paper (public/textura.jpg), bone-white condensed
  * serif capitals in the poster's footer face (Libre Caslon Condensed) with Libre Caslon Text for
  * reading, and flat poster red for buttons, numerals, rules and four-point sparkles. Square
- * corners, thin rules, no gloss. Red text below 24px uses blood-2, which keeps 4.5:1 on the black;
- * blood itself is for large type, fills and lines.
+ * corners, thin rules, no gloss. One red, the poster's blood red, for everything red.
  */
 @theme {
   --font-display: var(--font-caslon-condensed), "Libre Caslon Condensed", Georgia, serif;
@@ -18,7 +17,6 @@
   --color-bone-2: #d2c6bb;
   --color-bone-3: #948b84;
   --color-blood: #d6120f;
-  --color-blood-2: #f0443f;
   --color-ember: #4a080d;
   /* Light ground for QR Codes: scanners need dark modules on light. */
   --color-parchment: #f4ede4;
@@ -54,7 +52,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-blood-2);
+  outline: 2px solid var(--color-blood);
   outline-offset: 3px;
 }
 
@@ -221,7 +219,7 @@ body {
     opacity: 0.5;
   }
   .btn-ghost.danger {
-    color: var(--color-blood-2);
+    color: var(--color-blood);
   }
 
   /* The poster's four-point star, twinkling. Delay and pace come from the component. */
@@ -357,8 +355,8 @@ body {
     color: #ffe7e3;
     text-shadow:
       0 0 3px #fff,
-      0 0 10px #ff3b30,
-      0 0 22px #ff1f17,
+      0 0 10px #d6120f,
+      0 0 22px #d6120f,
       0 0 44px #d6120f,
       0 0 80px #d6120f;
     animation: neon-on 1.6s linear both, neon-buzz 9s linear 2s infinite;
@@ -406,7 +404,7 @@ body {
     font-size: 1.6rem;
     color: #ffe7e3;
     text-shadow:
-      0 0 6px #ff3b30,
+      0 0 6px #d6120f,
       0 0 16px #d6120f;
   }
   .bar-counter {

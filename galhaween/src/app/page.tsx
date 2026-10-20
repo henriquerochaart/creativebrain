@@ -40,7 +40,7 @@ function Detail({ label, value, sub, href }: { label: string; value: string | nu
       <dd className="font-display text-[1.7rem] leading-tight text-bone uppercase">
         {value ? (
           href ? (
-            <a href={href} target="_blank" rel="noreferrer" className="underline decoration-blood/60 underline-offset-4 hover:decoration-blood-2">
+            <a href={href} target="_blank" rel="noreferrer" className="underline decoration-blood/60 underline-offset-4 hover:decoration-blood">
               {value}
             </a>
           ) : (
@@ -50,7 +50,7 @@ function Detail({ label, value, sub, href }: { label: string; value: string | nu
           <span className="text-bone-3 italic">em breve</span>
         )}
         {/* As on the poster: the time in red under the date. */}
-        {value && sub && <span className="block text-blood-2">{sub}</span>}
+        {value && sub && <span className="block text-blood">{sub}</span>}
       </dd>
     </div>
   );
@@ -63,7 +63,7 @@ export default function Home() {
   return (
     <main className="overflow-x-clip">
       {/* Hero: the poster, alive */}
-      <section className="relative flex flex-col items-center px-0 pt-6 pb-10 text-center sm:min-h-[100svh] sm:justify-center sm:px-4">
+      <section className="relative flex flex-col items-center px-0 pt-16 pb-10 text-center sm:min-h-[100svh] sm:justify-center sm:px-4 sm:pt-20">
         <NightSky />
         <div className="relative w-full max-w-[34rem]" style={{ aspectRatio: `${POSTER.width} / ${stageHeight}` }}>
           <PosterVideo
@@ -83,13 +83,13 @@ export default function Home() {
             <div className="pr-2.5 text-left whitespace-nowrap">
               <dt className="sr-only">Data</dt>
               <dd>{event.dateShort ?? "Em breve"}</dd>
-              {event.time && <dd className="text-blood-2">{event.time}</dd>}
+              {event.time && <dd className="text-blood">{event.time}</dd>}
             </div>
             <div className="border-x border-blood/50 px-2.5">
               <dt className="sr-only">Endereço</dt>
               <dd>
                 {mapsHref ? (
-                  <a href={mapsHref} target="_blank" rel="noreferrer" className="hover:text-blood-2">
+                  <a href={mapsHref} target="_blank" rel="noreferrer" className="hover:text-blood">
                     {event.address && keepNumber(event.address)}
                   </a>
                 ) : (
@@ -155,7 +155,7 @@ export default function Home() {
           {event.highlights.map((item, i) => (
             <Reveal key={item.title} delay={i * 140}>
               <div className="card h-full px-5 py-6 text-left transition-transform duration-500 hover:-translate-y-1">
-                <h3 className="flex items-center gap-2.5 font-display text-2xl leading-none text-blood-2 uppercase">
+                <h3 className="flex items-center gap-2.5 font-display text-2xl leading-none text-blood uppercase">
                   <Sparkle className="text-bone" size={16} delay={i * 0.9} />
                   {item.title}
                 </h3>
@@ -210,7 +210,7 @@ export default function Home() {
               <div className="card h-full overflow-hidden text-left">
                 <Tile name={i === 0 ? "caprichos" : "catedral"} className="aspect-[4/3] border-0 border-b" drift sizes="(max-width: 640px) 100vw, 360px" />
                 <div className="px-5 pt-6 pb-8">
-                <p className="flex items-center gap-2 font-display text-lg leading-none text-blood-2 uppercase">
+                <p className="flex items-center gap-2 font-display text-lg leading-none text-blood uppercase">
                   <Sparkle className="text-bone" size={14} delay={i * 1.1} />
                   {stage.note ?? "Palco"}
                 </p>

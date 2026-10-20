@@ -148,7 +148,7 @@ export function EntryForm({ referralGoal, shareMessage }: { referralGoal: number
           required
         />
         {suggestion && (
-          <button type="button" className="mt-2 text-base text-blood-2 underline underline-offset-4" onClick={() => setEmail(suggestion)}>
+          <button type="button" className="mt-2 text-base text-blood underline underline-offset-4" onClick={() => setEmail(suggestion)}>
             Você quis dizer {suggestion}?
           </button>
         )}
@@ -272,12 +272,12 @@ function Success({
       <h3 className="section-title mt-6 text-3xl">Buu! Recebemos</h3>
       <p className="mt-4 max-w-sm text-xl text-bone">
         Valeu, {firstName(name)}. Assim que o Pix aparecer no extrato, a sua entrada chega em{" "}
-        <span className="text-blood-2">{email}</span>.
+        <span className="text-blood">{email}</span>.
       </p>
       <p className="mt-3 max-w-sm text-base text-bone-2">Se não aparecer na caixa de entrada, procure no spam e em Promoções.</p>
       {referralCode && (
         <div className="mt-10 w-full border-t border-rule pt-8 text-left">
-          <p className="font-display text-2xl leading-tight text-blood-2 uppercase">
+          <p className="font-display text-2xl leading-tight text-blood uppercase">
             Indique {referralGoal} morcegos, sua entrada sai de graça
           </p>
           <p className="mt-2 mb-4 text-base text-bone-2">

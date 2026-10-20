@@ -71,7 +71,7 @@ export function CheckIn({ token, name, valid, checkedInAt }: { token: string; na
       >
         {state.kind === "busy" ? "Conferindo…" : `Deixar ${firstName(name)} entrar`}
       </button>
-      {state.kind === "error" && <p className="mt-3 text-base text-blood-2">{state.message}</p>}
+      {state.kind === "error" && <p className="mt-3 text-base text-blood">{state.message}</p>}
       <p className="mt-3 text-base text-bone-3">Você está vendo isto porque entrou no painel.</p>
     </div>
   );

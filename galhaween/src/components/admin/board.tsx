@@ -169,7 +169,7 @@ export function AdminBoard({
           <Logo size="sm" />
           <span className="eyebrow hidden sm:inline">Painel</span>
         </div>
-        <div className="flex gap-2 pr-28">
+        <div className="flex gap-2">
           <Link href="/admin/porta" className="btn-blood !min-h-11 !px-4 !text-base">
             Ler QR
           </Link>
@@ -283,7 +283,7 @@ function Stat({ label, value, hint, accent }: { label: string; value: string; hi
   return (
     <div className="card px-4 py-4">
       <p className="label mb-1">{label}</p>
-      <p className={`font-display text-3xl leading-tight ${accent ? "text-blood-2" : "text-bone"}`}>{value}</p>
+      <p className={`font-display text-3xl leading-tight ${accent ? "text-blood" : "text-bone"}`}>{value}</p>
       {hint && <p className="text-sm text-bone-3">{hint}</p>}
     </div>
   );
@@ -292,7 +292,7 @@ function Stat({ label, value, hint, accent }: { label: string; value: string; hi
 const STATUS = {
   pending: { label: "Pendente", className: "border-bone-3/50 text-bone-2" },
   approved: { label: "Aprovada", className: "border-bone/60 bg-bone text-night" },
-  rejected: { label: "Recusada", className: "border-blood/60 text-blood-2" },
+  rejected: { label: "Recusada", className: "border-blood/60 text-blood" },
 } as const;
 
 function EntryCard({
@@ -334,7 +334,7 @@ function EntryCard({
     <li className="card flex gap-4 p-4">
       {entry.kind === "free" ? (
         <span className="flex h-40 w-24 shrink-0 flex-col items-center justify-center gap-1 self-start rounded-[2px] bg-blood/15 ring-1 ring-blood/50 sm:w-28">
-          <span className="font-display text-lg leading-none text-blood-2 uppercase">Grátis</span>
+          <span className="font-display text-lg leading-none text-blood uppercase">Grátis</span>
           <span className="px-2 text-center text-xs text-bone-2">10 indicações</span>
         </span>
       ) : inline ? (
@@ -389,7 +389,7 @@ function EntryCard({
         <p className="text-sm text-bone-3">Enviado {dateTime(entry.createdAt)}</p>
 
         {entry.sameReceipt.length > 0 && (
-          <p className="mt-2 text-base text-blood-2">⚠ Mesmo arquivo de comprovante que: {entry.sameReceipt.join(", ")}</p>
+          <p className="mt-2 text-base text-blood">⚠ Mesmo arquivo de comprovante que: {entry.sameReceipt.join(", ")}</p>
         )}
         {entry.sameEmail > 0 && (
           <p className="mt-1 text-base text-bone-2">
@@ -400,7 +400,7 @@ function EntryCard({
         {entry.status === "approved" && (
           <div className="mt-3 space-y-0.5 text-base">
             <p className="font-display text-lg tracking-[0.06em] text-bone">{entry.ticketCode}</p>
-            <p className={entry.emailError ? "text-blood-2" : "text-bone-2"}>
+            <p className={entry.emailError ? "text-blood" : "text-bone-2"}>
               {entry.emailSentAt
                 ? `E-mail enviado ${dateTime(entry.emailSentAt)}`
                 : entry.emailError
@@ -517,7 +517,7 @@ function ReferrersList({
                 <p className="text-base break-all text-bone-2">{r.email}</p>
                 <p className="text-sm text-bone-3">Link: ?i={r.code}</p>
               </div>
-              <p className={`shrink-0 font-display text-3xl leading-none ${done ? "text-blood-2" : "text-bone"}`}>
+              <p className={`shrink-0 font-display text-3xl leading-none ${done ? "text-blood" : "text-bone"}`}>
                 {r.count}/{goal}
               </p>
             </div>

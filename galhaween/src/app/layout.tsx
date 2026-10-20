@@ -46,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <SiteChrome
           info={{
+            name: event.name,
             date: event.date,
             time: event.time,
             address: event.address,

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BloodLink } from "@/components/blood-button";
-import { Logo } from "@/components/logo";
 import { NightSky } from "@/components/night-sky";
 import { BatMeter } from "@/components/referral/bat-meter";
 import { ShareLink } from "@/components/referral/share-link";
@@ -31,12 +30,7 @@ export default async function Placar({ params }: { params: Promise<{ code: strin
       <div className="absolute inset-x-0 top-0 h-[28rem]">
         <NightSky />
       </div>
-      <header className="relative z-10 mx-auto flex max-w-xl items-center px-4 py-4">
-        <Link href="/" aria-label="Voltar ao início">
-          <Logo size="sm" />
-        </Link>
-      </header>
-      <div className="relative z-10 mx-auto max-w-xl px-4 text-center">
+      <div className="relative z-10 mx-auto max-w-xl px-4 pt-20 text-center">
         <SparkleHeading as="p" className="pt-4">
           Placar de {name}
         </SparkleHeading>

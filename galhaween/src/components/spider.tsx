@@ -13,8 +13,8 @@ export function Spider({ className, thread = 120 }: { className?: string; thread
             <ellipse cx={20} cy={22} rx={6.5} ry={7.5} />
             <circle cx={20} cy={13} r={4} />
           </g>
-          <circle cx={18.4} cy={12.6} r={0.9} fill="var(--color-blood-2)" />
-          <circle cx={21.6} cy={12.6} r={0.9} fill="var(--color-blood-2)" />
+          <circle cx={18.4} cy={12.6} r={0.9} fill="var(--color-blood)" />
+          <circle cx={21.6} cy={12.6} r={0.9} fill="var(--color-blood)" />
           <path d="M20 18.5 21.6 21.5 20 25 18.4 21.5z" fill="var(--color-blood)" opacity={0.8} />
         </svg>
       </div>

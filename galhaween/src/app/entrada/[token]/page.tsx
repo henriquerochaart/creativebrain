@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckIn } from "@/components/admin/check-in";
-import { Logo } from "@/components/logo";
 import { NightSky } from "@/components/night-sky";
 import { event } from "@/config/event";
 import { keepNumber, time } from "@/lib/format";
@@ -33,19 +31,16 @@ export default async function Ticket({ params }: { params: Promise<{ token: stri
   const details = [event.date, event.time, event.venue, event.address && keepNumber(event.address)].filter(Boolean) as string[];
 
   return (
-    <main className="relative flex min-h-[100svh] flex-col items-center overflow-x-clip px-4 pt-6 pb-16">
+    <main className="relative flex min-h-[100svh] flex-col items-center overflow-x-clip px-4 pt-16 pb-16">
       <div className="absolute inset-x-0 top-0 h-96">
         <NightSky />
       </div>
-      <Link href="/" className="relative z-10">
-        <Logo size="sm" />
-      </Link>
 
-      <div className="card relative z-10 mt-8 w-full max-w-sm overflow-hidden text-center">
+      <div className="card relative z-10 mt-6 w-full max-w-sm overflow-hidden text-center">
         <div className="border-b border-dashed border-line px-6 pt-8 pb-6">
           <p className="eyebrow">Entrada</p>
           <p className="mt-2 text-2xl text-bone">{entry.name}</p>
-          <p className="mt-1 font-display text-2xl tracking-[0.08em] text-blood-2">{entry.ticketCode}</p>
+          <p className="mt-1 font-display text-2xl tracking-[0.08em] text-blood">{entry.ticketCode}</p>
         </div>
         <div className="px-6 py-6">
           {valid ? (

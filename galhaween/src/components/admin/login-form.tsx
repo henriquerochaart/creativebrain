@@ -47,7 +47,7 @@ export function LoginForm({ destination }: { destination: string }) {
         />
       </div>
       {error && (
-        <p role="alert" className="text-base text-blood-2">
+        <p role="alert" className="text-base text-blood">
           {error}
         </p>
       )}

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Divider } from "@/components/divider";
-import { Logo } from "@/components/logo";
 import { NightSky } from "@/components/night-sky";
 import { BatMeter } from "@/components/referral/bat-meter";
 import { ReferralForm } from "@/components/referral/referral-form";
@@ -21,12 +19,7 @@ export default function Indique() {
       <div className="absolute inset-x-0 top-0 h-[28rem]">
         <NightSky />
       </div>
-      <header className="relative z-10 mx-auto flex max-w-xl items-center px-4 py-4">
-        <Link href="/" aria-label="Voltar ao início">
-          <Logo size="sm" />
-        </Link>
-      </header>
-      <div className="relative z-10 mx-auto max-w-xl px-4">
+      <div className="relative z-10 mx-auto max-w-xl px-4 pt-20">
         <div className="pt-4 pb-8 text-center">
           <SparkleHeading as="p">Indique e ganhe</SparkleHeading>
           <h1 className="section-title mt-5">

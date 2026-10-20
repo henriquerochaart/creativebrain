@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { EntryForm } from "@/components/entry-form";
-import { Logo } from "@/components/logo";
 import { NightSky } from "@/components/night-sky";
 import { PixPanel } from "@/components/pix-panel";
 import { event } from "@/config/event";
@@ -54,13 +52,8 @@ export default async function Garantir({ searchParams }: { searchParams: Promise
       <div className="absolute inset-x-0 top-0 h-[28rem]">
         <NightSky />
       </div>
-      <header className="relative z-10 mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:py-6">
-        <Link href="/" aria-label="Voltar ao início">
-          <Logo size="sm" />
-        </Link>
-      </header>
 
-      <div className="relative z-10 mx-auto max-w-3xl px-4">
+      <div className="relative z-10 mx-auto max-w-3xl px-4 pt-20">
         <div className="pt-2 pb-8 text-center sm:pt-8 sm:pb-12">
           <h1 className="section-title">Garanta sua entrada</h1>
           {inviter && (

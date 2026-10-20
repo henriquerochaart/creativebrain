@@ -39,7 +39,7 @@ export function SparkleHeading({
 }) {
   return (
     <Tag
-      className={`flex items-center justify-center gap-3 font-display text-xl leading-none tracking-[0.02em] text-blood-2 uppercase sm:text-2xl ${className ?? ""}`}
+      className={`flex items-center justify-center gap-3 font-display text-xl leading-none tracking-[0.02em] text-blood uppercase sm:text-2xl ${className ?? ""}`}
     >
       <Sparkle className="text-bone" size={20} />
       <span>{children}</span>
