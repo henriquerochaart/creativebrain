@@ -201,9 +201,17 @@ export function createStore(db: Db) {
     }
   }
 
+  /** "GW-7K3Q9X", typed at the door when a QR Code will not scan. */
+  async function byTicketCode(code: string): Promise<Entry | null> {
+    const normalized = code.trim().toUpperCase().replace(/^GW-?/, "GW-");
+    if (!/^GW-[A-Z2-9]{6}$/.test(normalized)) return null;
+    return one(`select ${COLUMNS} from entries where ticket_code = $1`, [normalized]);
+  }
+
   return {
     get,
     byToken,
+    byTicketCode,
     referrerByCode,
     referralCount,
     issueFreeTicket,

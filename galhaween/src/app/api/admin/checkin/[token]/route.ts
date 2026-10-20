@@ -15,5 +15,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   }
   const outcome = await store.checkIn(token);
   if (!outcome) return fail("Entrada não encontrada.", 404);
-  return json({ ok: true, result: outcome.result, checkedInAt: outcome.entry.checkedInAt });
+  return json({ ok: true, result: outcome.result, checkedInAt: outcome.entry.checkedInAt, name: outcome.entry.name, token, kind: outcome.entry.kind });
 }

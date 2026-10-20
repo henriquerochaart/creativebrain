@@ -17,7 +17,7 @@ export interface SiteInfo {
   mapsHref: string | null;
   price: string;
   openBar: boolean;
-  stages: { name: string; sound: string }[];
+  stages: { name: string; sound: string; note: string | null }[];
   referralGoal: number;
   contact: { label: string; href: string } | null;
 }
@@ -143,7 +143,9 @@ function Menu({ info, onClose }: { info: SiteInfo; onClose: () => void }) {
               {info.stages.map((stage) => (
                 <li key={stage.name} className="flex items-baseline gap-3">
                   <Sparkle className="text-blood" size={14} still />
-                  <span className="font-display text-2xl leading-tight text-bone uppercase">{stage.sound}</span>
+                  <span className="font-display text-2xl leading-tight text-bone uppercase">
+                    {stage.name} <span className="text-blood-2">·</span> {stage.sound}
+                  </span>
                 </li>
               ))}
             </ul>

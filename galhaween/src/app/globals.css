@@ -435,6 +435,35 @@ body {
     animation: none;
   }
 
+  /* ---------- Door scanner ---------- */
+
+  .scan-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-blood);
+    animation: scan 2.2s ease-in-out infinite alternate;
+  }
+
+  /* ---------- Collage tiles ---------- */
+
+  .tile {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-rule);
+    background: var(--color-night);
+  }
+  /* Where the browser supports scroll-driven animation, images drift slowly inside their frames. */
+  @supports (animation-timeline: view()) {
+    .drift {
+      scale: 1.12;
+      animation: drift-y linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+  }
+
   /* ---------- Spider ---------- */
 
   .spider {
@@ -689,6 +718,22 @@ body {
   90%,
   100% {
     color: rgb(255 255 255 / 0.14);
+  }
+}
+@keyframes scan {
+  from {
+    top: 4%;
+  }
+  to {
+    top: 96%;
+  }
+}
+@keyframes drift-y {
+  from {
+    translate: 0 -5%;
+  }
+  to {
+    translate: 0 5%;
   }
 }
 @keyframes idle-drip {

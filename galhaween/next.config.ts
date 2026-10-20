@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   // PGlite loads its wasm and data bundle from its own package directory at runtime, so it has to
   // stay external. pg is external for the same reason the parent app keeps it so.
   serverExternalPackages: ["@electric-sql/pglite", "pg", "nodemailer"],
+  // STATIC_IMAGES=1 serves images as plain files: used to build the single-file phone preview.
+  images: { unoptimized: process.env.STATIC_IMAGES === "1" },
 };
 
 export default nextConfig;

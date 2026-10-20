@@ -9,6 +9,8 @@ import { PosterVideo } from "@/components/poster-video";
 import { Reveal } from "@/components/reveal";
 import { Sparkle, SparkleHeading } from "@/components/sparkle";
 import { Spider } from "@/components/spider";
+import { Tile } from "@/components/tile";
+import { images } from "@/config/images";
 import { event } from "@/config/event";
 import { brl, keepNumber } from "@/lib/format";
 import logo from "../../public/logo.png";
@@ -131,6 +133,9 @@ export default function Home() {
           </p>
           <Divider mark="sparkle" className="mx-auto mt-7 max-w-xs" />
         </Reveal>
+        <Reveal className="mt-10">
+          <Tile name="olhar" className="aspect-[16/9]" drift sizes="(max-width: 768px) 100vw, 720px" />
+        </Reveal>
         <div className="mt-9 space-y-5 text-lg leading-relaxed text-bone">
           {event.about.map((paragraph, i) => (
             <Reveal key={i} delay={i * 120}>
@@ -138,7 +143,15 @@ export default function Home() {
             </Reveal>
           ))}
         </div>
-        <div className="mt-12 grid gap-3 sm:grid-cols-3">
+        <div className="mt-12 grid grid-cols-2 gap-3">
+          <Reveal>
+            <Tile name="caveira" className="aspect-square" drift sizes="(max-width: 768px) 50vw, 360px" />
+          </Reveal>
+          <Reveal delay={180}>
+            <Tile name="olho" className="aspect-square" drift sizes="(max-width: 768px) 50vw, 360px" />
+          </Reveal>
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
           {event.highlights.map((item, i) => (
             <Reveal key={item.title} delay={i * 140}>
               <div className="card h-full px-5 py-6 text-left transition-transform duration-500 hover:-translate-y-1">
@@ -153,37 +166,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* The night: open bar and two stages */}
-      <section id="a-noite" className="relative mx-auto max-w-3xl px-4 py-20 text-center">
+      {/* Open bar */}
+      <section id="open-bar" className="relative mx-auto max-w-3xl px-4 py-20 text-center">
         <Reveal>
-          <SparkleHeading as="h2">A noite</SparkleHeading>
+          <SparkleHeading as="h2">Open bar</SparkleHeading>
           <p className="section-title mt-5">
-            Open bar.
+            Bebida
             <br />
-            {event.stages.length} palcos.
+            liberada.
           </p>
           <Divider mark="sparkle" className="mx-auto mt-7 max-w-xs" />
         </Reveal>
-
-        <Reveal className="mt-12">
-          <div className="card relative overflow-hidden px-5 py-8">
-            <p className="font-display text-5xl leading-none text-bone uppercase">Open bar</p>
-            <p className="mt-3 text-base text-bone-2">Bebida liberada. O que vai ter no balcão ainda está no escuro.</p>
-            <a href="#bebidas" className="btn-ghost mt-6 w-full sm:w-auto">
-              Ver bebidas
-            </a>
-          </div>
+        <Reveal className="mt-10">
+          <Tile name="absinto" className="mx-auto aspect-[4/5] max-w-xs" drift sizes="(max-width: 640px) 80vw, 320px" />
         </Reveal>
+        <Reveal className="mt-10">
+          <p className="mx-auto max-w-md text-lg leading-relaxed text-bone">
+            O que vai ter no balcão ainda está no escuro. Dá para espiar as garrafas, mas os rótulos a gente só revela mais perto da festa.
+          </p>
+          <a href="#bebidas" className="btn-ghost mt-8 w-full sm:w-auto">
+            Ver bebidas
+          </a>
+        </Reveal>
+      </section>
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      {/* Stages */}
+      <section id="palcos" className="relative mx-auto max-w-3xl px-4 py-20 text-center">
+        <Reveal>
+          <SparkleHeading as="h2">{event.stages.length} palcos</SparkleHeading>
+          <p className="section-title mt-5">
+            {event.stages.map((stage, i) => (
+              <span key={stage.name}>
+                {stage.name}.
+                {i < event.stages.length - 1 && <br />}
+              </span>
+            ))}
+          </p>
+          <Divider mark="pumpkin" className="mx-auto mt-7 max-w-xs" />
+        </Reveal>
+        <div className="mt-10 grid gap-3 sm:grid-cols-2">
           {event.stages.map((stage, i) => (
-            <Reveal key={stage.name} delay={i * 180}>
-              <div className="card h-full px-5 py-7 text-left">
+            <Reveal key={stage.name} delay={i * 200}>
+              <div className="card h-full overflow-hidden text-left">
+                <Tile name={i === 0 ? "caprichos" : "catedral"} className="aspect-[4/3] border-0 border-b" drift sizes="(max-width: 640px) 100vw, 360px" />
+                <div className="px-5 pt-6 pb-8">
                 <p className="flex items-center gap-2 font-display text-lg leading-none text-blood-2 uppercase">
                   <Sparkle className="text-bone" size={14} delay={i * 1.1} />
-                  {stage.name}
+                  {stage.note ?? "Palco"}
                 </p>
-                <p className="mt-3 font-display text-4xl leading-[0.95] text-bone uppercase">{stage.sound}</p>
+                <p className="mt-3 font-display text-6xl leading-none text-bone uppercase">{stage.name}</p>
+                <p className="mt-3 font-display text-2xl leading-tight text-bone-2 uppercase">{stage.sound}</p>
+                </div>
               </div>
             </Reveal>
           ))}
@@ -213,6 +246,9 @@ export default function Home() {
           </p>
         </Reveal>
         <Reveal className="mt-10">
+          <Tile name="morcego" className="aspect-[16/9]" drift sizes="(max-width: 768px) 100vw, 720px" />
+        </Reveal>
+        <Reveal className="mt-10">
           <BatMeter count={0} goal={event.referralGoal} demo />
         </Reveal>
         <Reveal className="mt-10">
@@ -224,6 +260,15 @@ export default function Home() {
             Quero meu link
           </BloodLink>
         </Reveal>
+      </section>
+
+      {/* Collage band */}
+      <section aria-hidden className="mx-auto grid max-w-3xl grid-cols-3 gap-2 px-4 py-6 sm:gap-3">
+        {(["nosferatu", "vela", "gargula"] as const).map((name, i) => (
+          <Reveal key={name} delay={i * 160}>
+            <Tile name={name} className="aspect-[4/5]" drift sizes="(max-width: 768px) 33vw, 240px" />
+          </Reveal>
+        ))}
       </section>
 
       {/* Steps */}
@@ -266,6 +311,13 @@ export default function Home() {
           </p>
         )}
         <p className="mt-3 text-sm text-bone-3 italic">Feito no escuro.</p>
+        <details className="mx-auto mt-8 max-w-xl text-left text-xs leading-relaxed text-bone-3">
+          <summary className="cursor-pointer text-center">Créditos</summary>
+          <p className="mt-3">
+            Imagens: obras em domínio público, tratadas em retícula vermelha. {Object.values(images).map((image) => image.credit).join(". ")}.
+          </p>
+          <p className="mt-2">Trilha: composta para este site.</p>
+        </details>
       </footer>
     </main>
   );

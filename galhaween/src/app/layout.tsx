@@ -39,6 +39,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`${caslonCondensed.variable} ${caslon.variable}`}>
       <body>
+        {/* Without JavaScript nothing would fade in; show it all. */}
+        <noscript>
+          <style>{".reveal{opacity:1;transform:none;filter:none}"}</style>
+        </noscript>
         {children}
         <SiteChrome
           info={{

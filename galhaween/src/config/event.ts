@@ -26,10 +26,11 @@ export const event = {
     "Para entrar, garanta antes: faça o Pix, mande o comprovante e a sua entrada chega por e-mail, com um QR Code para mostrar na porta.",
   ],
   openBar: true,
+  /** The main stage first. */
   stages: [
-    { name: "Palco 1", sound: "House e techno" },
-    { name: "Palco 2", sound: "Funk, brasilidades e groove" },
-  ],
+    { name: "Sala", sound: "Funk, brasilidades e groove", note: "Palco principal" },
+    { name: "Caverna", sound: "House e techno", note: null },
+  ] as { name: string; sound: string; note: string | null }[],
   /**
    * Behind "Ver bebidas". Until `revealed` is true the bar shows only blurred silhouettes in each
    * drink's shape; the names never leave the server.

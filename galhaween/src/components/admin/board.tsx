@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { copyText } from "@/lib/clipboard";
@@ -168,7 +169,10 @@ export function AdminBoard({
           <Logo size="sm" />
           <span className="eyebrow hidden sm:inline">Painel</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 pr-28">
+          <Link href="/admin/porta" className="btn-blood !min-h-11 !px-4 !text-base">
+            Ler QR
+          </Link>
           {/* The list also refreshes itself every 30 s; on a phone the button is not worth the room. */}
           <button type="button" className="btn-ghost hidden sm:inline-flex" onClick={() => router.refresh()}>
             Atualizar
