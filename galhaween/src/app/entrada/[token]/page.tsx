@@ -45,18 +45,18 @@ export default async function Ticket({ params }: { params: Promise<{ token: stri
         <div className="border-b border-dashed border-line px-6 pt-8 pb-6">
           <p className="eyebrow">Entrada</p>
           <p className="mt-2 text-2xl text-bone">{entry.name}</p>
-          <p className="mt-1 font-display text-xl tracking-[0.18em] text-blood-2">{entry.ticketCode}</p>
+          <p className="mt-1 font-display text-2xl tracking-[0.08em] text-blood-2">{entry.ticketCode}</p>
         </div>
         <div className="px-6 py-6">
           {valid ? (
             <div
-              className="mx-auto w-full max-w-[16rem] overflow-hidden rounded-xl bg-parchment [&_svg]:block [&_svg]:h-auto [&_svg]:w-full"
+              className="mx-auto w-full max-w-[16rem] overflow-hidden rounded-[2px] bg-parchment [&_svg]:block [&_svg]:h-auto [&_svg]:w-full"
               role="img"
               aria-label={`QR Code da entrada ${entry.ticketCode}`}
               dangerouslySetInnerHTML={{ __html: qr }}
             />
           ) : (
-            <p className="rounded-xl border border-blood/50 bg-ember/30 px-4 py-6 text-xl text-bone">Esta entrada foi cancelada.</p>
+            <p className="rounded-[2px] border border-blood/50 bg-ember/30 px-4 py-6 text-xl text-bone">Esta entrada foi cancelada.</p>
           )}
           {valid && (
             <p className="mt-4 text-base text-bone-2">

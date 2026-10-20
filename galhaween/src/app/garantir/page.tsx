@@ -19,7 +19,7 @@ function StepHeading({ numeral, title, children }: { numeral: string; title: str
     <div className="flex items-start gap-4">
       <span className="font-display text-4xl leading-none text-blood">{numeral}</span>
       <div>
-        <h2 className="font-display text-lg tracking-[0.12em] text-bone uppercase">{title}</h2>
+        <h2 className="font-display text-2xl leading-tight tracking-[0.01em] text-bone uppercase">{title}</h2>
         {children && <p className="mt-1 text-lg text-bone-2">{children}</p>}
       </div>
     </div>
@@ -68,7 +68,7 @@ export default async function Garantir() {
                 qrSvg={qr}
               />
             ) : (
-              <p className="rounded-xl border border-blood/40 bg-ember/30 px-4 py-4 text-lg text-bone">
+              <p className="rounded-[2px] border border-blood/40 bg-ember/30 px-4 py-4 text-lg text-bone">
                 A chave Pix ainda não foi configurada. Volte daqui a pouco.
               </p>
             )}

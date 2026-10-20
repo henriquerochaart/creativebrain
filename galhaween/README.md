@@ -50,6 +50,8 @@ Tudo vem do cartaz animado da festa:
 
 - `public/logo.png`: o logo recortado, com o preto convertido em transparência. Usado no topo, nos cabeçalhos, no ingresso e no e-mail (`public/logo-email.png`, 560 px).
 - `public/cartaz.mp4` e `public/cartaz.webm`: a colagem animada do cartaz, sem o logo e sem o rodapé, em loop e sem som (cerca de 0,7 MB). `public/cartaz.jpg` é o primeiro quadro, mostrado enquanto o vídeo carrega, no modo de economia de bateria do iPhone e para quem desativa animações.
+- `public/textura.jpg`: textura de papel fotocopiado no preto do cartaz, repetida no fundo de todas as páginas.
+- Tipografia: Libre Caslon Condensed, a mesma família do rodapé do cartaz (hospedada no app, licença OFL em `src/fonts`), e Libre Caslon Text para os textos corridos.
 - `src/app/opengraph-image.jpg`: a imagem que aparece quando o link é colado no WhatsApp ou no Instagram (logo + faixa de data, endereço e Pix do cartaz). Para o link da prévia sair certo, defina `SITE_URL` com o domínio final.
 
 No topo da página o logo e a colagem são posicionados pelas coordenadas que tinham no cartaz (veja `POSTER`, `LOGO_BOX` e `VIDEO_BOX` em `src/app/page.tsx`), então os pingos de sangue do logo caem exatamente sobre a colagem em qualquer largura de tela. Se a arte mudar, recorte de novo e atualize esses números.

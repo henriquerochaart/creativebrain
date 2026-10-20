@@ -65,13 +65,13 @@ export function PixPanel({ payload, pixKey, keyDisplay, keyKind, recipient, amou
 
         <details className="text-base text-bone-3">
           <summary className="cursor-pointer hover:text-bone-2">Ver o código</summary>
-          <p className="mt-2 rounded-lg bg-black/40 p-3 font-mono text-xs break-all text-bone-2 select-all">{payload}</p>
+          <p className="mt-2 rounded-[2px] bg-black/40 p-3 font-mono text-xs break-all text-bone-2 select-all">{payload}</p>
         </details>
       </div>
 
       <figure className="mx-auto w-full max-w-[15rem]">
         <div
-          className="overflow-hidden rounded-2xl border-4 border-blood/70 bg-parchment shadow-[0_0_50px_-10px_rgb(193_18_31/0.6)] [&_svg]:block [&_svg]:h-auto [&_svg]:w-full"
+          className="overflow-hidden rounded-[2px] border-4 border-blood/70 bg-parchment shadow-[0_0_50px_-10px_rgb(193_18_31/0.6)] [&_svg]:block [&_svg]:h-auto [&_svg]:w-full"
           role="img"
           aria-label={`QR Code Pix de ${amount}`}
           dangerouslySetInnerHTML={{ __html: qrSvg }}

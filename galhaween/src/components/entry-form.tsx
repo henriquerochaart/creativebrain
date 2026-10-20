@@ -156,7 +156,7 @@ export function EntryForm() {
             setDragging(false);
             pick(e.dataTransfer.files);
           }}
-          className={`flex min-h-36 cursor-pointer items-center gap-4 rounded-2xl border border-dashed px-5 py-5 transition-colors ${
+          className={`flex min-h-36 cursor-pointer items-center gap-4 rounded-[2px] border border-dashed px-5 py-5 transition-colors ${
             dragging ? "border-blood bg-ember/30" : file ? "border-blood/50 bg-bone/5" : "border-bone-3/60 bg-bone/[0.03] hover:border-bone-2"
           }`}
         >
@@ -164,9 +164,9 @@ export function EntryForm() {
             <>
               {preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={preview} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")} className="h-24 w-16 shrink-0 rounded-md object-cover object-top ring-1 ring-line" />
+                <img src={preview} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")} className="h-24 w-16 shrink-0 rounded-[2px] object-cover object-top ring-1 ring-line" />
               ) : (
-                <span className="flex h-24 w-16 shrink-0 items-center justify-center rounded-md bg-bone/10 font-display text-sm text-bone-2">PDF</span>
+                <span className="flex h-24 w-16 shrink-0 items-center justify-center rounded-[2px] bg-bone/10 font-display text-sm text-bone-2">PDF</span>
               )}
               <span className="min-w-0">
                 <span className="block truncate text-lg text-bone">{file.name || "comprovante"}</span>
@@ -191,7 +191,7 @@ export function EntryForm() {
       </div>
 
       {status.kind === "error" && (
-        <p role="alert" className="rounded-xl border border-blood/50 bg-ember/30 px-4 py-3 text-lg text-bone">
+        <p role="alert" className="rounded-[2px] border border-blood/50 bg-ember/30 px-4 py-3 text-lg text-bone">
           {status.message}
         </p>
       )}

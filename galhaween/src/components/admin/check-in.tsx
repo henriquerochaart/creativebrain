@@ -31,8 +31,8 @@ export function CheckIn({ token, name, valid, checkedInAt }: { token: string; na
 
   if (state.kind === "in") {
     return (
-      <div className="rounded-2xl bg-bone px-6 py-8 text-center text-night">
-        <p className="font-display text-4xl font-bold tracking-[0.12em]">Liberado</p>
+      <div className="rounded-[2px] bg-bone px-6 py-8 text-center text-night">
+        <p className="font-display text-4xl font-bold tracking-[0.03em] uppercase">Liberado</p>
         <p className="mt-2 text-xl">
           {firstName(name)} entrou às {time(state.at)}
         </p>
@@ -44,8 +44,8 @@ export function CheckIn({ token, name, valid, checkedInAt }: { token: string; na
   }
   if (state.kind === "already") {
     return (
-      <div className="rounded-2xl bg-blood px-6 py-8 text-center text-white">
-        <p className="font-display text-3xl font-bold tracking-[0.12em]">Já usada</p>
+      <div className="rounded-[2px] bg-blood px-6 py-8 text-center text-white">
+        <p className="font-display text-3xl font-bold tracking-[0.03em] uppercase">Já usada</p>
         <p className="mt-2 text-xl">Esta entrada passou pela porta às {time(state.at)}.</p>
         <button type="button" className="mt-4 text-base underline underline-offset-4" onClick={() => post(true)}>
           Foi engano, liberar de novo
@@ -55,8 +55,8 @@ export function CheckIn({ token, name, valid, checkedInAt }: { token: string; na
   }
   if (state.kind === "invalid") {
     return (
-      <div className="rounded-2xl bg-blood px-6 py-8 text-center text-white">
-        <p className="font-display text-3xl font-bold tracking-[0.12em]">Não vale</p>
+      <div className="rounded-[2px] bg-blood px-6 py-8 text-center text-white">
+        <p className="font-display text-3xl font-bold tracking-[0.03em] uppercase">Não vale</p>
         <p className="mt-2 text-xl">Esta entrada foi cancelada no painel.</p>
       </div>
     );
@@ -67,7 +67,7 @@ export function CheckIn({ token, name, valid, checkedInAt }: { token: string; na
         type="button"
         disabled={state.kind === "busy"}
         onClick={() => post()}
-        className="w-full rounded-2xl bg-bone px-6 py-6 font-display text-xl font-bold tracking-[0.12em] text-night uppercase disabled:opacity-60"
+        className="w-full rounded-[2px] bg-bone px-6 py-6 font-display text-xl font-bold tracking-[0.03em] text-night uppercase disabled:opacity-60"
       >
         {state.kind === "busy" ? "Conferindo…" : `Deixar ${firstName(name)} entrar`}
       </button>

@@ -1,11 +1,12 @@
 import Image from "next/image";
 import { BloodLink } from "@/components/blood-button";
+import { Divider } from "@/components/divider";
 import { Eyes } from "@/components/eyes";
 import { Logo } from "@/components/logo";
 import { NightSky } from "@/components/night-sky";
 import { PosterVideo } from "@/components/poster-video";
-import { Pumpkin } from "@/components/pumpkin";
 import { Reveal } from "@/components/reveal";
+import { Sparkle, SparkleHeading } from "@/components/sparkle";
 import { Spider } from "@/components/spider";
 import { event } from "@/config/event";
 import { brl, keepNumber } from "@/lib/format";
@@ -29,11 +30,11 @@ const VIDEO_BOX = { top: 360, height: 700 };
 const stageHeight = POSTER.bottom - POSTER.top;
 const pct = (value: number, of: number) => `${(value / of) * 100}%`;
 
-function Detail({ label, value, href }: { label: string; value: string | null; href?: string }) {
+function Detail({ label, value, sub, href }: { label: string; value: string | null; sub?: string | null; href?: string }) {
   return (
-    <div className="flex flex-col items-center gap-1 text-center">
-      <dt className="eyebrow">{label}</dt>
-      <dd className="text-2xl text-bone">
+    <div className="flex flex-col items-center gap-1.5 px-4 text-center">
+      <dt className="eyebrow text-bone-3">{label}</dt>
+      <dd className="font-display text-[1.7rem] leading-tight text-bone uppercase">
         {value ? (
           href ? (
             <a href={href} target="_blank" rel="noreferrer" className="underline decoration-blood/60 underline-offset-4 hover:decoration-blood-2">
@@ -45,13 +46,14 @@ function Detail({ label, value, href }: { label: string; value: string | null; h
         ) : (
           <span className="text-bone-3 italic">em breve</span>
         )}
+        {/* As on the poster: the time in red under the date. */}
+        {value && sub && <span className="block text-blood-2">{sub}</span>}
       </dd>
     </div>
   );
 }
 
 export default function Home() {
-  const when = [event.date, event.time].filter(Boolean).join(" · ") || null;
   const where = event.venue ?? event.address;
   const mapsHref = event.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}` : undefined;
 
@@ -74,7 +76,7 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 w-full max-w-[34rem] px-4">
-          <dl className="grid grid-cols-[auto_1fr_auto] items-start border-t border-blood/40 pt-4 font-serif text-[0.8rem] leading-tight font-semibold tracking-[0.02em] text-bone uppercase min-[360px]:text-[0.9rem] min-[380px]:text-[0.98rem] sm:text-xl">
+          <dl className="grid grid-cols-[auto_1fr_auto] items-start border-t border-blood/40 pt-4 font-display text-[0.9rem] leading-[1.1] tracking-[0.01em] text-bone uppercase min-[360px]:text-[1.04rem] min-[380px]:text-[1.16rem] sm:text-[1.6rem]">
             <div className="pr-2.5 text-left whitespace-nowrap">
               <dt className="sr-only">Data</dt>
               <dd>{event.dateShort ?? "Em breve"}</dd>
@@ -98,16 +100,8 @@ export default function Home() {
               <dd aria-hidden className="mt-1.5 ml-auto h-px w-full bg-blood" />
             </div>
           </dl>
-          <p className="mt-4 flex items-center justify-center gap-3 font-serif text-lg font-semibold tracking-[0.03em] text-blood-2 uppercase sm:text-xl">
-            <span aria-hidden className="text-bone">✦</span>
-            Concurso de fantasia
-            <span aria-hidden className="text-bone">✦</span>
-          </p>
-          <div className="mt-2 flex items-center gap-3" aria-hidden>
-            <span className="h-px flex-1 bg-gradient-to-r from-transparent to-blood/70" />
-            <Pumpkin size={30} />
-            <span className="h-px flex-1 bg-gradient-to-l from-transparent to-blood/70" />
-          </div>
+          <SparkleHeading className="mt-5">Concurso de fantasia</SparkleHeading>
+          <Divider className="mt-3" />
           <div className="mt-7 flex flex-col items-center gap-3">
             <BloodLink href="/garantir" className="w-full sm:w-auto">
               Garanta sua entrada
@@ -128,25 +122,30 @@ export default function Home() {
         <Spider className="right-4 sm:right-[6%]" thread={56} />
         <Eyes className="top-10 left-5 sm:left-[6%]" size={13} blink={6} delay={1.5} />
         <Reveal>
-          <p className="eyebrow">A festa</p>
-          <h2 className="section-title mt-3">Venha como quiser.<br />Saia como puder.</h2>
-          <div className="ornament mx-auto mt-6 w-fit">
-            <span className="h-1.5 w-1.5 rotate-45 bg-blood" />
-          </div>
+          <SparkleHeading as="h2">A festa</SparkleHeading>
+          <p className="section-title mt-5">
+            Venha como quiser.
+            <br />
+            Saia como puder.
+          </p>
+          <Divider mark="sparkle" className="mx-auto mt-7 max-w-xs" />
         </Reveal>
-        <div className="mt-10 space-y-5 text-[1.3rem] leading-relaxed text-bone">
+        <div className="mt-9 space-y-5 text-lg leading-relaxed text-bone">
           {event.about.map((paragraph, i) => (
             <Reveal key={i} delay={i * 120}>
               <p>{paragraph}</p>
             </Reveal>
           ))}
         </div>
-        <div className="mt-14 grid gap-4 sm:grid-cols-3">
+        <div className="mt-12 grid gap-3 sm:grid-cols-3">
           {event.highlights.map((item, i) => (
             <Reveal key={item.title} delay={i * 140}>
-              <div className="card h-full px-6 py-7 text-left transition-transform duration-500 hover:-translate-y-1 hover:-rotate-1">
-                <p className="font-display text-sm tracking-[0.2em] text-blood-2 uppercase">{item.title}</p>
-                <p className="mt-3 text-lg leading-snug text-bone">{item.text}</p>
+              <div className="card h-full px-5 py-6 text-left transition-transform duration-500 hover:-translate-y-1">
+                <h3 className="flex items-center gap-2.5 font-display text-2xl leading-none text-blood-2 uppercase">
+                  <Sparkle className="text-bone" size={16} delay={i * 0.9} />
+                  {item.title}
+                </h3>
+                <p className="mt-3 text-base leading-relaxed text-bone">{item.text}</p>
               </div>
             </Reveal>
           ))}
@@ -154,10 +153,10 @@ export default function Home() {
       </section>
 
       {/* When and where */}
-      <section className="relative border-y border-line bg-crypt/60 px-4 py-16">
+      <section className="relative px-4 py-10">
         <Reveal>
-          <dl className="mx-auto grid max-w-4xl gap-10 sm:grid-cols-3">
-            <Detail label="Quando" value={when} />
+          <dl className="mx-auto grid max-w-4xl gap-8 border-y border-blood/40 py-9 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-blood/50">
+            <Detail label="Quando" value={event.date} sub={event.time} />
             <Detail label="Onde" value={where && keepNumber(where)} href={mapsHref} />
             <Detail label="Entrada" value={brl(event.price)} />
           </dl>
@@ -169,29 +168,32 @@ export default function Home() {
       <section className="relative mx-auto max-w-5xl px-4 py-24 text-center">
         <Eyes className="right-5 bottom-36 sm:right-[8%] sm:bottom-24" size={16} blink={4.2} delay={0.6} />
         <Reveal>
-          <p className="eyebrow">Passo a passo</p>
-          <h2 className="section-title mt-3">Três passos</h2>
+          <SparkleHeading as="h2">Passo a passo</SparkleHeading>
+          <p className="section-title mt-5">Três passos</p>
         </Reveal>
-        <ol className="mt-14 grid gap-6 md:grid-cols-3">
+        <ol className="mt-12 grid gap-3 md:grid-cols-3">
           {STEPS.map((step, i) => (
             <Reveal key={step.numeral} delay={i * 160}>
-              <li className="card group relative flex h-full flex-col items-center px-6 pt-10 pb-8">
-                <span className="font-display text-5xl text-blood transition-transform duration-500 group-hover:scale-110">
+              <li className="card group relative flex h-full flex-col items-center px-6 pt-8 pb-7">
+                <span className="font-display text-6xl leading-none text-blood transition-transform duration-500 group-hover:scale-110">
                   {step.numeral}
                 </span>
-                <h3 className="mt-5 font-display text-base tracking-[0.12em] text-bone uppercase">{step.title}</h3>
-                <p className="mt-3 text-lg leading-snug text-bone-2">{step.text}</p>
+                <h3 className="mt-4 font-display text-2xl leading-tight text-bone uppercase">{step.title}</h3>
+                <p className="mt-2 text-base leading-relaxed text-bone-2">{step.text}</p>
               </li>
             </Reveal>
           ))}
         </ol>
-        <Reveal className="mt-16 flex justify-center">
-          <BloodLink href="/garantir">Garanta sua entrada</BloodLink>
+        <Reveal className="mt-14 flex flex-col items-center gap-8">
+          <BloodLink href="/garantir" className="w-full sm:w-auto">
+            Garanta sua entrada
+          </BloodLink>
         </Reveal>
       </section>
 
-      <footer className="relative border-t border-line px-4 pt-14 pb-12 text-center">
-        <Eyes className="top-6 left-1/2 -translate-x-1/2" size={12} blink={7} delay={2} />
+      <footer className="relative px-4 pt-6 pb-12 text-center">
+        <Divider className="mx-auto mb-10 max-w-md" />
+        <Eyes className="bottom-10 left-6 sm:left-[12%]" size={12} blink={7} delay={2} />
         <Logo size="md" className="mx-auto" />
         {event.contact && (
           <p className="mt-4 text-base text-bone-2">

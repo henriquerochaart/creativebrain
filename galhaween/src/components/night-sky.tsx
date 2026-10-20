@@ -16,7 +16,6 @@ export function NightSky() {
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <div className="fog bottom-[-6rem] left-[-20%] h-64 w-[80%]" style={{ animationDuration: "18s" }} />
       <div className="fog right-[-25%] bottom-[-8rem] h-72 w-[90%]" style={{ animationDuration: "23s", animationDelay: "-7s" }} />
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-night to-transparent" />
       <div className="absolute inset-0 z-20">
         {BATS.map((bat, i) => (
           <div

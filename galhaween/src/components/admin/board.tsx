@@ -159,12 +159,12 @@ export function AdminBoard({ entries, price, mailReady }: { entries: BoardEntry[
         <Stat label="Aprovado em Pix" value={brl(counts.approved * price)} hint={`${counts.approved} × ${brl(price)}`} />
       </section>
 
-      <p className="mt-5 rounded-xl border border-line bg-crypt px-4 py-3 text-base text-bone-2">
+      <p className="mt-5 rounded-[2px] border border-line bg-crypt px-4 py-3 text-base text-bone-2">
         Antes de aprovar, ache o Pix no <span className="text-bone">extrato do banco</span>: valor de {brl(price)}, nome de quem pagou e
         horário. Comprovante sozinho não prova nada, ele pode ser editado. O total aprovado acima tem que bater com o que entrou na conta.
       </p>
       {!mailReady && (
-        <p className="mt-3 rounded-xl border border-blood/40 bg-ember/30 px-4 py-3 text-base text-bone">
+        <p className="mt-3 rounded-[2px] border border-blood/40 bg-ember/30 px-4 py-3 text-base text-bone">
           O envio de e-mail não está configurado (SMTP_HOST, SMTP_USER, SMTP_PASS). Dá para aprovar normalmente e mandar o link da entrada
           pelo WhatsApp.
         </p>
@@ -179,7 +179,7 @@ export function AdminBoard({ entries, price, mailReady }: { entries: BoardEntry[
               role="tab"
               aria-selected={filter === f.id}
               onClick={() => setFilter(f.id)}
-              className={`shrink-0 rounded-full px-4 py-2 font-display text-xs tracking-[0.14em] uppercase transition-colors ${
+              className={`shrink-0 rounded-[2px] px-3.5 py-2 font-display text-base leading-none tracking-[0.03em] uppercase transition-colors ${
                 filter === f.id ? "bg-blood text-white" : "text-bone-2 hover:bg-bone/5 hover:text-bone"
               }`}
             >
@@ -246,7 +246,7 @@ function Stat({ label, value, hint, accent }: { label: string; value: string; hi
   return (
     <div className="card px-4 py-4">
       <p className="label mb-1">{label}</p>
-      <p className={`font-display text-2xl tabular-nums ${accent ? "text-blood-2" : "text-bone"}`}>{value}</p>
+      <p className={`font-display text-3xl leading-tight ${accent ? "text-blood-2" : "text-bone"}`}>{value}</p>
       {hint && <p className="text-sm text-bone-3">{hint}</p>}
     </div>
   );
@@ -296,7 +296,7 @@ function EntryCard({
   return (
     <li className="card flex gap-4 p-4">
       {inline ? (
-        <button type="button" onClick={onView} className="shrink-0 self-start overflow-hidden rounded-lg ring-1 ring-line hover:ring-blood" aria-label="Ver comprovante">
+        <button type="button" onClick={onView} className="shrink-0 self-start overflow-hidden rounded-[2px] ring-1 ring-line hover:ring-blood" aria-label="Ver comprovante">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={receiptUrl(entry.id)} alt="" loading="lazy" className="h-40 w-24 object-cover object-top sm:w-28" />
         </button>
@@ -305,7 +305,7 @@ function EntryCard({
           href={receiptUrl(entry.id)}
           target="_blank"
           rel="noreferrer"
-          className="flex h-40 w-24 shrink-0 flex-col items-center justify-center gap-1 self-start rounded-lg bg-bone/5 ring-1 ring-line hover:ring-blood sm:w-28"
+          className="flex h-40 w-24 shrink-0 flex-col items-center justify-center gap-1 self-start rounded-[2px] bg-bone/5 ring-1 ring-line hover:ring-blood sm:w-28"
         >
           <span className="font-display text-lg text-bone">{entry.receiptType === "application/pdf" ? "PDF" : "HEIC"}</span>
           <span className="text-sm text-bone-2">abrir</span>
@@ -315,7 +315,7 @@ function EntryCard({
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
           <p className="min-w-0 text-xl leading-tight text-bone">{entry.name}</p>
-          <span className={`shrink-0 rounded-full border px-2.5 py-0.5 font-display text-[0.65rem] tracking-[0.14em] uppercase ${status.className}`}>
+          <span className={`shrink-0 rounded-[2px] border px-2 py-1 font-display text-sm leading-none tracking-[0.03em] uppercase ${status.className}`}>
             {status.label}
           </span>
         </div>
@@ -357,7 +357,7 @@ function EntryCard({
 
         {entry.status === "approved" && (
           <div className="mt-3 space-y-0.5 text-base">
-            <p className="font-display tracking-[0.14em] text-bone">{entry.ticketCode}</p>
+            <p className="font-display text-lg tracking-[0.06em] text-bone">{entry.ticketCode}</p>
             <p className={entry.emailError ? "text-blood-2" : "text-bone-2"}>
               {entry.emailSentAt
                 ? `E-mail enviado ${dateTime(entry.emailSentAt)}`
@@ -371,14 +371,14 @@ function EntryCard({
         {entry.status === "rejected" && entry.note && <p className="mt-2 text-base text-bone-2 italic">“{entry.note}”</p>}
 
         {mode === "rejecting" ? (
-          <div className="mt-4 space-y-3 rounded-xl border border-blood/40 bg-ember/20 p-3">
+          <div className="mt-4 space-y-3 rounded-[2px] border border-blood/40 bg-ember/20 p-3">
             <div className="flex flex-wrap gap-2">
               {reasons.map((reason) => (
                 <button
                   key={reason}
                   type="button"
                   onClick={() => setNote(reason)}
-                  className={`rounded-full border px-3 py-1 text-sm ${note === reason ? "border-blood bg-blood/20 text-bone" : "border-line text-bone-2"}`}
+                  className={`rounded-[2px] border px-3 py-1 text-sm ${note === reason ? "border-blood bg-blood/20 text-bone" : "border-line text-bone-2"}`}
                 >
                   {reason}
                 </button>
@@ -416,7 +416,7 @@ function EntryCard({
                 type="button"
                 disabled={busy}
                 onClick={() => run({ action: "approve" })}
-                className="inline-flex min-h-11 items-center rounded-xl bg-blood px-4 font-display text-xs tracking-[0.14em] text-white uppercase hover:brightness-110 disabled:opacity-60 lg:min-h-10"
+                className="inline-flex min-h-11 items-center rounded-[2px] bg-blood px-4 font-display text-base leading-none tracking-[0.03em] text-white uppercase hover:brightness-110 disabled:opacity-60 lg:min-h-10"
               >
                 {busy ? "Aprovando…" : entry.status === "rejected" ? "Aprovar mesmo assim" : `Aprovar · ${brl(price)} ok`}
               </button>
