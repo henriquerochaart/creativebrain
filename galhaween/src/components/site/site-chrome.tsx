@@ -41,13 +41,24 @@ function Chrome({ info, drinks }: { info: SiteInfo; drinks: BarDrink[] }) {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
-  // Clear over the poster at the top; a black bar once the page moves under it.
+  // On the home page the poster is the header: the bar slides in only once the hero has scrolled
+  // away. Elsewhere it is always there, clear at the top and black once the page moves under it.
+  const [pastHero, setPastHero] = useState(pathname !== "/");
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
+    const hero = pathname === "/" ? document.getElementById("hero") : null;
+    const onScroll = () => {
+      setScrolled(window.scrollY > 16);
+      setPastHero(hero ? hero.getBoundingClientRect().bottom <= 64 : true);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [pathname]);
+  const shown = pastHero || menuOpen;
 
   // ?i=<code> on any page: remember who invited this guest until they send their receipt.
   useEffect(() => {
@@ -73,9 +84,10 @@ function Chrome({ info, drinks }: { info: SiteInfo; drinks: BarDrink[] }) {
     <>
       <Loader name={info.name} />
       <header
-        className={`fixed inset-x-0 top-0 z-[70] flex h-16 items-center justify-between px-3 transition-colors duration-500 ${
+        className={`fixed inset-x-0 top-0 z-[70] flex h-16 items-center justify-between px-3 transition-[transform,opacity,background-color,border-color] duration-500 ${
           scrolled || menuOpen ? "border-b border-rule bg-black/90 backdrop-blur-sm" : "border-b border-transparent"
-        }`}
+        } ${shown ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-full opacity-0"}`}
+        inert={!shown}
       >
         <Link href="/" aria-label={`${info.name}, início`} className="flex h-11 items-center">
           <Image src={logo} alt={info.name} sizes="120px" priority className="h-10 w-auto" />

@@ -63,7 +63,7 @@ export default function Home() {
   return (
     <main className="overflow-x-clip">
       {/* Hero: the poster, alive */}
-      <section className="relative flex flex-col items-center px-0 pt-16 pb-10 text-center sm:min-h-[100svh] sm:justify-center sm:px-4 sm:pt-20">
+      <section id="hero" className="relative flex flex-col items-center px-0 pt-6 pb-10 text-center sm:min-h-[100svh] sm:justify-center sm:px-4">
         <NightSky />
         <div className="relative w-full max-w-[34rem]" style={{ aspectRatio: `${POSTER.width} / ${stageHeight}` }}>
           <PosterVideo
