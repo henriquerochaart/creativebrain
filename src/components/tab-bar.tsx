@@ -32,7 +32,7 @@ export function TabBar({ inbox }: { inbox: number }) {
         key={t.key}
         href={t.href}
         aria-current={on ? "page" : undefined}
-        className={cn("relative flex h-12 min-w-[60px] flex-col items-center justify-center gap-0.5 rounded-full px-2 text-[10px] font-semibold transition-colors", on ? "bg-accent/10 text-accent" : "text-ink-3 hover:text-ink")}
+        className={cn("relative flex h-12 min-w-[60px] flex-col items-center justify-center gap-0.5 rounded-full px-2 text-[10px] font-semibold transition-colors", on ? "bg-accent/30 text-accent-ink" : "text-ink-3 hover:text-ink")}
       >
         <span className="relative">
           <t.Icon className="h-[22px] w-[22px]" strokeWidth={on ? 2.4 : 2} />

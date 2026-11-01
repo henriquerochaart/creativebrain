@@ -52,7 +52,7 @@ export function ThinkMode() {
           e.preventDefault();
           void think(q);
         }}
-        className="rounded-[22px] bg-paper-2 p-2 focus-within:ring-2 focus-within:ring-accent/40"
+        className="rounded-[22px] bg-paper-2 p-2 focus-within:ring-2 focus-within:ring-accent-ink/40"
       >
         <textarea
           value={q}

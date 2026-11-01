@@ -78,7 +78,7 @@ export default async function PatternsPage() {
                         <span className="truncate">{kind ? label(kind, tr.value) : tr.value}</span>
                       )}
                       <span className="shrink-0 font-mono text-[12px] text-ink-3">
-                        {tr.recent} <span className={tr.lift >= 2 ? "text-accent" : ""}>×{tr.lift}</span>
+                        {tr.recent} <span className={tr.lift >= 2 ? "text-accent-ink" : ""}>×{tr.lift}</span>
                       </span>
                     </li>
                   ))}

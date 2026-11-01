@@ -42,7 +42,7 @@ export function TopBar() {
   };
 
   const field = (ref?: React.Ref<HTMLInputElement>) => (
-    <form onSubmit={submit} role="search" className="flex h-9 w-full items-center gap-1.5 rounded-[10px] bg-fill px-2.5 focus-within:ring-2 focus-within:ring-accent/40">
+    <form onSubmit={submit} role="search" className="flex h-9 w-full items-center gap-1.5 rounded-[10px] bg-fill px-2.5 focus-within:ring-2 focus-within:ring-accent-ink/40">
       <Search className="h-4 w-4 shrink-0 text-ink-3" aria-hidden />
       <input
         ref={ref}
@@ -72,7 +72,7 @@ export function TopBar() {
       {/* Compact width, searching: the field takes the bar. */}
       <div className={cn("flex flex-1 items-center gap-3 lg:hidden", !searching && "hidden")}>
         {field(inputRef)}
-        <button type="button" onClick={() => setSearching(false)} className="min-h-11 shrink-0 text-[17px] text-accent">
+        <button type="button" onClick={() => setSearching(false)} className="min-h-11 shrink-0 text-[17px] text-accent-ink">
           {d.header.cancel}
         </button>
       </div>

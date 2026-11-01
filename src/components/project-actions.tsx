@@ -24,7 +24,7 @@ export function NewProject() {
         router.push(`/projects/${res.project.id}`);
       }}
     >
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.projects.namePlaceholder} aria-label={d.projects.namePlaceholder} className="h-11 w-56 rounded-[10px] bg-fill px-3.5 text-[15px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent/40 lg:h-10 lg:text-sm" />
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.projects.namePlaceholder} aria-label={d.projects.namePlaceholder} className="h-11 w-56 rounded-[10px] bg-fill px-3.5 text-[15px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent-ink/40 lg:h-10 lg:text-sm" />
       <button type="submit" className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm">
         {d.projects.newProject}
       </button>
@@ -80,7 +80,7 @@ export function ProjectPickerInline({ projectId, memberIds }: { projectId: strin
           e.preventDefault();
           void run();
         }}
-        className="flex items-center gap-2 rounded-[10px] bg-fill px-3.5 focus-within:ring-2 focus-within:ring-accent/40"
+        className="flex items-center gap-2 rounded-[10px] bg-fill px-3.5 focus-within:ring-2 focus-within:ring-accent-ink/40"
       >
         <Search className="h-4 w-4 text-ink-3" />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={d.projects.searchPlaceholder} aria-label={d.projects.searchPlaceholder} className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-ink-3" />
@@ -96,7 +96,7 @@ export function ProjectPickerInline({ projectId, memberIds }: { projectId: strin
                 <Thumb reference={r} lang={lang} className="aspect-[4/3] object-cover" />
               </div>
               <p className="mt-1.5 line-clamp-2 text-[12px] leading-snug">{r.title}</p>
-              <button type="button" disabled={members.has(r.id)} onClick={() => void add(r.id)} className="mt-1 text-[12px] text-accent disabled:text-ink-3">
+              <button type="button" disabled={members.has(r.id)} onClick={() => void add(r.id)} className="mt-1 text-[12px] text-accent-ink disabled:text-ink-3">
                 {members.has(r.id) ? d.projects.inProject : d.projects.add}
               </button>
             </div>

@@ -99,7 +99,7 @@ export function CaptureBox({
       }}
     >
       {/* A filled text field, not an outlined box; dropping a file tints it with the accent. */}
-      <div className={cn("rounded-[22px] bg-paper-2 transition-[background-color,box-shadow] focus-within:ring-2 focus-within:ring-accent/40", drag && "bg-accent/10 ring-2 ring-accent")}>
+      <div className={cn("rounded-[22px] bg-paper-2 transition-[background-color,box-shadow] focus-within:ring-2 focus-within:ring-accent-ink/40", drag && "bg-accent/10 ring-2 ring-accent-ink")}>
         <textarea
           ref={ref}
           value={value}
@@ -124,7 +124,7 @@ export function CaptureBox({
         <div className="flex items-center justify-between px-4 pb-3">
           <div className="flex items-center gap-1 text-[13px] text-ink-3">
             {!noUpload && (
-              <button type="button" onClick={() => fileRef.current?.click()} className="-ml-1 min-h-11 rounded-full px-3 font-medium text-accent hover:bg-fill lg:min-h-8">
+              <button type="button" onClick={() => fileRef.current?.click()} className="-ml-1 min-h-11 rounded-full px-3 font-medium text-accent-ink hover:bg-fill lg:min-h-8">
                 {d.capture.upload}
               </button>
             )}

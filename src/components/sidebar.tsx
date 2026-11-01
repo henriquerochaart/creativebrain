@@ -54,7 +54,7 @@ export async function Sidebar() {
       <div className="mt-6">
         <div className="mb-1 flex items-center justify-between px-2.5">
           <span className="eyebrow">{d.nav.collections}</span>
-          <Link href="/collections" className="text-[13px] text-accent hover:opacity-80">
+          <Link href="/collections" className="text-[13px] text-accent-ink hover:opacity-80">
             {d.nav.seeAll}
           </Link>
         </div>

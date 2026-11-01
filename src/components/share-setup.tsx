@@ -41,7 +41,7 @@ export function CopyField({ value }: { value: string }) {
     // Wraps on a phone: the URL breaks anywhere and the button drops below it rather than running off the edge.
     <span className="mt-1 flex flex-wrap items-center gap-x-3">
       <code className="min-w-0 break-all rounded-lg bg-fill px-2 py-1 font-mono text-[12.5px] text-ink">{value}</code>
-      <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(value); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* ignore */ } }} className="min-h-11 text-[15px] text-accent lg:min-h-0 lg:text-[13px]">
+      <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(value); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* ignore */ } }} className="min-h-11 text-[15px] text-accent-ink lg:min-h-0 lg:text-[13px]">
         {done ? d.settings.copied : d.settings.copy}
       </button>
     </span>
@@ -66,7 +66,7 @@ export function CopyBlock({ value }: { value: string }) {
             /* ignore */
           }
         }}
-        className="absolute right-2 top-2 min-h-9 rounded-full px-3 text-[13px] font-medium text-accent hover:bg-fill-2"
+        className="absolute right-2 top-2 min-h-9 rounded-full px-3 text-[13px] font-medium text-accent-ink hover:bg-fill-2"
       >
         {done ? d.settings.copied : d.settings.copy}
       </button>

@@ -25,6 +25,7 @@
   --color-fill-2: var(--fill-2);
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
+  --color-accent-ink: var(--accent-ink);
   --color-pink: var(--pink);
   --color-pink-deep: var(--pink-deep);
   --color-danger: var(--danger);
@@ -42,13 +43,14 @@
   --line: #e5e5ea; /* systemGray5, hairlines */
   --fill: rgba(118, 118, 128, 0.12); /* tertiarySystemFill: search fields, gray buttons, segment tracks */
   --fill-2: rgba(120, 120, 128, 0.2); /* systemFill: hover / pressed */
-  /* The tint is the mascot's pink, two tones read from the Brain character: the body (#ec6a82)
-     and its shadow (#d13d60). On white the deep one carries white text at 4.6:1; on black the
-     body tone reads at 7:1 and carries dark text. */
-  --pink: #ec6a82;
+  /* The tint is the mascot's pink. Fills (buttons, the + button, selection) use the light tone with
+     dark text on it (8.4:1). Text in the tint (links, active tab, gray buttons) needs more weight on
+     white, so light mode writes it in the deep tone (4.6:1); dark mode writes it in the light one. */
+  --pink: #f49fae;
   --pink-deep: #d13d60;
-  --accent: var(--pink-deep);
-  --on-accent: #ffffff;
+  --accent: var(--pink);
+  --on-accent: #1c1c1e;
+  --accent-ink: var(--pink-deep);
   --danger: #ff3b30; /* systemRed */
   --success: #34c759; /* systemGreen */
   --warning: #ff9500; /* systemOrange */
@@ -69,8 +71,7 @@
     --line: #38383a;
     --fill: rgba(118, 118, 128, 0.24);
     --fill-2: rgba(120, 120, 128, 0.36);
-    --accent: var(--pink);
-    --on-accent: #1c1c1e;
+    --accent-ink: var(--pink);
     --danger: #ff453a;
     --success: #30d158;
     --warning: #ff9f0a;
@@ -113,7 +114,7 @@ body {
 /* Focus ring: the tint as a halo, keyboard only. Text fields draw their own ring on the field
    (or its container), so they're excluded here — otherwise focus showed two rings. */
 :focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline: 3px solid color-mix(in srgb, var(--accent-ink) 55%, transparent);
   outline-offset: 2px;
   border-radius: 8px;
 }
@@ -147,7 +148,7 @@ select:focus-visible {
 }
 @utility btn-gray {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem;
-  border-radius: 9999px; background: var(--fill); color: var(--accent); font-weight: 500;
+  border-radius: 9999px; background: var(--fill); color: var(--accent-ink); font-weight: 500;
   transition: background-color 150ms;
   &:hover { background: var(--fill-2); }
   &:disabled { opacity: 0.35; pointer-events: none; }

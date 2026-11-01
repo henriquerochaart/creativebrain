@@ -21,9 +21,9 @@ export function NavLink({ href, label, icon, count, accent }: { href: string; la
         active ? "bg-fill-2 font-semibold text-ink" : "text-ink hover:bg-fill",
       )}
     >
-      {icon && <span className="grid w-5 shrink-0 place-items-center text-accent [&_svg]:h-[18px] [&_svg]:w-[18px] lg:[&_svg]:h-4 lg:[&_svg]:w-4">{icon}</span>}
+      {icon && <span className="grid w-5 shrink-0 place-items-center text-accent-ink [&_svg]:h-[18px] [&_svg]:w-[18px] lg:[&_svg]:h-4 lg:[&_svg]:w-4">{icon}</span>}
       <span className="min-w-0 flex-1 truncate">{label}</span>
-      {count !== undefined && count > 0 && <span className={cn("shrink-0 tabular-nums", accent ? "font-semibold text-accent" : "text-ink-3")}>{count}</span>}
+      {count !== undefined && count > 0 && <span className={cn("shrink-0 tabular-nums", accent ? "font-semibold text-accent-ink" : "text-ink-3")}>{count}</span>}
     </Link>
   );
 }

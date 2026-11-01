@@ -17,7 +17,7 @@ export default async function MoodboardPage({ params }: { params: Promise<{ id: 
   return (
     <article className="mx-auto max-w-6xl space-y-10">
       <div className="flex items-center justify-between">
-        <Link href="/moodboards" className="-ml-1.5 inline-flex min-h-11 items-center gap-0.5 text-[17px] text-accent hover:opacity-70 lg:min-h-0">
+        <Link href="/moodboards" className="-ml-1.5 inline-flex min-h-11 items-center gap-0.5 text-[17px] text-accent-ink hover:opacity-70 lg:min-h-0">
           <ChevronLeft className="h-6 w-6" strokeWidth={2.25} /> {d.nav.moodboards}
         </Link>
         <DeleteBoard id={board.id} />

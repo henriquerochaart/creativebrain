@@ -25,7 +25,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
       <Suspense>
         <CaptureBox />
       </Suspense>
-      <Link href="/settings#instalar" className="inline-block text-sm text-accent hover:opacity-80">
+      <Link href="/settings#instalar" className="inline-block text-sm text-accent-ink hover:opacity-80">
         {d.share.setupLink}
       </Link>
     </div>
