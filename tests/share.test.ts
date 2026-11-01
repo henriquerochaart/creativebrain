@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inputFromShare } from "@/server/share";
+import { inputFromShare, payloadFromFields, payloadFromText, captureReply } from "@/server/share";
 import { normalizeBasePath, withBase } from "@/lib/base-path";
 
 describe("inputFromShare", () => {
@@ -21,6 +21,33 @@ describe("inputFromShare", () => {
   });
   it("returns null when nothing usable arrived", () => {
     expect(inputFromShare({ url: "", text: "  ", title: null })).toBeNull();
+  });
+});
+
+describe("background capture (iOS Shortcut)", () => {
+  it("takes the Shortcut Input as `input` or `text`, and finds the link inside shared text", () => {
+    const p = payloadFromFields({ text: "Olha isso https://vm.tiktok.com/ZMabc/ incrível" });
+    expect(inputFromShare(p)?.input).toBe("https://vm.tiktok.com/ZMabc/");
+    expect(inputFromShare(payloadFromFields({ input: "https://www.instagram.com/reel/xyz/" }))).toEqual({ input: "https://www.instagram.com/reel/xyz/", note: null });
+  });
+  it("joins a Shortcut Input that arrived as a list, and ignores what is not text", () => {
+    expect(payloadFromFields({ text: ["Caption", "https://example.com/a"], url: { nested: true } })).toEqual({ url: null, text: "Caption\nhttps://example.com/a", title: null });
+    expect(payloadFromFields(null)).toEqual({});
+    expect(payloadFromFields(["https://example.com"])).toEqual({});
+  });
+  it("reads a plain-text body, and a JSON body sent without a JSON content type", () => {
+    expect(payloadFromText("https://example.com/x")).toEqual({ text: "https://example.com/x" });
+    expect(payloadFromText('{"url":"https://example.com/y"}').url).toBe("https://example.com/y");
+    expect(inputFromShare(payloadFromText('{"text": broken https://example.com/z'))?.input).toBe("https://example.com/z");
+    expect(payloadFromText("   ")).toEqual({ text: null });
+  });
+  it("answers with one line for the notification", () => {
+    const url = "https://www.instagram.com/reel/xyz/";
+    expect(captureReply("pt", { reference: { originalUrl: url, title: url }, duplicate: false })).toBe("Salvo: instagram.com. Entendendo agora.");
+    expect(captureReply("pt", { reference: { originalUrl: url, title: "Campanha da Netflix" }, duplicate: true })).toBe("Já estava salvo: Campanha da Netflix.");
+    expect(captureReply("en", { reference: { originalUrl: null, title: "An idea" }, duplicate: false })).toBe("Idea saved. Understanding it now.");
+    expect(captureReply("pt", null)).toBe("Nada para salvar. Copie um link ou compartilhe de um app.");
+    expect(captureReply("pt", { reference: { originalUrl: url, title: "x".repeat(80) }, duplicate: true })).toHaveLength("Já estava salvo: .".length + 60);
   });
 });
 

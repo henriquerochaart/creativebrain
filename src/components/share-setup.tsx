@@ -38,9 +38,10 @@ export function CopyField({ value }: { value: string }) {
   const d = useT();
   const [done, setDone] = useState(false);
   return (
-    <span className="mt-1 flex items-center gap-2">
-      <code className="rounded-lg bg-paper-2 px-2 py-1 font-mono text-[12.5px] text-ink">{value}</code>
-      <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(value); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* ignore */ } }} className="text-[12px] text-ink-2 hover:text-ink">
+    // Wraps on a phone: the URL breaks anywhere and the button drops below it rather than running off the edge.
+    <span className="mt-1 flex flex-wrap items-center gap-x-3">
+      <code className="min-w-0 break-all rounded-lg bg-fill px-2 py-1 font-mono text-[12.5px] text-ink">{value}</code>
+      <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(value); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* ignore */ } }} className="min-h-11 text-[15px] text-accent lg:min-h-0 lg:text-[13px]">
         {done ? d.share.setup.copied : d.share.setup.copy}
       </button>
     </span>

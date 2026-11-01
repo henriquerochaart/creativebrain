@@ -124,9 +124,9 @@ Sem chaves de IA? `LLM_PROVIDER=mock` e `EMBEDDING_PROVIDER=mock` rodam o pipeli
 O Instagram não expõe os posts salvos por API. O gesto muda: em vez de Salvar, **Compartilhar → Brain**. Funciona igual no TikTok, YouTube, Safari, Chrome e Behance. A página `/share/setup` do app explica tudo com a URL já preenchida.
 
 - **Android**: o Brain é um PWA com `share_target` (`public/manifest.webmanifest`). Instale pelo Chrome (Adicionar à tela inicial) e ele aparece na share sheet do sistema. O compartilhamento cai em `/share?url=&text=&title=`, que captura e abre a referência enquanto ela é entendida.
-- **iPhone**: um Atalho chamado Brain, com "Mostrar na Share Sheet", que faz `POST /api/references` com `{ "input": Shortcut Input }` e o header `Authorization: Bearer $BRAIN_API_KEY`. Receita passo a passo em `/share/setup`. Variante sem chave: `Open URL` para `/share?url=`.
+- **iPhone**: um Atalho chamado Brain, com "Mostrar ao Compartilhar", que faz `POST /api/capture?reply=text` com `{ "text": Entrada do Atalho }` e o header `Authorization: Bearer $BRAIN_API_KEY`, e mostra a resposta (uma linha de texto) em Mostrar Notificação. Roda em segundo plano: não abre navegador nem app, e responde assim que a referência existe; o entendimento continua depois. Com "Se não houver entrada: Obter Área de Transferência", o mesmo atalho salva o link copiado quando disparado pelo Toque atrás, pelo botão de Ação ou pela Siri. Receita passo a passo em `/share/setup`. Variante que abre o Safari: `Open URL` para `/share?url=`.
 - **Desktop**: bookmarklet "+ Brain" na mesma página.
-- **Automação**: `GET /api/capture?url=&text=&title=` com a chave da API, para ferramentas que só fazem GET. `&redirect=1` redireciona para a referência.
+- **Automação**: `POST /api/capture` (JSON, formulário ou texto puro, com `url`, `text`, `title` ou `input`) ou `GET /api/capture?url=&text=&title=` para ferramentas que só fazem GET, sempre com a chave da API. Um link no meio de um texto é encontrado. `&reply=text` responde com uma linha legível; `&redirect=1` redireciona para a referência.
 
 O que chega: o link e o texto que o app compartilhou junto (o Instagram manda a legenda). A legenda vira a nota do usuário e entra no entendimento. Parâmetros de tracking são removidos antes da deduplicação, então compartilhar duas vezes o mesmo reel abre a mesma referência.
 

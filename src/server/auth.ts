@@ -3,7 +3,8 @@ import { env } from "./env";
 /**
  * API protection for external agents. When BRAIN_API_KEY is set, /api/* requires
  * `Authorization: Bearer <key>` or `x-api-key: <key>`. Same-origin browser requests from the UI
- * are allowed through by the `x-brain-ui` header set by our fetch wrapper.
+ * are allowed through by the `x-brain-ui` header set by our fetch wrapper, and only when the browser
+ * itself vouches for the origin with `Sec-Fetch-Site: same-origin`.
  */
 export function isAuthorized(req: Request): boolean {
   if (!env.apiKey) return true;
@@ -12,9 +13,13 @@ export function isAuthorized(req: Request): boolean {
   if (bearer && safeEqual(bearer, env.apiKey)) return true;
   const key = req.headers.get("x-api-key") ?? "";
   if (key && safeEqual(key, env.apiKey)) return true;
-  // Browser UI: same-origin requests (Next sets sec-fetch-site) marked by our client wrapper.
+  // Browser UI: requests marked by our client wrapper that the browser reports as same-origin.
+  // Sec-Fetch-Site is a forbidden header page scripts cannot set, so it is the part that proves
+  // anything. A missing one must not count: curl or a Shortcut can send `x-brain-ui: 1` and simply
+  // omit it, which used to walk straight past the key. Every current browser sends it (Safari since
+  // 16.4).
   const site = req.headers.get("sec-fetch-site");
-  if (req.headers.get("x-brain-ui") === "1" && (site === "same-origin" || site === null)) return true;
+  if (req.headers.get("x-brain-ui") === "1" && site === "same-origin") return true;
   return false;
 }
 

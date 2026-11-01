@@ -26,4 +26,8 @@ describe("API auth", () => {
     expect(isAuthorized(new Request("http://x/api/search", { headers: { "x-brain-ui": "1", "sec-fetch-site": "same-origin" } }))).toBe(true);
     expect(isAuthorized(new Request("http://x/api/search", { headers: { "x-brain-ui": "1", "sec-fetch-site": "cross-site" } }))).toBe(false);
   });
+  it("does not let a non-browser client in by sending the UI header without Sec-Fetch-Site", async () => {
+    const { isAuthorized } = await load("secret-123");
+    expect(isAuthorized(new Request("http://x/api/capture", { method: "POST", headers: { "x-brain-ui": "1" } }))).toBe(false);
+  });
 });

@@ -343,6 +343,12 @@ const pt = {
     nothingArrived: "Nada chegou no compartilhamento.",
     pasteInstead: "Cole aqui, ou configure o compartilhamento em um toque no celular.",
     setupLink: "Configurar no iPhone e no Android →",
+    reply: {
+      saved: (where: string) => `Salvo: ${where}. Entendendo agora.`,
+      savedIdea: "Ideia salva. Entendendo agora.",
+      duplicate: (what: string) => `Já estava salvo: ${what}.`,
+      nothing: "Nada para salvar. Copie um link ou compartilhe de um app.",
+    },
     setup: {
       title: "Salve de qualquer app em um toque",
       intro:
@@ -358,9 +364,30 @@ const pt = {
         "3. No Instagram, em qualquer reel ou post: Compartilhar → Brain. A referência abre enquanto está sendo entendida.",
       ],
       iphone: "iPhone",
-      iphoneSub: "O iOS não tem share target web, então um Atalho resolve. Dois minutos para montar, uma vez só.",
+      iphoneSub:
+        "Um Atalho que salva em segundo plano: você toca em Brain, ele salva e avisa numa notificação. Não abre o navegador nem o app. Dois minutos para montar, uma vez só.",
+      iphoneSteps: {
+        create: "Abra o app **Atalhos**, toque em **+** e dê o nome **Brain**.",
+        share:
+          "Toque em **ⓘ** e ative **Mostrar ao Compartilhar**. No bloco de entrada que aparece no topo, deixe **URLs** e **Texto**. Toque em **Continuar** (o que fazer quando não houver entrada) e troque por **Obter Área de Transferência**.",
+        fetch: "Adicione a ação **Obter Conteúdo do URL** com este endereço:",
+        options:
+          "Abra as opções da ação: método **POST**, **Pedir Corpo** em **JSON**, um campo de texto com a chave **text** e o valor **Entrada do Atalho**.",
+        key: "Em **Cabeçalhos**, adicione **Authorization** com o valor **Bearer**, um espaço e a sua BRAIN_API_KEY.",
+        notify: "Adicione **Mostrar Notificação** com **Conteúdo do URL**.",
+      },
+      instantTitle: "Sem nem compartilhar",
+      instantSub:
+        "Como o atalho lê a área de transferência quando não recebe nada, ele também funciona fora da folha de compartilhamento: copie o link no app e dispare o Brain.",
+      instantWays: [
+        "Toque atrás: **Ajustes → Acessibilidade → Toque → Tocar Atrás → Tocar Duas Vezes → Brain**.",
+        "Botão de Ação (iPhone 15 Pro ou posterior): **Ajustes → Botão de Ação → Atalho → Brain**.",
+        "Ou um widget do Atalhos na Tela de Início, ou a Siri: “Brain”.",
+      ],
+      firstRun:
+        "Na primeira vez, o iOS pede permissão para o atalho falar com o servidor e ler a área de transferência. Escolha permitir sempre, senão ele pergunta a cada uso.",
       noKeyWarning:
-        "BRAIN_API_KEY não está definida neste servidor, então a API está aberta. Defina antes de expor o cérebro na internet, e então cole a chave no passo 5.",
+        "BRAIN_API_KEY não está definida neste servidor, então a API está aberta para qualquer pessoa que saiba o endereço. Defina a chave na Vercel e recarregue esta página: o passo dos Cabeçalhos aparece aqui.",
       desktop: "Desktop",
       desktopSub: "Arraste isto para a barra de favoritos. Em qualquer página, clique para mandar a URL para o cérebro.",
       simplerVariant: "Variante mais simples, que abre o cérebro no Safari",
@@ -698,6 +725,12 @@ const en: Dict = {
     nothingArrived: "Nothing arrived with the share.",
     pasteInstead: "Paste it here instead, or set up one-tap sharing from your phone.",
     setupLink: "Set up on iPhone and Android →",
+    reply: {
+      saved: (where: string) => `Saved: ${where}. Understanding it now.`,
+      savedIdea: "Idea saved. Understanding it now.",
+      duplicate: (what: string) => `Already saved: ${what}.`,
+      nothing: "Nothing to save. Copy a link or share from an app.",
+    },
     setup: {
       title: "Save from any app in one tap",
       intro:
@@ -713,9 +746,30 @@ const en: Dict = {
         "3. In Instagram, on any reel or post: Share → Brain. The reference opens while it is being understood.",
       ],
       iphone: "iPhone",
-      iphoneSub: "iOS has no web share target, so a Shortcut does the job. Two minutes to build, once.",
+      iphoneSub:
+        "A Shortcut that saves in the background: tap Brain, it saves and confirms with a notification. No browser, no app opening. Two minutes to build, once.",
+      iphoneSteps: {
+        create: "Open **Shortcuts**, tap **+** and name it **Brain**.",
+        share:
+          "Tap **ⓘ** and turn on **Show in Share Sheet**. In the input block that appears at the top, keep **URLs** and **Text**. Tap **Continue** (what to do when there is no input) and change it to **Get Clipboard**.",
+        fetch: "Add the **Get Contents of URL** action with this address:",
+        options:
+          "Open the action's options: method **POST**, **Request Body** **JSON**, one text field with key **text** and value **Shortcut Input**.",
+        key: "Under **Headers**, add **Authorization** with the value **Bearer**, a space and your BRAIN_API_KEY.",
+        notify: "Add **Show Notification** with **Contents of URL**.",
+      },
+      instantTitle: "Without even sharing",
+      instantSub:
+        "Because the shortcut reads the clipboard when it receives nothing, it also works outside the share sheet: copy the link in the app and trigger Brain.",
+      instantWays: [
+        "Back Tap: **Settings → Accessibility → Touch → Back Tap → Double Tap → Brain**.",
+        "Action button (iPhone 15 Pro or later): **Settings → Action Button → Shortcut → Brain**.",
+        "Or a Shortcuts widget on the Home Screen, or Siri: “Brain”.",
+      ],
+      firstRun:
+        "The first time, iOS asks permission for the shortcut to reach the server and read the clipboard. Choose to always allow, or it asks on every run.",
       noKeyWarning:
-        "BRAIN_API_KEY is not set on this server, so the API is open. Set it before exposing the Brain to the internet, then paste the key in step 5.",
+        "BRAIN_API_KEY is not set on this server, so the API is open to anyone who knows the address. Set the key in Vercel and reload this page: the Headers step appears here.",
       desktop: "Desktop",
       desktopSub: "Drag this to your bookmarks bar. On any page, click it to send the URL to the Brain.",
       simplerVariant: "Simpler variant that opens the Brain in Safari",

@@ -1,17 +1,41 @@
 import { headers } from "next/headers";
+import { TriangleAlert } from "lucide-react";
 import { env } from "@/server/env";
+import { DEFAULT_LANG } from "@/lib/i18n";
 import { InstallButton, CopyField } from "@/components/share-setup";
 import { dict } from "@/server/lang";
 
+/** Renders the **bold** spans the setup strings use for the names of buttons and actions. */
+function Rich({ text }: { text: string }) {
+  return (
+    <>
+      {text.split("**").map((part, i) =>
+        i % 2 ? (
+          <b key={i} className="font-semibold text-ink">
+            {part}
+          </b>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
 /** One page that turns a phone into a capture device: Android via PWA share sheet, iPhone via a Shortcut. */
 export default async function ShareSetupPage() {
-  const { d } = await dict();
+  const { lang, d } = await dict();
   const s = d.share.setup;
   const h = await headers();
   const origin = env.appUrl.startsWith("http") && !env.appUrl.includes("localhost") ? env.appUrl : `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000"}`;
   // Everything shown on this page is copied into a phone, so it must be the full public root.
   const root = `${origin}${env.basePath}`;
   const apiKeySet = Boolean(env.apiKey);
+  // The Shortcut posts here and shows the plain-text reply as its notification. It carries no
+  // language cookie, so a non-default reader language goes into the URL itself.
+  const captureUrl = `${root}/api/capture?reply=text${lang === DEFAULT_LANG ? "" : `&lang=${lang}`}`;
+  const st = s.iphoneSteps;
+  const steps = [st.create, st.share, st.fetch, st.options, ...(apiKeySet ? [st.key] : []), st.notify];
   return (
     <div className="mx-auto max-w-3xl space-y-12">
       <header>
@@ -39,28 +63,34 @@ export default async function ShareSetupPage() {
         <h2 className="title-3">{s.iphone}</h2>
         <p className="mt-1 text-sm text-ink-2">{s.iphoneSub}</p>
         {!apiKeySet && (
-          <p className="mt-4 rounded-2xl bg-amber-50 p-3 text-[13px] text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">{s.noKeyWarning}</p>
+          <p className="mt-4 flex gap-2.5 rounded-2xl bg-warning/15 p-3 text-[13px] leading-relaxed text-ink">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
+            <span>{s.noKeyWarning}</span>
+          </p>
         )}
-        <ol className="mt-5 space-y-3 text-sm text-ink-2">
-          <li>1. Shortcuts → <b>+</b> → Brain.</li>
-          <li>
-            2. <b>ⓘ</b> → <b>Show in Share Sheet</b> → Share Sheet Types: <b>URLs</b>, <b>Text</b>.
-          </li>
-          <li>
-            3. <b>Get Contents of URL</b>
-            <CopyField value={`${root}/api/references`} />
-          </li>
-          <li>
-            4. Method <b>POST</b> · Headers <span className="font-mono text-ink">Content-Type: application/json</span>
-            {apiKeySet ? (
-              <>
-                {" "}· <span className="font-mono text-ink">Authorization: Bearer &lt;BRAIN_API_KEY&gt;</span>
-              </>
-            ) : null}{" "}
-            · Request Body <b>JSON</b>: <span className="font-mono text-ink">input</span> = <b>Shortcut Input</b>
-          </li>
-          <li>5. <b>Show Notification</b> → ✓</li>
+        <ol className="mt-5 space-y-3 text-sm leading-relaxed text-ink-2">
+          {steps.map((step, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-fill text-[12px] font-semibold text-ink">{i + 1}</span>
+              <span className="min-w-0">
+                <Rich text={step} />
+                {step === s.iphoneSteps.fetch && <CopyField value={captureUrl} />}
+              </span>
+            </li>
+          ))}
         </ol>
+
+        <h3 className="headline mt-8">{s.instantTitle}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-ink-2">{s.instantSub}</p>
+        <ul className="mt-3 space-y-2 text-sm leading-relaxed text-ink-2">
+          {s.instantWays.map((way, i) => (
+            <li key={i}>
+              <Rich text={way} />
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-[13px] leading-relaxed text-ink-2">{s.firstRun}</p>
+
         <details className="mt-5">
           <summary className="cursor-pointer text-sm text-ink-2">{s.simplerVariant}</summary>
           <p className="mt-2 text-sm text-ink-2">
