@@ -2,31 +2,37 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Inbox, LibraryBig, Plus, Search } from "lucide-react";
+import { House, LibraryBig, Plus, Search, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { tabOf } from "@/lib/sections";
 import { useT } from "./lang-provider";
 import { useAdd } from "./add-sheet";
 
-type Tab = { href: string; key: "home" | "search" | "inbox" | "library"; Icon: typeof House; active: (path: string) => boolean };
+type TabKey = "home" | "search" | "collections" | "settings";
+type Tab = { href: string; key: TabKey; Icon: typeof House };
 
 const TABS: Tab[] = [
-  { href: "/", key: "home", Icon: House, active: (p) => p === "/" },
-  { href: "/search", key: "search", Icon: Search, active: (p) => p.startsWith("/search") },
-  { href: "/inbox", key: "inbox", Icon: Inbox, active: (p) => p.startsWith("/inbox") },
-  { href: "/collections", key: "library", Icon: LibraryBig, active: (p) => p.startsWith("/collections") },
+  { href: "/", key: "home", Icon: House },
+  { href: "/search", key: "search", Icon: Search },
+  { href: "/collections", key: "collections", Icon: LibraryBig },
+  { href: "/settings", key: "settings", Icon: Settings },
 ];
 
 /**
- * The phone's tab bar: a floating material capsule, the way current iOS apps carry it, with Add as
- * the raised button in the middle. Only below lg; the sidebar does this job on a wide screen.
+ * The phone's tab bar and its only navigation: there is no header. A floating material capsule,
+ * the way current iOS apps carry it, with Add as the raised button in the middle. A tab stays
+ * selected on the screens reached through it (`tabOf`). Settings carries a badge while references
+ * failed, since the Inbox that lists them lives there. Only below lg; the sidebar does this job on
+ * a wide screen.
  */
-export function TabBar({ inbox }: { inbox: number }) {
+export function TabBar({ failed }: { failed: number }) {
   const pathname = usePathname();
   const d = useT();
   const { open } = useAdd();
+  const current = tabOf(pathname);
   const [left, right] = [TABS.slice(0, 2), TABS.slice(2)];
   const item = (t: Tab) => {
-    const on = t.active(pathname);
+    const on = current === t.key;
     return (
       <Link
         key={t.key}
@@ -36,8 +42,8 @@ export function TabBar({ inbox }: { inbox: number }) {
       >
         <span className="relative">
           <t.Icon className="h-[22px] w-[22px]" strokeWidth={on ? 2.4 : 2} />
-          {t.key === "inbox" && inbox > 0 && (
-            <span className="absolute -right-2.5 -top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-1 text-[11px] font-bold leading-none text-white">{inbox > 99 ? "99+" : inbox}</span>
+          {t.key === "settings" && failed > 0 && (
+            <span className="absolute -right-2.5 -top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-1 text-[11px] font-bold leading-none text-white">{failed > 99 ? "99+" : failed}</span>
           )}
         </span>
         {d.tabs[t.key]}

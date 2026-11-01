@@ -67,7 +67,7 @@ A thumbnail é sempre a do próprio material: imagem OpenGraph ou oEmbed do link
 
 ## Idiomas
 
-A interface é bilíngue, português e inglês, com um botão no header. A escolha vai para o cookie `brain_lang`, que os server components leem, então a troca não recarrega a página nem pisca o idioma antigo. Todo texto vive em `src/lib/i18n.ts`; `pt` é a fonte da verdade e `en` é tipado contra ele, então uma chave faltando quebra o typecheck em vez de aparecer em produção.
+A interface é bilíngue, português e inglês, com a escolha em Ajustes. A escolha vai para o cookie `brain_lang`, que os server components leem, então a troca não recarrega a página nem pisca o idioma antigo. Todo texto vive em `src/lib/i18n.ts`; `pt` é a fonte da verdade e `en` é tipado contra ele, então uma chave faltando quebra o typecheck em vez de aparecer em produção.
 
 Duas decisões que valem explicar:
 

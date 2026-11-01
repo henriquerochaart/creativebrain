@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Bookmark, Compass, Folder, FolderKanban, Hash, Inbox, LayoutDashboard, LayoutGrid, LineChart, Network, Settings, Sparkles, WandSparkles } from "lucide-react";
+import { Bookmark, Compass, Folder, FolderKanban, Hash, Inbox, LayoutDashboard, LayoutGrid, LineChart, Network, Search, Settings, Sparkles, WandSparkles } from "lucide-react";
 import { NavLink } from "./nav-link";
 import { listCollections, statusCounts, facetCounts } from "@/server/references";
 import { SUBJECTS } from "@/server/taxonomy";
 import { dict } from "@/server/lang";
 import { taxonomyLabel } from "@/lib/i18n";
 import { Emoji } from "@/components/emoji";
+import { AddButton } from "@/components/library-client";
 
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -28,11 +29,13 @@ export async function Sidebar() {
   const orderedSubjects = [...SUBJECTS].filter((s) => subjectCount.has(s)).sort((a, b) => (subjectCount.get(b) ?? 0) - (subjectCount.get(a) ?? 0));
 
   return (
-    // Position, width and mobile/desktop visibility all live on SidebarDrawer, the wrapper this
-    // renders inside of. Kept here would double up with — and on the drawer's translated panel,
-    // fight — the classes that make the off-canvas version work.
-    <aside className="px-3 py-5 pt-14 lg:pt-5">
+    // The wide-screen navigation, with no header above it: Add (the screen's primary action) and
+    // Search lead, the way a Mac app's sidebar carries its search. Position, width and visibility
+    // live on the wrapper in the root layout; a phone uses the tab bar and Settings instead.
+    <aside className="px-3 py-5">
+      <AddButton className="mb-4 h-9 w-full text-[13px]" />
       <nav className="space-y-0.5">
+        <NavLink href="/search" label={d.tabs.search} icon={<Search />} />
         <NavLink href="/" label={d.nav.all} count={total} icon={<LayoutGrid />} />
         <NavLink href="/inbox" label={d.nav.inbox} count={inbox} accent={inbox > 0} icon={<Inbox />} />
         <NavLink href="/saved" label={d.nav.saved} icon={<Bookmark />} />

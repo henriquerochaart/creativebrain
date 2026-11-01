@@ -1,9 +1,8 @@
 import { statusCounts } from "@/server/references";
 import { TabBar } from "./tab-bar";
 
-/** Server half of the tab bar: the Inbox badge counts what still needs attention. */
+/** Server half of the tab bar: the Settings badge counts references that failed and need a look. */
 export async function TabBarWithCounts() {
   const counts = await statusCounts().catch(() => ({}) as Record<string, number>);
-  const inbox = (counts.queued ?? 0) + (counts.processing ?? 0) + (counts.failed ?? 0);
-  return <TabBar inbox={inbox} />;
+  return <TabBar failed={counts.failed ?? 0} />;
 }

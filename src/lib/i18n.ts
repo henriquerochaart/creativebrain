@@ -39,8 +39,7 @@ const pt = {
     language: "Idioma",
     menu: "Menu",
     close: "Fechar",
-    searchShort: "Buscar",
-    cancel: "Cancelar",
+    clear: "Limpar",
   },
   nav: {
     all: "Tudo",
@@ -69,7 +68,6 @@ const pt = {
     categories: "Categorias",
     collections: "Coleções",
     newCollection: "Nova",
-    allCategories: "Todas as categorias",
     kinds: { video: "Vídeos", image: "Imagens", website: "Sites", pdf: "PDFs", text: "Ideias", audio: "Áudios" } as Record<string, string>,
   },
   add: {
@@ -80,7 +78,7 @@ const pt = {
     clipboardEmpty: "Nada copiado.",
     clipboardDenied: "Sem acesso à área de transferência. Cole no campo acima.",
   },
-  tabs: { home: "Início", search: "Buscar", add: "Adicionar", inbox: "Entrada", library: "Coleções" },
+  tabs: { home: "Início", search: "Buscar", add: "Adicionar", collections: "Coleções", settings: "Ajustes" },
   capture: {
     placeholder: "Cole um link ou escreva uma ideia",
     upload: "Arquivo",
@@ -117,7 +115,6 @@ const pt = {
     empty: "Toque em Salvar numa referência para guardá-la aqui.",
   },
   search: {
-    prompt: "O que você está procurando?",
     references: (n: number) => `${n} referência${n === 1 ? "" : "s"}`,
     modes: {
       hybrid: { label: "Tudo", hint: "palavra-chave + semântica + conceitual + visual" },
@@ -271,7 +268,6 @@ const pt = {
     title: "Coleções",
     create: "Criar",
     namePlaceholder: "Coisas que eu quero roubar",
-    empty: "Nenhuma coleção ainda.",
     one: "Coleção",
     auto: "Coleção · proposta pelo cérebro",
     emptyOne: "Vazia.",
@@ -401,8 +397,7 @@ const en: Dict = {
     language: "Language",
     menu: "Menu",
     close: "Close",
-    searchShort: "Search",
-    cancel: "Cancel",
+    clear: "Clear",
   },
   nav: {
     all: "All",
@@ -431,7 +426,6 @@ const en: Dict = {
     categories: "Categories",
     collections: "Collections",
     newCollection: "New",
-    allCategories: "All categories",
     kinds: { video: "Videos", image: "Images", website: "Websites", pdf: "PDFs", text: "Ideas", audio: "Audio" },
   },
   add: {
@@ -442,7 +436,7 @@ const en: Dict = {
     clipboardEmpty: "Nothing copied.",
     clipboardDenied: "No access to the clipboard. Paste into the field above.",
   },
-  tabs: { home: "Home", search: "Search", add: "Add", inbox: "Inbox", library: "Collections" },
+  tabs: { home: "Home", search: "Search", add: "Add", collections: "Collections", settings: "Settings" },
   capture: {
     placeholder: "Paste a link or write an idea",
     upload: "File",
@@ -479,7 +473,6 @@ const en: Dict = {
     empty: "Tap Save on a reference to keep it here.",
   },
   search: {
-    prompt: "What are you looking for?",
     references: (n: number) => `${n} reference${n === 1 ? "" : "s"}`,
     modes: {
       hybrid: { label: "All", hint: "keyword + semantic + conceptual + visual" },
@@ -633,7 +626,6 @@ const en: Dict = {
     title: "Collections",
     create: "Create",
     namePlaceholder: "Things I want to steal",
-    empty: "No collections yet.",
     one: "Collection",
     auto: "Collection · proposed by the Brain",
     emptyOne: "Empty.",

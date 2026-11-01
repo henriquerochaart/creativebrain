@@ -3,6 +3,7 @@ import { search, type SearchMode } from "@/server/search";
 import { toPublic } from "@/server/references";
 import { ReferenceGrid } from "@/components/reference-grid";
 import { WhyThese } from "@/components/why-these";
+import { SearchField } from "@/components/search-field";
 import { cn } from "@/lib/utils";
 import { dict } from "@/server/lang";
 
@@ -20,20 +21,25 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="large-title">{q || d.search.prompt}</h1>
-        {result && (
-          <p className="mt-1 text-sm text-ink-2">
-            {d.search.references(result.total)}
-            {result.degraded ? ` · ${result.degraded}` : ""}
-          </p>
-        )}
-        <div className="mt-4 flex flex-wrap gap-1">
-          {MODES.map((m) => (
-            <Link key={m} href={`/search?q=${encodeURIComponent(q)}&mode=${m}`} title={d.search.modes[m].hint} className={cn("rounded-full px-3 py-1 text-[13px]", mode === m ? "bg-accent font-medium text-on-accent" : "text-ink-2 hover:bg-fill")}>
-              {d.search.modes[m].label}
-            </Link>
-          ))}
+        <h1 className="large-title">{d.tabs.search}</h1>
+        <div className="mt-3">
+          <SearchField key={q} initial={q} mode={mode} />
         </div>
+        {result && (
+          <>
+            <p className="mt-3 text-sm text-ink-2">
+              {d.search.references(result.total)}
+              {result.degraded ? ` · ${result.degraded}` : ""}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-1">
+              {MODES.map((m) => (
+                <Link key={m} href={`/search?q=${encodeURIComponent(q)}&mode=${m}`} title={d.search.modes[m].hint} className={cn("rounded-full px-3 py-1 text-[13px]", mode === m ? "bg-accent font-medium text-on-accent" : "text-ink-2 hover:bg-fill")}>
+                  {d.search.modes[m].label}
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
       </header>
       {q && refs.length > 0 && <WhyThese query={q} ids={refs.slice(0, 12).map((r) => r.id)} titles={titles} />}
       <ReferenceGrid references={refs} lang={lang} kindsById={sourcesById} empty={q ? d.search.emptyNoMatch : d.search.emptyType} mascot={q ? "surpreso" : "pensando"} />

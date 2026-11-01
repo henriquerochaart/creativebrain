@@ -8,7 +8,7 @@ import { Thumb } from "@/components/thumb";
 import { BrainThink } from "@/components/brain-think";
 import { Emoji } from "@/components/emoji";
 import { Thing } from "@/components/thing";
-import { AddButton, AddCard, AllCategoriesChip } from "@/components/library-client";
+import { AddButton, AddCard } from "@/components/library-client";
 import { facetCounts, kindCounts, listCollections, listReferences, toPublic, type PublicReference } from "@/server/references";
 import { SUBJECTS } from "@/server/taxonomy";
 import { dict } from "@/server/lang";
@@ -56,7 +56,7 @@ export default async function Home() {
   if (!refs.length) {
     return (
       <div className="space-y-9">
-        <h1 className="sr-only">{d.app.name}</h1>
+        <h1 className="large-title">{d.app.short}</h1>
         <section className="hidden lg:block">
           <Suspense>
             <CaptureBox />
@@ -73,7 +73,8 @@ export default async function Home() {
 
   return (
     <div className="space-y-9">
-      <h1 className="sr-only">{d.app.name}</h1>
+      {/* The tab's large title, as on every tab: there is no header above it. */}
+      <h1 className="large-title mb-5">{d.app.short}</h1>
 
       {/* On a wide screen the field stays right here, where files can be dropped. A phone adds through the tab bar's +. */}
       <section className="hidden lg:block">
@@ -90,7 +91,6 @@ export default async function Home() {
               {c.label}
             </Link>
           ))}
-          <AllCategoriesChip />
         </nav>
       )}
 

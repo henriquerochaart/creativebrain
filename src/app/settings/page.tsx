@@ -1,6 +1,11 @@
+import Link from "next/link";
 import { headers } from "next/headers";
-import { TriangleAlert } from "lucide-react";
+import { ChevronRight, TriangleAlert } from "lucide-react";
 import { env } from "@/server/env";
+import { statusCounts } from "@/server/references";
+import { SETTINGS_HUB } from "@/lib/sections";
+import { cn } from "@/lib/utils";
+import type { Dict } from "@/lib/i18n";
 import { InstallButton, CopyField, CopyBlock } from "@/components/share-setup";
 import { LangSwitch } from "@/components/lang-switch";
 import { ReprocessLinks } from "@/components/reprocess-links";
@@ -29,7 +34,7 @@ function Rich({ text }: { text: string }) {
 /** One group: a 3D icon, a title, and what belongs to it. `aside` sits on the title row (a control). */
 function Group({ id, icon, title, aside, children }: { id?: string; icon: string; title: string; aside?: React.ReactNode; children?: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-[22px] bg-paper-2 p-5">
+    <section id={id} className="scroll-mt-6 rounded-[22px] bg-paper-2 p-5">
       <div className="flex items-center gap-3">
         <Thing name={icon} className="h-10 w-10" />
         <h2 className="headline flex-1">{title}</h2>
@@ -41,12 +46,40 @@ function Group({ id, icon, title, aside, children }: { id?: string; icon: string
 }
 
 /**
- * Settings: the reader's language, putting the Brain on a phone (Home Screen app, the Brain
- * shortcut, Android, the desktop bookmarklet), connecting agents over MCP, and maintenance.
+ * The app's other screens, as an iOS Settings list: one rounded group, a 3D icon, the name, a
+ * count where one helps, a chevron. A phone reaches them only from here (see `lib/sections.ts`).
+ */
+function Hub({ d, inbox, failed }: { d: Dict; inbox: number; failed: number }) {
+  return (
+    <nav className="overflow-hidden rounded-[22px] bg-paper-2">
+      {SETTINGS_HUB.map((h, i) => (
+        <Link key={h.href} href={h.href} className="group flex min-h-14 items-center gap-3 pl-4 transition-colors hover:bg-fill active:bg-fill">
+          <Thing name={h.icon} className="h-9 w-9" />
+          <span className={cn("flex min-h-14 flex-1 items-center gap-2 pr-3", i > 0 && "border-t border-line")}>
+            <span className="flex-1 text-[17px] text-ink">{d.nav[h.key]}</span>
+            {h.key === "inbox" && inbox > 0 && (
+              <span className={cn("tabular-nums text-[15px]", failed > 0 ? "grid h-[22px] min-w-[22px] place-items-center rounded-full bg-danger px-1.5 text-[13px] font-semibold text-white" : "text-ink-3")}>{inbox}</span>
+            )}
+            <ChevronRight className="h-5 w-5 shrink-0 text-ink-3" aria-hidden />
+          </span>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+/**
+ * Settings, which on a phone is also where the rest of the app lives: first the screens that are
+ * not tabs (Inbox, Discover, the thinking tools), then the reader's language, putting the Brain on
+ * a phone (Home Screen app, the Brain shortcut, Android, the desktop bookmarklet), connecting
+ * agents over MCP, and maintenance.
  */
 export default async function SettingsPage() {
   const { lang, d } = await dict();
   const s = d.settings;
+  const counts = await statusCounts().catch(() => ({}) as Record<string, number>);
+  const failed = counts.failed ?? 0;
+  const inbox = (counts.queued ?? 0) + (counts.processing ?? 0) + failed;
   const h = await headers();
   const origin = env.appUrl.startsWith("http") && !env.appUrl.includes("localhost") ? env.appUrl : `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000"}`;
   // Everything here is copied into a phone or a config file, so it must be the full public root.
@@ -66,6 +99,8 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <h1 className="large-title mb-6">{s.title}</h1>
+
+      <Hub d={d} inbox={inbox} failed={failed} />
 
       <Group icon="globe" title={s.language} aside={<LangSwitch />} />
 

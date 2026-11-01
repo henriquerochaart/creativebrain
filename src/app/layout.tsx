@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import "./globals.css";
-import { TopBar } from "@/components/top-bar";
 import { Sidebar } from "@/components/sidebar";
-import { SidebarDrawer } from "@/components/sidebar-drawer";
-import { SidebarProvider } from "@/components/sidebar-provider";
+import { SectionBack } from "@/components/section-back";
 import { LangProvider } from "@/components/lang-provider";
 import { AddFromQuery, AddProvider } from "@/components/add-sheet";
 import { TabBar } from "@/components/tab-bar";
@@ -47,28 +45,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={localeOf(lang)}>
       <body className="min-h-screen">
         <LangProvider lang={lang}>
-          <SidebarProvider>
-            <AddProvider>
-              <Suspense fallback={<div className="h-16 border-b border-line" />}>
-                <TopBar />
-              </Suspense>
-              <Suspense>
-                <AddFromQuery />
-              </Suspense>
-              <div className="flex">
-                <SidebarDrawer>
-                  <Suspense fallback={<div className="h-full" />}>
-                    <Sidebar />
-                  </Suspense>
-                </SidebarDrawer>
-                {/* Bottom padding clears the floating tab bar on a phone. */}
-                <main className="min-w-0 flex-1 px-4 pb-32 pt-5 sm:px-6 lg:px-10 lg:py-8">{children}</main>
+          {/* No header: a phone navigates with the tab bar, a wide screen with the sidebar. */}
+          <AddProvider>
+            <Suspense>
+              <AddFromQuery />
+            </Suspense>
+            <div className="flex">
+              <div className="hidden lg:sticky lg:top-0 lg:block lg:h-screen lg:w-60 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-line lg:bg-paper-2/60">
+                <Suspense fallback={<div className="h-full" />}>
+                  <Sidebar />
+                </Suspense>
               </div>
-              <Suspense fallback={<TabBar inbox={0} />}>
-                <TabBarWithCounts />
-              </Suspense>
-            </AddProvider>
-          </SidebarProvider>
+              {/* Bottom padding clears the floating tab bar on a phone. */}
+              <main className="min-w-0 flex-1 px-4 pb-32 pt-6 sm:px-6 lg:px-10 lg:py-8">
+                <SectionBack />
+                {children}
+              </main>
+            </div>
+            <Suspense fallback={<TabBar failed={0} />}>
+              <TabBarWithCounts />
+            </Suspense>
+          </AddProvider>
         </LangProvider>
       </body>
     </html>
