@@ -4,16 +4,17 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, Plus, X } from "lucide-react";
+import { useAdd } from "./add-sheet";
 import { cn } from "@/lib/utils";
 import { useT } from "./lang-provider";
 import { useSidebar } from "./sidebar-provider";
 import { LangSwitch } from "./lang-switch";
 
 /**
- * The toolbar, as an HIG bar: a translucent material over the content, the title in Headline
- * weight, one filled primary action. Regular width (lg+) shows the search field inline. Compact
- * width can't fit a usable field next to everything else, so search becomes a 44pt icon button
- * that expands the field across the bar with a Cancel, the way iOS does it.
+ * The toolbar, as an HIG bar: a translucent material over the content, the wordmark, one filled
+ * primary action. Regular width (lg+) shows the search field inline. On a phone the tab bar carries
+ * search and Add, so this bar keeps only the HB mark (which opens the sidebar) and the language;
+ * on /search it becomes the search field itself, with a Cancel, the way iOS does it.
  */
 export function TopBar() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export function TopBar() {
   const params = useSearchParams();
   const d = useT();
   const { open, toggle } = useSidebar();
+  const add = useAdd();
   const [q, setQ] = useState(params.get("q") ?? "");
   const [searching, setSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +65,7 @@ export function TopBar() {
     <header className="material sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-line px-4 lg:gap-4 lg:px-6">
       {/* Below lg the sidebar is a drawer, not a fixed column, so the mark opens it instead of
           just linking home — otherwise there would be no way to reach it on a phone at all. */}
-      <Link href="/" className="headline hidden shrink-0 lg:inline">
+      <Link href="/" className="wordmark hidden shrink-0 text-[20px] lg:inline">
         {d.app.name}
       </Link>
 
@@ -75,30 +77,22 @@ export function TopBar() {
         </button>
       </div>
 
-      {/* Compact width, idle: title button, then trailing icon buttons. */}
+      {/* Compact width, idle: the HB mark opens the sidebar; the tab bar has search and Add. */}
       <div className={cn("flex flex-1 items-center gap-1 lg:hidden", searching && "hidden")}>
-        <button type="button" onClick={toggle} aria-label={d.header.menu} aria-expanded={open} className="headline -ml-2 grid min-h-11 min-w-11 place-items-center rounded-full px-2 hover:bg-fill">
+        <button type="button" onClick={toggle} aria-label={d.header.menu} aria-expanded={open} className="wordmark -ml-2 grid min-h-11 min-w-11 place-items-center rounded-full px-2 text-[26px] hover:bg-fill">
           {d.app.short}
         </button>
         <div className="flex-1" />
         <LangSwitch />
-        <button type="button" onClick={() => setSearching(true)} aria-label={d.header.searchShort} className="grid h-11 w-11 place-items-center rounded-full text-accent hover:bg-fill">
-          <Search className="h-[22px] w-[22px]" />
-        </button>
-        <Link href="/?add=1" aria-label={d.header.add} className="grid h-11 w-11 shrink-0 place-items-center">
-          <span className="btn-filled h-8 w-8">
-            <Plus className="h-[18px] w-[18px]" strokeWidth={2.5} />
-          </span>
-        </Link>
       </div>
 
       {/* Regular width: field centered, segmented control and the primary action trailing. */}
       <div className="mx-auto hidden w-full max-w-xl lg:block">{field()}</div>
       <div className="hidden items-center gap-3 lg:flex">
         <LangSwitch />
-        <Link href="/?add=1" className="btn-filled h-9 shrink-0 px-4 text-sm">
+        <button type="button" onClick={add.open} className="btn-filled h-9 shrink-0 px-4 text-sm">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> {d.header.add}
-        </Link>
+        </button>
       </div>
     </header>
   );

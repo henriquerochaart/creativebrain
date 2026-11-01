@@ -33,3 +33,12 @@ The UI follows Apple's Human Interface Guidelines; `src/app/globals.css` is the 
 - Fields are fills (`bg-fill`, radius 10), not outlines. Containers are fills (`bg-paper-2`) or elevated cards (`bg-surface` + `--card-shadow`), not bordered boxes. Bars and menus use the `material` utility.
 - Long-form reading text is `ink`; `ink-2` is for supporting text only.
 - Reduce Motion and Increase Contrast are honoured in `globals.css`; keep new animation behind them.
+
+## App feel (after Albo)
+On top of HIG, the UI should feel like a friendly phone app, not a web dashboard.
+- Below `lg`, a floating tab bar (`tab-bar.tsx`: Início, Buscar, +, Entrada, Coleções) carries navigation; `main` has `pb-32` to clear it. The HB mark still opens the sidebar drawer. At `lg` the sidebar and toolbar take over and the tab bar is gone.
+- Capture starts in one place: the Add sheet (`add-sheet.tsx`), opened with `useAdd().open()` from the tab bar's +, the toolbar's Add button and the dashed + card. Never a + that navigates. `?add=1` still opens it. Results show as the provider's toast, which outlives the sheet.
+- Titles use the rounded display face (`--font-display`, SF Pro Rounded via `ui-rounded`): `large-title`, `title-2`, `title-3`, `wordmark`.
+- Emoji stand for kinds of things (media types, platforms, subjects) and live in `src/lib/emoji.ts`. They never stand in for a reference's own picture (see Thumbnails).
+- Cards have no shell: the picture rounded (`rounded-[22px]`), then the platform in `ink-3` and a bold title. Shape language: pills (`chip`), big radii, fills.
+- Sideways rows use `scroll-row`, bleed to the screen edge on a phone (`-mx-4 px-4`) and set matching `scroll-px-*`, or the snap swallows the padding.

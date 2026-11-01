@@ -19,9 +19,9 @@ export function SaveToggle({ id, saved }: { id: string; saved: boolean }) {
         await api(`/api/references/${id}`, { method: "PATCH", body: JSON.stringify({ saved: !on }) });
         router.refresh();
       }}
-      className={cn(on ? "btn-filled" : "btn-gray", "h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]")}
+      className="btn-gray h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]"
     >
-      <Star className={cn("h-3.5 w-3.5", on && "fill-current")} /> {on ? d.reference.saved : d.reference.save}
+      <Star className={cn("h-3.5 w-3.5", on && "fill-warning text-warning")} /> {on ? d.reference.saved : d.reference.save}
     </button>
   );
 }
@@ -96,7 +96,7 @@ export function CollectionPicker({ referenceId, all, member }: { referenceId: st
         <Plus className="h-3.5 w-3.5" /> {member.length ? d.reference.collections(member.length) : d.reference.addToCollection}
       </button>
       {open && (
-        <div className="material absolute right-0 z-20 mt-2 w-64 rounded-[14px] p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.18)] ring-1 ring-black/5 dark:ring-white/10">
+        <div className="material fixed inset-x-4 bottom-28 z-50 rounded-[20px] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.22)] ring-1 ring-black/5 lg:absolute lg:inset-x-auto lg:bottom-auto lg:left-0 lg:mt-2 lg:w-64 lg:rounded-[14px] lg:p-1.5 dark:ring-white/10">
           <ul className="max-h-64 overflow-y-auto">
             {all.map((c) => (
               <li key={c.id}>

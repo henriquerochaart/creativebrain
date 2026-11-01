@@ -16,27 +16,35 @@ export default async function CollectionsPage() {
         </div>
         <NewCollection />
       </header>
-      <ol className="divide-y divide-line overflow-hidden rounded-[14px] bg-paper-2">
-        {cols.map((c, i) => (
-          <li key={c.id}>
-            <Link href={`/collections/${c.slug}`} className="flex items-center gap-5 px-5 py-4 hover:bg-paper-2">
-              <span className="w-8 font-mono text-sm text-ink-3">{String(i + 1).padStart(2, "0")}</span>
-              <span className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-paper-2">
+      {/* A grid of covers, like an app's library of lists. The cover is the newest saved picture in
+          the collection; with none, its emoji stands in. */}
+      {cols.length ? (
+        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
+          {cols.map((c) => (
+            <Link key={c.id} href={`/collections/${c.slug}`} className="group block">
+              <div className="relative aspect-square overflow-hidden rounded-[22px] bg-paper-2">
                 {c.cover ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.cover} alt="" className="h-full w-full object-cover" />
+                  <img src={c.cover} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                ) : (
+                  <span className="grid h-full place-items-center text-[48px] leading-none" aria-hidden>
+                    {c.emoji || "📁"}
+                  </span>
+                )}
+                {c.cover && c.emoji ? (
+                  <span className="material absolute left-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full text-[18px] leading-none" aria-hidden>
+                    {c.emoji}
+                  </span>
                 ) : null}
-              </span>
-              <span className="flex-1 text-lg font-medium">
-                {c.emoji ? `${c.emoji} ` : ""}
-                {c.name}
-              </span>
-              <span className="text-sm text-ink-3">{c.count}</span>
+              </div>
+              <p className="mt-2 line-clamp-1 px-1 text-[15px] font-semibold leading-5">{c.name}</p>
+              <p className="px-1 text-[13px] leading-[18px] text-ink-3">{d.category.references(c.count)}</p>
             </Link>
-          </li>
-        ))}
-        {!cols.length && <li className="px-5 py-10 text-center text-sm text-ink-3">{d.collections.empty}</li>}
-      </ol>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-[22px] bg-paper-2 px-5 py-10 text-center text-[15px] text-ink-2">{d.collections.empty}</p>
+      )}
       <AutoCollections />
     </div>
   );

@@ -11,6 +11,9 @@
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Titles in SF Pro Rounded, the face Apple uses where an app wants to feel friendly (Fitness,
+     Reminders' counts). Elsewhere ui-rounded falls back to the regular system font. */
+  --font-display: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
@@ -41,6 +44,7 @@
   --success: #34c759; /* systemGreen */
   --warning: #ff9500; /* systemOrange */
   --material: rgba(255, 255, 255, 0.72); /* regular material, under backdrop blur */
+  --material-thick: rgba(249, 249, 249, 0.9); /* thick material: the tab bar, which text scrolls under */
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.06);
   --card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.05), 0 12px 32px rgba(0, 0, 0, 0.1);
   color-scheme: light dark;
@@ -61,6 +65,7 @@
     --success: #30d158;
     --warning: #ff9f0a;
     --material: rgba(30, 30, 30, 0.72);
+    --material-thick: rgba(28, 28, 30, 0.9);
     --card-shadow: none;
     --card-shadow-hover: none;
   }
@@ -108,11 +113,13 @@ select:focus-visible {
   outline: none;
 }
 
-/* iOS text styles. */
-@utility large-title { font-size: 34px; line-height: 41px; font-weight: 700; }
-@utility title-2 { font-size: 22px; line-height: 28px; font-weight: 700; }
-@utility title-3 { font-size: 20px; line-height: 25px; font-weight: 600; }
+/* iOS text styles, titles in the rounded display face. */
+@utility large-title { font-family: var(--font-display); font-size: 34px; line-height: 41px; font-weight: 800; }
+@utility title-2 { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 700; }
+@utility title-3 { font-family: var(--font-display); font-size: 20px; line-height: 25px; font-weight: 700; }
 @utility headline { font-size: 17px; line-height: 22px; font-weight: 600; }
+/* The wordmark: the app's name, set like an app's, not like a heading. */
+@utility wordmark { font-family: var(--font-display); font-weight: 800; }
 
 /* Section header: footnote, semibold, secondary label, sentence case — never tracked all caps. */
 .eyebrow {
@@ -135,6 +142,26 @@ select:focus-visible {
   &:hover { background: var(--fill-2); }
   &:disabled { opacity: 0.35; pointer-events: none; }
 }
+@utility material-thick {
+  background: var(--material-thick);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+}
+/* A pill with an emoji and a label: quick filters, collections. 44pt tall, the touch minimum. */
+@utility chip {
+  display: inline-flex; align-items: center; gap: 0.5rem; height: 44px; padding: 0 1.1rem;
+  border-radius: 9999px; background: var(--fill); color: var(--ink); white-space: nowrap;
+  font-size: 15px; font-weight: 600; transition: background-color 150ms, transform 150ms;
+  &:hover { background: var(--fill-2); }
+  &:active { transform: scale(0.97); }
+}
+/* A row that scrolls sideways, edge to edge on a phone, with no scrollbar drawn. */
+@utility scroll-row {
+  display: flex; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+  & > * { scroll-snap-align: start; flex-shrink: 0; }
+}
 /* Translucent bars over scrolling content. */
 @utility material {
   background: var(--material);
@@ -142,17 +169,18 @@ select:focus-visible {
   backdrop-filter: saturate(180%) blur(20px);
 }
 
+/* Two columns already on a phone, like a photo library; more as the screen widens. */
 .masonry {
-  column-gap: 20px;
-  column-count: 1;
+  column-gap: 12px;
+  column-count: 2;
 }
-@media (min-width: 640px) { .masonry { column-count: 2; } }
+@media (min-width: 640px) { .masonry { column-gap: 20px; } }
 @media (min-width: 1024px) { .masonry { column-count: 3; } }
 @media (min-width: 1400px) { .masonry { column-count: 4; } }
 @media (min-width: 1800px) { .masonry { column-count: 5; } }
 .masonry > * {
   break-inside: avoid;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   display: block;
 }
 
@@ -172,6 +200,14 @@ select:focus-visible {
 /* No step yet (queued, or a step outside PROCESSING_STEPS): a segment sweeps instead of a fixed width. */
 @keyframes brain-indeterminate { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
 .brain-indeterminate { animation: brain-indeterminate 1.3s ease-in-out infinite; }
+
+/* Sheets rise from the bottom edge on a phone and settle in place on a wide screen. */
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheet-in { from { transform: translateY(12px) scale(0.98); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.sheet-up { animation: sheet-up 380ms cubic-bezier(0.32, 0.72, 0, 1); }
+.fade-in { animation: fade-in 240ms ease-out; }
+@media (min-width: 1024px) { .sheet-up { animation-name: sheet-in; animation-duration: 260ms; } }
 
 /* Reduce Motion: keep state visible, drop the movement. */
 @media (prefers-reduced-motion: reduce) {

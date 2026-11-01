@@ -38,3 +38,14 @@ export function timeAgo(date: Date | string, d: Dict, locale?: string): string {
 export function localeOf(lang: "pt" | "en"): string {
   return lang === "pt" ? "pt-BR" : "en";
 }
+
+/** A reference's title as people should read it: a link not yet understood carries its own URL as title, so show the site instead. */
+export function displayTitle(title: string | null | undefined, fallback: string): string {
+  if (!title) return fallback;
+  if (!/^https?:\/\//i.test(title)) return title;
+  try {
+    return new URL(title).hostname.replace(/^www\./, "");
+  } catch {
+    return title;
+  }
+}

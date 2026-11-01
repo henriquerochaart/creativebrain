@@ -1,36 +1,55 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { captureFiles, captureText, CAPTURE_ACCEPT } from "@/lib/capture";
 import { cn } from "@/lib/utils";
 import { BrainThink } from "./brain-think";
 import { useT } from "./lang-provider";
 
-type Toast = { kind: "ok" | "err" | "dup"; text: string };
+export type Toast = { kind: "ok" | "err" | "dup"; text: string };
 
 /**
  * The single point of capture. Paste a link, drop a file, or write an idea. Enter. Done.
  * The system starts understanding in the background; the card appears in Inbox.
+ * With `onDone`, the result goes to the caller (the Add sheet closes and toasts it) instead of a
+ * toast under the field.
  */
-export function CaptureBox({ collectionId, compact }: { collectionId?: string; compact?: boolean }) {
+export function CaptureBox({
+  collectionId,
+  compact,
+  onDone,
+  inputRef,
+  autoFocus,
+  noUpload,
+}: {
+  collectionId?: string;
+  compact?: boolean;
+  onDone?: (toast: Toast) => void;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  autoFocus?: boolean;
+  /** Where something else already offers upload (the Add sheet's tile), skip the link in the field. */
+  noUpload?: boolean;
+}) {
   const router = useRouter();
-  const params = useSearchParams();
   const d = useT();
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const [local, setLocal] = useState<Toast | null>(null);
+  const ownRef = useRef<HTMLTextAreaElement>(null);
+  const ref = inputRef ?? ownRef;
   const fileRef = useRef<HTMLInputElement>(null);
+  const setToast = (toast: Toast) => (onDone ? onDone(toast) : setLocal(toast));
+  const toast = local;
 
   useEffect(() => {
-    if (params.get("add")) ref.current?.focus();
-  }, [params]);
+    if (autoFocus) ref.current?.focus();
+  }, [autoFocus, ref]);
 
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 4000);
+    const timer = setTimeout(() => setLocal(null), 4000);
     return () => clearTimeout(timer);
   }, [toast]);
 
@@ -39,7 +58,7 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
     if (!input || busy) return;
     setBusy(true);
     try {
-      const res = await api<{ reference: { id: string }; duplicate: boolean }>("/api/references", { method: "POST", body: JSON.stringify({ input, collectionId }) });
+      const res = await captureText(input, collectionId);
       setValue("");
       setToast(res.duplicate ? { kind: "dup", text: d.capture.duplicate } : { kind: "ok", text: d.capture.captured });
       router.refresh();
@@ -54,19 +73,9 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
     const list = Array.from(files);
     if (!list.length || busy) return;
     setBusy(true);
-    let ok = 0;
-    for (const file of list) {
-      const form = new FormData();
-      form.append("file", file);
-      if (collectionId) form.append("collectionId", collectionId);
-      try {
-        await api("/api/upload", { method: "POST", body: form });
-        ok++;
-      } catch (err) {
-        setToast({ kind: "err", text: `${file.name}: ${err instanceof Error ? err.message : d.capture.failed}` });
-      }
-    }
+    const { ok, errors } = await captureFiles(list, collectionId);
     if (ok) setToast({ kind: "ok", text: d.capture.filesCaptured(ok) });
+    else if (errors.length) setToast({ kind: "err", text: errors[0] });
     setBusy(false);
     router.refresh();
   }
@@ -114,10 +123,12 @@ export function CaptureBox({ collectionId, compact }: { collectionId?: string; c
         />
         <div className="flex items-center justify-between px-4 pb-3">
           <div className="flex items-center gap-1 text-[13px] text-ink-3">
-            <button type="button" onClick={() => fileRef.current?.click()} className="-ml-1 min-h-11 rounded-full px-3 font-medium text-accent hover:bg-fill lg:min-h-8">
-              {d.capture.upload}
-            </button>
-            <input ref={fileRef} type="file" multiple accept="image/*,video/*,application/pdf,text/plain,text/markdown,audio/*" className="hidden" onChange={(e) => e.target.files && void submitFiles(e.target.files)} />
+            {!noUpload && (
+              <button type="button" onClick={() => fileRef.current?.click()} className="-ml-1 min-h-11 rounded-full px-3 font-medium text-accent hover:bg-fill lg:min-h-8">
+                {d.capture.upload}
+              </button>
+            )}
+            <input ref={fileRef} type="file" multiple accept={CAPTURE_ACCEPT} className="hidden" onChange={(e) => e.target.files && void submitFiles(e.target.files)} />
             <span className="hidden sm:inline">{d.capture.platforms}</span>
           </div>
           <button

@@ -10,7 +10,7 @@ import { ReferenceGrid } from "@/components/reference-grid";
 import { AskReference } from "@/components/ask-reference";
 import { LiveRefresh } from "@/components/live-refresh";
 import { CollectionPicker, DeleteButton, ReprocessButton, SaveToggle } from "@/components/reference-actions";
-import { formatDuration, localeOf, yearOf } from "@/lib/utils";
+import { displayTitle, formatDuration, localeOf, yearOf } from "@/lib/utils";
 import { SIMILARITY_KINDS } from "@/server/taxonomy";
 import { recordEvent } from "@/server/insights";
 import { projectsOfReference, recentProjectsList } from "@/server/projects";
@@ -52,25 +52,11 @@ export default async function ReferencePage({ params, searchParams }: { params: 
     <article className="mx-auto max-w-5xl space-y-10">
       {sp.shared && <p className="rounded-full bg-accent px-4 py-2 text-center text-[13px] font-medium text-white">{d.reference.sharedBanner}</p>}
       {sp.dup && <p className="rounded-full bg-paper-2 px-4 py-2 text-center text-[13px] text-ink-2">{d.reference.dupBanner}</p>}
-      <div className="flex items-center justify-between">
-        <Link href="/" className="-ml-1.5 inline-flex min-h-11 items-center gap-0.5 text-[17px] text-accent hover:opacity-70 lg:min-h-0">
-          <ChevronLeft className="h-6 w-6" strokeWidth={2.25} /> {d.reference.back}
+      <div className="relative overflow-hidden rounded-[28px] bg-paper-2">
+        {/* Back as a round glass button floating on the picture, the way an app's detail screen does it. */}
+        <Link href="/" aria-label={d.reference.back} className="material absolute left-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full text-ink shadow-sm transition-transform active:scale-95">
+          <ChevronLeft className="h-6 w-6" strokeWidth={2.5} />
         </Link>
-        <div className="flex flex-wrap items-center gap-2">
-          {ref.canonicalUrl && (
-            <a href={ref.canonicalUrl} target="_blank" rel="noreferrer" className="btn-gray h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]">
-              <ExternalLink className="h-3.5 w-3.5" /> {d.reference.original}
-            </a>
-          )}
-          <SaveToggle id={ref.id} saved={ref.saved} />
-          <CollectionPicker referenceId={ref.id} all={all.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji, slug: c.slug }))} member={member} />
-          <ProjectPicker referenceId={ref.id} projects={openProjects} member={inProjects} />
-          <ReprocessButton id={ref.id} />
-          <DeleteButton id={ref.id} />
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-[24px] bg-paper-2">
         {videoHref ? (
           <a href={videoHref} target="_blank" rel="noreferrer" aria-label={d.reference.openVideo} className="group relative block">
             <Thumb reference={pub} lang={lang} className="max-h-[70vh] object-contain" />
@@ -93,13 +79,13 @@ export default async function ReferencePage({ params, searchParams }: { params: 
       </div>
 
       <header>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="large-title">{ref.title ?? d.card.untitled}</h1>
+        <p className="text-[15px] font-semibold text-ink-3">{platformLabel(lang, ref.sourcePlatform)}</p>
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          <h1 className="large-title">{displayTitle(ref.title, d.card.untitled)}</h1>
           {ref.status === "failed" && <StatusDot status={ref.status} lang={lang} />}
         </div>
-        <p className="mt-2 text-sm text-ink-2">
+        <p className="mt-2 text-[15px] text-ink-2">
           {[
-            platformLabel(lang, ref.sourcePlatform),
             ref.metadata.author ? `${ref.metadata.author}` : null,
             ref.metadata.durationSeconds ? formatDuration(ref.metadata.durationSeconds) : null,
             ref.metadata.pageCount ? `${ref.metadata.pageCount} p.` : null,
@@ -120,11 +106,24 @@ export default async function ReferencePage({ params, searchParams }: { params: 
             <Badge key={s} href={`/c/subject/${encodeURIComponent(s)}`} tone="outline">{taxonomyLabel(lang, "subjects", s)}</Badge>
           ))}
         </div>
+        {/* The actions, as a row of pills under the title: what you do with a saved thing. */}
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          {ref.canonicalUrl && (
+            <a href={ref.canonicalUrl} target="_blank" rel="noreferrer" className="btn-filled h-11 px-4 text-[15px] lg:h-9 lg:text-[13px]">
+              <ExternalLink className="h-4 w-4" /> {d.reference.original}
+            </a>
+          )}
+          <SaveToggle id={ref.id} saved={ref.saved} />
+          <CollectionPicker referenceId={ref.id} all={all.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji, slug: c.slug }))} member={member} />
+          <ProjectPicker referenceId={ref.id} projects={openProjects} member={inProjects} />
+          <ReprocessButton id={ref.id} />
+          <DeleteButton id={ref.id} />
+        </div>
         {ref.status === "failed" && <p className="mt-4 rounded-2xl bg-danger/10 p-4 text-sm text-danger">{ref.error}</p>}
       </header>
 
       {understood && (
-        <div className="grid gap-10 md:grid-cols-[1fr_280px]">
+        <div className="grid gap-10 break-words md:grid-cols-[minmax(0,1fr)_280px] [&>*]:min-w-0">
           <div className="space-y-8">
             <Section title={d.reference.whatItIs}>{ai.whatItIs}</Section>
             <Section title={d.reference.whyInteresting}>{ai.whyInteresting}</Section>

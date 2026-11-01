@@ -262,6 +262,17 @@ export async function platformCounts() {
   return rows.rows;
 }
 
+/** How many references of each media type and each source platform: the library's quick filters. */
+export async function kindCounts(): Promise<{ type: Record<string, number>; platform: Record<string, number> }> {
+  const rows = await db.execute<{ kind: "type" | "platform"; value: string; count: number }>(sql`
+    SELECT 'type' AS kind, media_type AS value, count(*)::int AS count FROM "references" GROUP BY media_type
+    UNION ALL
+    SELECT 'platform' AS kind, source_platform AS value, count(*)::int AS count FROM "references" GROUP BY source_platform`);
+  const out = { type: {} as Record<string, number>, platform: {} as Record<string, number> };
+  for (const r of rows.rows) out[r.kind][r.value] = r.count;
+  return out;
+}
+
 export async function statusCounts() {
   const rows = await db.execute<{ status: string; count: number }>(sql`SELECT status, count(*)::int AS count FROM "references" GROUP BY status`);
   return Object.fromEntries(rows.rows.map((r) => [r.status, r.count])) as Record<string, number>;
