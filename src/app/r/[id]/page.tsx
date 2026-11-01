@@ -50,7 +50,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
 
   return (
     <article className="mx-auto max-w-5xl space-y-10">
-      {sp.shared && <p className="rounded-full bg-accent px-4 py-2 text-center text-[13px] font-medium text-white">{d.reference.sharedBanner}</p>}
+      {sp.shared && <p className="rounded-full bg-accent px-4 py-2 text-center text-[13px] font-medium text-on-accent">{d.reference.sharedBanner}</p>}
       {sp.dup && <p className="rounded-full bg-paper-2 px-4 py-2 text-center text-[13px] text-ink-2">{d.reference.dupBanner}</p>}
       <div className="relative overflow-hidden rounded-[28px] bg-paper-2">
         {/* Back as a round glass button floating on the picture, the way an app's detail screen does it. */}

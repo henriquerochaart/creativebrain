@@ -6,7 +6,7 @@ type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   // HIG button styles: filled (the primary action), gray (secondary, tinted label), plain, destructive.
-  primary: "bg-accent text-white font-semibold hover:opacity-90 active:opacity-75",
+  primary: "bg-accent text-on-accent font-semibold hover:opacity-90 active:opacity-75",
   ghost: "bg-transparent text-accent hover:bg-fill",
   outline: "bg-fill text-accent hover:bg-fill-2",
   danger: "bg-transparent text-danger hover:bg-danger/10",

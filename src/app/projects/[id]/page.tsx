@@ -39,7 +39,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       <ol className="flex flex-wrap items-center gap-2 text-[12px]">
         {stages.map((s, i) => (
           <li key={s} className="flex items-center gap-2">
-            <span className={`rounded-full px-3 py-1 ${stageDone[i] ? "bg-accent font-medium text-white" : "bg-fill text-ink-3"}`}>{s}</span>
+            <span className={`rounded-full px-3 py-1 ${stageDone[i] ? "bg-accent font-medium text-on-accent" : "bg-fill text-ink-3"}`}>{s}</span>
             {i < stages.length - 1 && <span className="text-ink-3">↓</span>}
           </li>
         ))}

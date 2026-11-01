@@ -29,7 +29,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         )}
         <div className="mt-4 flex flex-wrap gap-1">
           {MODES.map((m) => (
-            <Link key={m} href={`/search?q=${encodeURIComponent(q)}&mode=${m}`} title={d.search.modes[m].hint} className={cn("rounded-full px-3 py-1 text-[13px]", mode === m ? "bg-accent font-medium text-white" : "text-ink-2 hover:bg-fill")}>
+            <Link key={m} href={`/search?q=${encodeURIComponent(q)}&mode=${m}`} title={d.search.modes[m].hint} className={cn("rounded-full px-3 py-1 text-[13px]", mode === m ? "bg-accent font-medium text-on-accent" : "text-ink-2 hover:bg-fill")}>
               {d.search.modes[m].label}
             </Link>
           ))}

@@ -48,7 +48,7 @@ export function TabBar({ inbox }: { inbox: number }) {
     <nav aria-label={d.header.menu} className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
       <div className="material-thick pointer-events-auto flex h-[64px] w-full max-w-md items-center justify-between rounded-full border border-line/70 px-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.14)]">
         {left.map(item)}
-        <button type="button" onClick={open} aria-label={d.tabs.add} className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-accent text-white shadow-[0_6px_16px_color-mix(in_srgb,var(--accent)_40%,transparent)] transition-transform active:scale-95">
+        <button type="button" onClick={open} aria-label={d.tabs.add} className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-accent text-on-accent shadow-[0_6px_16px_color-mix(in_srgb,var(--accent)_40%,transparent)] transition-transform active:scale-95">
           <Plus className="h-7 w-7" strokeWidth={2.5} />
         </button>
         {right.map(item)}
