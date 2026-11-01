@@ -65,9 +65,6 @@ export default async function ReferencePage({ params, searchParams }: { params: 
                 <Play className="ml-1 h-6 w-6 fill-current" />
               </span>
             </span>
-            <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-[12px] text-white backdrop-blur">
-              <ExternalLink className="h-3 w-3" /> {d.reference.openVideo}
-            </span>
           </a>
         ) : isPdf ? (
           <iframe src={mediaUrl!} title={ref.title ?? "PDF"} className="h-[70vh] w-full" />

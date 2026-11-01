@@ -38,8 +38,7 @@ export default async function PatternsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-12">
       <header>
-        <p className="eyebrow">{d.patterns.eyebrow}</p>
-        <h1 className="large-title mt-1">{d.patterns.title}</h1>
+        <h1 className="large-title">{d.patterns.title}</h1>
         <p className="mt-1 text-sm text-ink-2">{d.patterns.basedOn(understood)}</p>
       </header>
 
@@ -56,8 +55,7 @@ export default async function PatternsPage() {
       <TasteNarrative />
 
       <section>
-        <h2 className="eyebrow mb-1">{d.patterns.trend}</h2>
-        <p className="mb-4 text-sm text-ink-2">{d.patterns.trendSub}</p>
+        <h2 className="eyebrow mb-4">{d.patterns.trend}</h2>
         {risingTags.length + risingPrinciples.length + risingConcepts.length === 0 ? (
           <p className="text-sm text-ink-3">{d.patterns.trendEmpty}</p>
         ) : (

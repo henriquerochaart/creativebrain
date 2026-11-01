@@ -37,7 +37,7 @@ export function MoodboardGenerator() {
         className="w-full resize-none bg-transparent px-4 py-3 text-lg outline-none placeholder:text-ink-3"
       />
       <div className="flex items-center justify-between px-2 pb-1">
-        <span className="text-[12px] text-ink-3">{error ?? d.moodboards.hint}</span>
+        <span className="text-[12px] text-ink-3">{error}</span>
         <button type="submit" disabled={busy || !brief.trim()} className="btn-filled h-11 px-5 text-[15px] lg:h-10 lg:text-sm">
           {busy ? d.moodboards.working : d.moodboards.submit}
         </button>

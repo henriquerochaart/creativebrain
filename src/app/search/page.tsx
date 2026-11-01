@@ -20,8 +20,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-8">
       <header>
-        <p className="eyebrow">{d.search.eyebrow}</p>
-        <h1 className="large-title mt-1">{q || d.search.prompt}</h1>
+        <h1 className="large-title">{q || d.search.prompt}</h1>
         {result && (
           <p className="mt-1 text-sm text-ink-2">
             {d.search.references(result.total)}

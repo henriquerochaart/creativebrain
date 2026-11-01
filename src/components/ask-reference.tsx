@@ -32,7 +32,6 @@ export function AskReference({ id }: { id: string }) {
 
   return (
     <section className="rounded-[20px] bg-paper-2 p-6">
-      <h2 className="eyebrow mb-4">{d.reference.ask.title}</h2>
       {turns.length > 0 && (
         <div className="mb-5 space-y-4">
           {turns.map((turn, i) => (

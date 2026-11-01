@@ -129,7 +129,6 @@ export function CaptureBox({
               </button>
             )}
             <input ref={fileRef} type="file" multiple accept={CAPTURE_ACCEPT} className="hidden" onChange={(e) => e.target.files && void submitFiles(e.target.files)} />
-            <span className="hidden sm:inline">{d.capture.platforms}</span>
           </div>
           <button
             type="button"

@@ -8,8 +8,8 @@ import { useSidebar } from "./sidebar-provider";
 import { useT } from "./lang-provider";
 
 /**
- * Wraps the server-rendered Sidebar. Below lg it is an off-canvas drawer opened from the header's
- * HB button — closes on navigation, Escape, or tapping the backdrop. At lg and up it is the plain
+ * Wraps the server-rendered Sidebar. Below lg it is an off-canvas drawer that slides in from the
+ * right, under the header's menu button — closes on navigation, Escape, or tapping the backdrop. At lg and up it is the plain
  * sticky sidebar this always was, in normal flow; the mobile-only classes below simply don't apply.
  */
 export function SidebarDrawer({ children }: { children: React.ReactNode }) {
@@ -39,9 +39,9 @@ export function SidebarDrawer({ children }: { children: React.ReactNode }) {
       />
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[300px] -translate-x-full overflow-y-auto bg-paper-2 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          "fixed inset-y-0 right-0 z-50 w-[300px] translate-x-full overflow-y-auto bg-paper-2 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           // Mac sidebar: a gray column beside white content, separated by a hairline.
-          "lg:sticky lg:top-16 lg:z-auto lg:h-[calc(100vh-4rem)] lg:w-60 lg:shrink-0 lg:translate-x-0 lg:border-r lg:border-line lg:bg-paper-2/60 lg:shadow-none lg:transition-none",
+          "lg:sticky lg:right-auto lg:top-16 lg:z-auto lg:h-[calc(100vh-4rem)] lg:w-60 lg:shrink-0 lg:translate-x-0 lg:border-r lg:border-line lg:bg-paper-2/60 lg:shadow-none lg:transition-none",
           // The shadow only when open: translated off-screen it still bled 25px into the left edge.
           open && "translate-x-0 shadow-2xl",
         )}

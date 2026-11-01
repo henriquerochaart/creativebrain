@@ -20,16 +20,16 @@ export function InstallButton() {
     if (window.matchMedia("(display-mode: standalone)").matches) setInstalled(true);
     return () => { window.removeEventListener("beforeinstallprompt", onPrompt); window.removeEventListener("appinstalled", onInstalled); };
   }, []);
-  if (installed) return <span className="btn-gray h-11 px-4 text-[15px] lg:h-10 lg:text-sm">{d.share.setup.installed}</span>;
+  if (installed) return <span className="text-[15px] text-ink-2">{d.settings.installed}</span>;
   return (
     <button
       type="button"
       disabled={!evt}
-      title={evt ? "" : d.share.setup.installHint}
+      title={evt ? "" : d.settings.installHint}
       onClick={async () => { if (!evt) return; await evt.prompt(); const c = await evt.userChoice; if (c.outcome === "accepted") setInstalled(true); }}
       className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm"
     >
-      {d.share.setup.install}
+      {d.settings.install}
     </button>
   );
 }
@@ -42,8 +42,34 @@ export function CopyField({ value }: { value: string }) {
     <span className="mt-1 flex flex-wrap items-center gap-x-3">
       <code className="min-w-0 break-all rounded-lg bg-fill px-2 py-1 font-mono text-[12.5px] text-ink">{value}</code>
       <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(value); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* ignore */ } }} className="min-h-11 text-[15px] text-accent lg:min-h-0 lg:text-[13px]">
-        {done ? d.share.setup.copied : d.share.setup.copy}
+        {done ? d.settings.copied : d.settings.copy}
       </button>
     </span>
+  );
+}
+
+/** A multi-line snippet (a config file) with one Copy action. */
+export function CopyBlock({ value }: { value: string }) {
+  const d = useT();
+  const [done, setDone] = useState(false);
+  return (
+    <div className="relative mt-3">
+      <pre className="overflow-x-auto rounded-[14px] bg-fill p-4 pr-20 font-mono text-[12.5px] leading-relaxed text-ink">{value}</pre>
+      <button
+        type="button"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(value);
+            setDone(true);
+            setTimeout(() => setDone(false), 1500);
+          } catch {
+            /* ignore */
+          }
+        }}
+        className="absolute right-2 top-2 min-h-9 rounded-full px-3 text-[13px] font-medium text-accent hover:bg-fill-2"
+      >
+        {done ? d.settings.copied : d.settings.copy}
+      </button>
+    </div>
   );
 }

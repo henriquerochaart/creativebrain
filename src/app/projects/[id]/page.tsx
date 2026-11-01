@@ -147,10 +147,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </Stage>
 
           <Stage n="06" title={d.projects.stages.output}>
-            <p className="text-sm text-ink-2">{d.projects.outputSub}</p>
-            <div className="mt-3">
-              <CopyOutput id={project.id} />
-            </div>
+            <CopyOutput id={project.id} />
             <p className="mt-3 text-[11px] text-ink-3">{d.projects.analysedBy(stored.model, project.analyzedAt?.toLocaleString(localeOf(lang)) ?? "")}</p>
           </Stage>
         </>

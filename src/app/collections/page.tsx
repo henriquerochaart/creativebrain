@@ -4,6 +4,7 @@ import { NewCollection } from "@/components/collection-actions";
 import { AutoCollections } from "@/components/auto-collections";
 import { dict } from "@/server/lang";
 import { Emoji } from "@/components/emoji";
+import { Thing } from "@/components/thing";
 
 export default async function CollectionsPage() {
   const { d } = await dict();
@@ -13,7 +14,6 @@ export default async function CollectionsPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="large-title">{d.collections.title}</h1>
-          <p className="mt-1 text-sm text-ink-2">{d.collections.sub}</p>
         </div>
         <NewCollection />
       </header>
@@ -29,7 +29,7 @@ export default async function CollectionsPage() {
                   <img src={c.cover} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
                 ) : (
                   <span className="grid h-full place-items-center text-[48px] leading-none">
-                    <Emoji char={c.emoji || "📁"} />
+                    {c.emoji ? <Emoji char={c.emoji} /> : <Thing name="folder" className="h-20 w-20" />}
                   </span>
                 )}
                 {c.cover && c.emoji ? (

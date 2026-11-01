@@ -41,16 +41,11 @@ export function AutoCollections() {
   }
 
   return (
-    <section className="rounded-[20px] bg-paper-2 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="eyebrow">{d.collections.autoTitle}</h2>
-          <p className="mt-1 text-sm text-ink-2">{d.collections.autoSub}</p>
-        </div>
-        <button type="button" onClick={() => void propose()} disabled={busy} className="btn-gray h-11 gap-2 px-4 text-[15px] lg:h-10 lg:text-sm">
-          <Sparkles className="h-4 w-4" /> {busy ? d.collections.reading : res ? d.collections.proposeAgain : d.collections.propose}
-        </button>
-      </div>
+    // The button says what it does; no title or blurb around it.
+    <section>
+      <button type="button" onClick={() => void propose()} disabled={busy} className="btn-gray h-11 gap-2 px-4 text-[15px] lg:h-10 lg:text-sm">
+        <Sparkles className="h-4 w-4" /> {busy ? d.collections.reading : res ? d.collections.proposeAgain : d.collections.propose}
+      </button>
       {error && <p className="mt-4 text-sm text-danger">{error}</p>}
       {res && (
         <ul className="mt-6 grid gap-5 md:grid-cols-2">

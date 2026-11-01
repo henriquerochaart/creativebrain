@@ -8,13 +8,13 @@ import { useAdd } from "./add-sheet";
 import { cn } from "@/lib/utils";
 import { useT } from "./lang-provider";
 import { useSidebar } from "./sidebar-provider";
-import { LangSwitch } from "./lang-switch";
 
 /**
  * The toolbar, as an HIG bar: a translucent material over the content, the wordmark, one filled
  * primary action. Regular width (lg+) shows the search field inline. On a phone the tab bar carries
- * search and Add, so this bar keeps only the HB mark (which opens the sidebar) and the language;
- * on /search it becomes the search field itself, with a Cancel, the way iOS does it.
+ * search and Add, so this bar keeps the wordmark and the menu button that opens the sidebar; on
+ * /search it becomes the search field itself, with a Cancel, the way iOS does it. The language
+ * lives in Settings.
  */
 export function TopBar() {
   const router = useRouter();
@@ -65,8 +65,8 @@ export function TopBar() {
     <header className="material sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-line px-4 lg:gap-4 lg:px-6">
       {/* Below lg the sidebar is a drawer, not a fixed column, so the mark opens it instead of
           just linking home — otherwise there would be no way to reach it on a phone at all. */}
-      <Link href="/" className="wordmark hidden shrink-0 text-[20px] lg:inline">
-        {d.app.name}
+      <Link href="/" className="wordmark hidden shrink-0 text-[22px] lg:inline">
+        {d.app.short}
       </Link>
 
       {/* Compact width, searching: the field takes the bar. */}
@@ -77,23 +77,36 @@ export function TopBar() {
         </button>
       </div>
 
-      {/* Compact width, idle: the HB mark opens the sidebar; the tab bar has search and Add. */}
-      <div className={cn("flex flex-1 items-center gap-1 lg:hidden", searching && "hidden")}>
-        <button type="button" onClick={toggle} aria-label={d.header.menu} aria-expanded={open} className="wordmark -ml-2 grid min-h-11 min-w-11 place-items-center rounded-full px-2 text-[26px] hover:bg-fill">
+      {/* Compact width, idle: the wordmark, and the menu that opens the sidebar. */}
+      <div className={cn("flex flex-1 items-center justify-between lg:hidden", searching && "hidden")}>
+        <Link href="/" className="wordmark text-[26px]">
           {d.app.short}
-        </button>
-        <div className="flex-1" />
-        <LangSwitch />
+        </Link>
+        <MenuButton open={open} onClick={toggle} label={d.header.menu} />
       </div>
 
       {/* Regular width: field centered, segmented control and the primary action trailing. */}
       <div className="mx-auto hidden w-full max-w-xl lg:block">{field()}</div>
       <div className="hidden items-center gap-3 lg:flex">
-        <LangSwitch />
         <button type="button" onClick={add.open} className="btn-filled h-9 shrink-0 px-4 text-sm">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> {d.header.add}
         </button>
       </div>
     </header>
+  );
+}
+
+/**
+ * The menu button: two rounded bars of different lengths on a soft fill, the short one flush
+ * right. Open, they turn into an ×. 44pt target.
+ */
+function MenuButton({ open, onClick, label }: { open: boolean; onClick: () => void; label: string }) {
+  return (
+    <button type="button" onClick={onClick} aria-label={label} aria-expanded={open} className="group -mr-1 grid h-11 w-11 place-items-center">
+      <span className="relative grid h-10 w-10 place-items-center rounded-full bg-fill transition-colors group-hover:bg-fill-2">
+        <span className={cn("absolute right-[11px] h-[2.5px] w-[18px] rounded-full bg-ink transition-transform duration-300", open ? "translate-y-0 rotate-45" : "-translate-y-[4px]")} />
+        <span className={cn("absolute right-[11px] h-[2.5px] rounded-full bg-ink transition-[transform,width] duration-300", open ? "w-[18px] translate-y-0 -rotate-45" : "w-[11px] translate-y-[4px]")} />
+      </span>
+    </button>
   );
 }

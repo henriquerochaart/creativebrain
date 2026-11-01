@@ -4,8 +4,8 @@ import { toPublic } from "@/server/references";
 import { ReferenceGrid } from "@/components/reference-grid";
 import { dict } from "@/server/lang";
 import { platformLabel, taxonomyLabel } from "@/lib/i18n";
-import { PLATFORM_EMOJI, SUBJECT_EMOJI, TYPE_EMOJI } from "@/lib/emoji";
-import { Emoji } from "@/components/emoji";
+import { PLATFORM_ICON, SUBJECT_ICON, TYPE_ICON } from "@/lib/emoji";
+import { Thing } from "@/components/thing";
 
 const KINDS = ["platform", "subject", "format", "principle", "tag", "brand", "type"] as const;
 type Kind = (typeof KINDS)[number];
@@ -23,13 +23,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ kind:
   const taxonomy = TAXONOMY_OF[kind];
   const heading =
     kind === "tag" ? `#${value}` : kind === "platform" ? platformLabel(lang, value) : kind === "type" ? (d.home.kinds[value] ?? value) : taxonomy ? taxonomyLabel(lang, taxonomy, value) : value;
-  const emoji = kind === "type" ? TYPE_EMOJI[value] : kind === "platform" ? PLATFORM_EMOJI[value] : kind === "subject" ? SUBJECT_EMOJI[value] : undefined;
+  const icon = kind === "type" ? TYPE_ICON[value] : kind === "platform" ? PLATFORM_ICON[value] : kind === "subject" ? SUBJECT_ICON[value] : undefined;
   return (
     <div className="space-y-6">
       <header>
         <p className="eyebrow">{d.category[kind]}</p>
         <h1 className="large-title mt-1">
-          {emoji ? <Emoji char={emoji} className="mr-2" /> : null}
+          {icon ? <Thing name={icon} className="-mt-1 mr-2 h-11 w-11 align-middle" /> : null}
           {heading}
         </h1>
         <p className="mt-1 text-sm text-ink-2">{d.category.references(refs.length)}</p>

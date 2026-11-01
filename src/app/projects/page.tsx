@@ -11,9 +11,7 @@ export default async function ProjectsPage() {
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">{d.projects.eyebrow}</p>
-          <h1 className="large-title mt-1">{d.projects.title}</h1>
-          <p className="mt-1 text-sm text-ink-2">{d.projects.sub}</p>
+          <h1 className="large-title">{d.projects.title}</h1>
         </div>
         <NewProject />
       </header>

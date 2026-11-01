@@ -1,9 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { inputFromShare } from "@/server/share";
 import { captureInput } from "@/server/references";
 import { CaptureBox } from "@/components/capture-box";
-import { withBase } from "@/lib/base-path";
 import { dict } from "@/server/lang";
 
 /**
@@ -21,15 +21,13 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
   }
   return (
     <div className="mx-auto max-w-2xl space-y-8 pt-8 text-center">
-      <p className="eyebrow">{d.share.eyebrow}</p>
       <h1 className="large-title">{d.share.nothingArrived}</h1>
-      <p className="text-sm text-ink-2">{d.share.pasteInstead}</p>
       <Suspense>
         <CaptureBox />
       </Suspense>
-      <a href={withBase("/share/setup")} className="inline-block text-sm text-ink-2 underline-offset-4 hover:underline">
+      <Link href="/settings#instalar" className="inline-block text-sm text-accent hover:opacity-80">
         {d.share.setupLink}
-      </a>
+      </Link>
     </div>
   );
 }

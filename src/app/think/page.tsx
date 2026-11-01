@@ -6,8 +6,7 @@ export default async function ThinkPage() {
   return (
     <div className="space-y-8">
       <header className="text-center">
-        <p className="eyebrow">{d.think.eyebrow}</p>
-        <h1 className="large-title mt-1">{d.think.title}</h1>
+        <h1 className="large-title">{d.think.title}</h1>
       </header>
       <ThinkMode />
     </div>

@@ -121,10 +121,11 @@ Sem chaves de IA? `LLM_PROVIDER=mock` e `EMBEDDING_PROVIDER=mock` rodam o pipeli
 
 ## Share to Brain — salvar do celular em um toque
 
-O Instagram não expõe os posts salvos por API. O gesto muda: em vez de Salvar, **Compartilhar → Brain**. Funciona igual no TikTok, YouTube, Safari, Chrome e Behance. A página `/share/setup` do app explica tudo com a URL já preenchida.
+O Instagram não expõe os posts salvos por API. O gesto muda: em vez de Salvar, **Compartilhar → Brain**. Funciona igual no TikTok, YouTube, Safari, Chrome e Behance. A página `/settings` do app (Ajustes) explica tudo com a URL já preenchida.
 
+- **App, sem o navegador**: no iPhone, Safari → Compartilhar → Adicionar à Tela de Início. O Brain abre em tela cheia, como app (`display: standalone` no manifest), com o ícone do cérebro 3D. Um app de App Store também é possível (um wrapper como Capacitor, conta paga de desenvolvedor da Apple, revisão), e daria uma extensão de compartilhamento nativa; não está feito.
 - **Android**: o Brain é um PWA com `share_target` (`public/manifest.webmanifest`). Instale pelo Chrome (Adicionar à tela inicial) e ele aparece na share sheet do sistema. O compartilhamento cai em `/share?url=&text=&title=`, que captura e abre a referência enquanto ela é entendida.
-- **iPhone**: um Atalho chamado Brain, com "Mostrar ao Compartilhar", que faz `POST /api/capture?reply=text` com `{ "text": Entrada do Atalho }` e mostra a resposta (uma linha de texto) em Mostrar Notificação. Roda em segundo plano: não abre navegador nem app, e responde assim que a referência existe; o entendimento continua depois. Com "Se não houver entrada: Obter Área de Transferência", o mesmo atalho salva o link copiado quando disparado pelo Toque atrás, pelo botão de Ação ou pela Siri. Receita passo a passo em `/share/setup`. **Instalação em um toque**: monte o atalho uma vez, compartilhe pelo app Atalhos → Copiar link do iCloud e defina `BRAIN_SHORTCUT_URL` com esse link; a página passa a mostrar o botão "Instalar o atalho Brain". Com `BRAIN_API_KEY` definida, o atalho precisa do cabeçalho `Authorization`, e quem tiver o link recebe a chave junto; compartilhe só com quem pode ter acesso. Variante que abre o Safari: `Open URL` para `/share?url=`.
+- **iPhone**: um Atalho chamado Brain, com "Mostrar ao Compartilhar", que faz `POST /api/capture?reply=text` com `{ "text": Entrada do Atalho }` e mostra a resposta (uma linha de texto) em Mostrar Notificação. Roda em segundo plano: não abre navegador nem app, e responde assim que a referência existe; o entendimento continua depois. Com "Se não houver entrada: Obter Área de Transferência", o mesmo atalho salva o link copiado quando disparado pelo Toque atrás, pelo botão de Ação ou pela Siri. Receita passo a passo em `/settings`. **Instalação em um toque**: monte o atalho uma vez, compartilhe pelo app Atalhos → Copiar link do iCloud e defina `BRAIN_SHORTCUT_URL` com esse link; os Ajustes passam a mostrar o botão "Instalar atalho". Com `BRAIN_API_KEY` definida, o atalho precisa do cabeçalho `Authorization`, e quem tiver o link recebe a chave junto; compartilhe só com quem pode ter acesso. Variante que abre o Safari: `Open URL` para `/share?url=`.
 - **Desktop**: bookmarklet "+ Brain" na mesma página.
 - **Automação**: `POST /api/capture` (JSON, formulário ou texto puro, com `url`, `text`, `title` ou `input`) ou `GET /api/capture?url=&text=&title=` para ferramentas que só fazem GET. Um link no meio de um texto é encontrado. `&reply=text` responde com uma linha legível; `&redirect=1` redireciona para a referência.
 
@@ -270,3 +271,7 @@ tests/                 vitest (connectors, taxonomia, RRF, pipeline puro, auth)
 - Extensão de navegador / share sheet iOS para capturar em um toque.
 - Embeddings visuais reais (CLIP/SigLIP) além da descrição textual da imagem.
 - Auth multiusuário se o Brain deixar de ser pessoal.
+
+## Créditos
+Ícones 3D: [Thiings](https://www.thiings.co), licença gratuita (uso pessoal e não comercial, com atribuição visível, que fica no rodapé dos Ajustes). Uso comercial exige a licença paga deles. Lista dos ícones e páginas de origem em `public/icons/3d/SOURCES.json`.
+

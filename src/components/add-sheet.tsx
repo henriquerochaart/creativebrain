@@ -9,7 +9,7 @@ import { BrainThink } from "./brain-think";
 import { useT } from "./lang-provider";
 import { captureFiles, captureText, CAPTURE_ACCEPT } from "@/lib/capture";
 import { cn } from "@/lib/utils";
-import { Emoji } from "./emoji";
+import { Thing } from "./thing";
 
 /**
  * "Add anything": the one place capture starts from, opened by the tab bar's +, the toolbar's
@@ -138,12 +138,9 @@ function AddSheet({ onClose, notify }: { onClose: () => void; notify: (toast: To
         {/* The grabber: says "this is a sheet" on a phone. */}
         <div className="mx-auto mb-4 h-[5px] w-9 rounded-full bg-fill-2 lg:hidden" aria-hidden />
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 id="add-title" className="title-2">
-              {d.add.title}
-            </h2>
-            <p className="mt-1 text-[15px] leading-5 text-ink-2">{d.add.sub}</p>
-          </div>
+          <h2 id="add-title" className="title-2">
+            {d.add.title}
+          </h2>
           <button type="button" onClick={onClose} aria-label={d.header.close} className="-mr-2 -mt-1 grid h-11 w-11 shrink-0 place-items-center">
             <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-fill text-ink-2">
               <X className="h-4 w-4" strokeWidth={2.5} />
@@ -155,11 +152,10 @@ function AddSheet({ onClose, notify }: { onClose: () => void; notify: (toast: To
           <CaptureBox noUpload onDone={finish} inputRef={ideaRef} />
         </div>
 
-        <div className={cn("mt-4 grid grid-cols-2 gap-3", busy && "pointer-events-none opacity-60")}>
-          <Tile emoji="📋" title={d.add.paste} sub={d.add.pasteSub} onClick={() => void pasteClipboard()} />
-          <Tile emoji="🖼️" title={d.add.file} sub={d.add.fileSub} onClick={() => fileRef.current?.click()} />
-          <Tile emoji="💡" title={d.add.idea} sub={d.add.ideaSub} onClick={() => ideaRef.current?.focus()} />
-          <Tile emoji="📲" title={d.add.apps} sub={d.add.appsSub} href="/share/setup" />
+        <div className={cn("mt-3 grid grid-cols-3 gap-3", busy && "pointer-events-none opacity-60")}>
+          <Tile icon="clipboard" title={d.add.paste} onClick={() => void pasteClipboard()} />
+          <Tile icon="picture-frame" title={d.add.file} onClick={() => fileRef.current?.click()} />
+          <Tile icon="smartphone" title={d.add.apps} href="/settings#instalar" />
         </div>
         {busy && (
           <p className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-ink-2" role="status">
@@ -173,17 +169,14 @@ function AddSheet({ onClose, notify }: { onClose: () => void; notify: (toast: To
   );
 }
 
-function Tile({ emoji, title, sub, onClick, href }: { emoji: string; title: string; sub: string; onClick?: () => void; href?: string }) {
+function Tile({ icon, title, onClick, href }: { icon: string; title: string; onClick?: () => void; href?: string }) {
   const body = (
     <>
-      <span className="block text-[32px] leading-none">
-        <Emoji char={emoji} />
-      </span>
-      <span className="mt-3 block text-[16px] font-semibold leading-5 text-ink">{title}</span>
-      <span className="mt-0.5 block text-[13px] leading-[18px] text-ink-2">{sub}</span>
+      <Thing name={icon} className="h-12 w-12" />
+      <span className="mt-2 block text-[14px] font-semibold leading-[18px] text-ink">{title}</span>
     </>
   );
-  const className = "block min-h-[124px] rounded-[22px] bg-paper-2 p-4 text-left transition-[transform,background-color] duration-150 hover:bg-fill active:scale-[0.98]";
+  const className = "flex min-h-[112px] flex-col items-center justify-center rounded-[22px] bg-paper-2 p-3 text-center transition-[transform,background-color] duration-150 hover:bg-fill active:scale-[0.97]";
   return href ? (
     <Link href={href} className={className}>
       {body}

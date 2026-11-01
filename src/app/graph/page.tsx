@@ -6,9 +6,7 @@ export default async function GraphPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="eyebrow">{d.graph.eyebrow}</p>
-        <h1 className="large-title mt-1">{d.graph.title}</h1>
-        <p className="mt-1 text-sm text-ink-2">{d.graph.sub}</p>
+        <h1 className="large-title">{d.graph.title}</h1>
       </header>
       <KnowledgeGraph />
     </div>

@@ -21,11 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: withBase("/manifest.webmanifest"),
     applicationName: d.app.name,
     appleWebApp: { capable: true, title: "Brain", statusBarStyle: "default" },
-    // The SVG is listed first: browsers that support it pick it and render the brain with the
-    // viewer's own emoji font, sharp at any size. The PNGs stay as the fallback.
+    // Next emits only the generic mobile-web-app-capable; older iOS needs Apple's own name to open
+    // the Home Screen app full screen, without Safari's bars. Newer iOS reads the manifest.
+    other: { "apple-mobile-web-app-capable": "yes" },
+    // The 3D brain from the app's icon set (public/icons/3d, Thiings), on a light tile for the Home Screen.
     icons: {
       icon: [
-        { url: withBase("/icons/icon.svg"), type: "image/svg+xml" },
+        { url: withBase("/icons/favicon-64.png"), sizes: "64x64", type: "image/png" },
         { url: withBase("/icons/icon-192.png"), sizes: "192x192" },
         { url: withBase("/icons/icon-512.png"), sizes: "512x512" },
       ],

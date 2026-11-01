@@ -13,8 +13,7 @@ export default async function DiscoverPage() {
   return (
     <div className="space-y-12">
       <header>
-        <p className="eyebrow">{d.discover.eyebrow}</p>
-        <h1 className="large-title mt-1">{d.discover.title}</h1>
+        <h1 className="large-title">{d.discover.title}</h1>
         {data ? (
           <p className="mt-1 text-sm text-ink-2">
             {d.discover.sub(data.signals)}

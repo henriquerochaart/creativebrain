@@ -36,9 +36,20 @@ The UI follows Apple's Human Interface Guidelines; `src/app/globals.css` is the 
 
 ## App feel (after Albo)
 On top of HIG, the UI should feel like a friendly phone app, not a web dashboard.
-- Below `lg`, a floating tab bar (`tab-bar.tsx`: Início, Buscar, +, Entrada, Coleções) carries navigation; `main` has `pb-32` to clear it. The HB mark still opens the sidebar drawer. At `lg` the sidebar and toolbar take over and the tab bar is gone.
+- Below `lg`, a floating tab bar (`tab-bar.tsx`: Início, Buscar, +, Entrada, Coleções) carries navigation; `main` has `pb-32` to clear it. The header is the "Brain" wordmark and a menu button on the right that opens the sidebar drawer from the right. At `lg` the sidebar and toolbar take over and the tab bar is gone.
+- Language, installing (Home Screen app, the Brain shortcut, Android, bookmarklet), MCP and maintenance live in `/settings`, not in the header. `/share/setup` redirects there.
 - Capture starts in one place: the Add sheet (`add-sheet.tsx`), opened with `useAdd().open()` from the tab bar's +, the toolbar's Add button and the dashed + card. Never a + that navigates. `?add=1` still opens it. Results show as the provider's toast, which outlives the sheet.
 - One typeface, San Francisco, for text and titles. Not SF Pro Rounded, not a web font: Henrique asked for plain SF after trying both.
-- Emoji stand for kinds of things (media types, platforms, subjects) and live in `src/lib/emoji.ts`. They never stand in for a reference's own picture (see Thumbnails).
+- Kinds of things (media types, platforms, subjects) and the app's own actions are drawn with 3D icons from Thiings, self-hosted in `public/icons/3d` (256px WebP) and rendered with `<Thing name=…>`; the maps live in `src/lib/emoji.ts`. Thiings' free licence is personal, non-commercial use with visible attribution, carried at the foot of Settings; any commercial use of the Brain needs their paid licence. Emoji a person picks (collections) render as Apple's artwork via `<Emoji>`. Neither ever stands in for a reference's own picture (see Thumbnails).
 - Cards have no shell: the picture rounded (`rounded-[22px]`), then the platform in `ink-3` and a bold title. Shape language: pills (`chip`), big radii, fills.
+- The home page never shows a reference twice: the Recent row takes the newest, the grid starts after them.
 - Sideways rows use `scroll-row`, bleed to the screen edge on a phone (`-mx-4 px-4`) and set matching `scroll-px-*`, or the snap swallows the padding.
+
+## Economy of language
+Every word and component has to earn its place. Before shipping UI, check: is anything repeated on the same screen? Could a title go? Does a description just restate its title? Can a text be shorter without losing meaning? Does a component exist without adding information, guidance or function? Is the UI explaining what should be obvious? If yes, cut it.
+- One title per screen, no eyebrow above it that repeats the nav label, no subtitle that paraphrases it.
+- No filler ("Aqui você pode…", "Tudo o que você precisa…"), no promotional adjectives. Short, direct sentences; buttons say what they do.
+- Secondary detail behind progressive disclosure (`<details>`, tooltips), not on the page by default.
+- Errors, confirmations and toasts are short and specific ("Salvo. Entendendo…", "Já estava salvo.").
+- Never cut what a decision or an action needs: instructions, empty states, feedback, accessibility labels.
+

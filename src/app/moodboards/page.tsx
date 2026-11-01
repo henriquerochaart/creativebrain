@@ -10,8 +10,7 @@ export default async function MoodboardsPage() {
   return (
     <div className="space-y-10">
       <header className="text-center">
-        <p className="eyebrow">{d.moodboards.eyebrow}</p>
-        <h1 className="large-title mt-1">{d.moodboards.title}</h1>
+        <h1 className="large-title">{d.moodboards.title}</h1>
       </header>
       <MoodboardGenerator />
       <section>

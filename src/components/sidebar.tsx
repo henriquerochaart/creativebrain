@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bookmark, Compass, Folder, FolderKanban, Hash, Inbox, LayoutDashboard, LayoutGrid, LineChart, Network, Smartphone, Sparkles, WandSparkles } from "lucide-react";
+import { Bookmark, Compass, Folder, FolderKanban, Hash, Inbox, LayoutDashboard, LayoutGrid, LineChart, Network, Settings, Sparkles, WandSparkles } from "lucide-react";
 import { NavLink } from "./nav-link";
 import { listCollections, statusCounts, facetCounts } from "@/server/references";
 import { SUBJECTS } from "@/server/taxonomy";
@@ -66,12 +66,9 @@ export async function Sidebar() {
         </nav>
       </div>
 
-      <div className="mt-6">
-        <span className="eyebrow mb-1 block px-2.5">{d.nav.capture}</span>
-        <nav className="space-y-0.5">
-          <NavLink href="/share/setup" label={d.nav.shareFromPhone} icon={<Smartphone />} />
-        </nav>
-      </div>
+      <nav className="mt-6">
+        <NavLink href="/settings" label={d.nav.settings} icon={<Settings />} />
+      </nav>
 
       <div className="mt-6">
         <span className="eyebrow mb-1 block px-2.5">{d.nav.categories}</span>
