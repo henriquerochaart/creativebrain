@@ -2,7 +2,7 @@ import { instagramEmbedImage, instagramShortcode } from "@/server/connectors/ins
 import { describe, expect, it } from "vitest";
 import { detectPlatform, isProbablyUrl, normalizeUrl } from "@/server/connectors/detect";
 import { youtubeId } from "@/server/connectors/youtube";
-import { tiktokOEmbedTarget } from "@/server/connectors/tiktok";
+import { tiktokOEmbedTarget, tiktokPageItem } from "@/server/connectors/tiktok";
 import { connectorFor } from "@/server/connectors";
 import { extractMeta, extractText } from "@/server/connectors/html";
 
@@ -125,5 +125,22 @@ describe("Instagram embed page", () => {
     expect(instagramShortcode("/p/Cx_1-a/")).toBe("Cx_1-a");
     expect(instagramShortcode("/tv/AbC/")).toBe("AbC");
     expect(instagramShortcode("/someprofile/")).toBeNull();
+  });
+});
+
+describe("TikTok page item", () => {
+  const page = (item: unknown) =>
+    `<html><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">${JSON.stringify({ __DEFAULT_SCOPE__: { "webapp.video-detail": { statusCode: 0, itemInfo: { itemStruct: item } } } })}</script></html>`;
+  it("reads a video's cover, caption and author", () => {
+    const r = tiktokPageItem(page({ desc: "Standing Sushi Bar", author: { uniqueId: "rafbarreiraa", nickname: "RafBarreira" }, video: { cover: "https://p16.tiktokcdn-us.com/c.image", originCover: "https://p16.tiktokcdn-us.com/o.image" } }));
+    expect(r).toEqual({ cover: "https://p16.tiktokcdn-us.com/o.image", desc: "Standing Sushi Bar", author: "rafbarreiraa", authorName: "RafBarreira" });
+  });
+  it("prefers a carousel's own cover picture", () => {
+    const r = tiktokPageItem(page({ desc: "Boipeba", author: {}, video: { cover: "https://v.image" }, imagePost: { cover: { imageURL: { urlList: ["https://photo-cover.image"] } }, images: [{ imageURL: { urlList: ["https://photo-1.image"] } }] } }));
+    expect(r?.cover).toBe("https://photo-cover.image");
+  });
+  it("returns null without the rehydration data or the item", () => {
+    expect(tiktokPageItem("<html>captcha</html>")).toBeNull();
+    expect(tiktokPageItem(`<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">{"__DEFAULT_SCOPE__":{}}</script>`)).toBeNull();
   });
 });
