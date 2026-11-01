@@ -4,12 +4,14 @@
  * Apple Human Interface Guidelines, on the web.
  * Colors are Apple's semantic system colors (light / dark), so meaning stays fixed while the value
  * adapts: label, secondaryLabel, systemBackground, secondarySystemBackground, separator, fills, and
- * systemBlue as the tint. Type follows the iOS text styles (Large Title 34 → Caption 11), set in
- * Poppins rather than the system font.
+ * systemBlue as the tint. Type follows the iOS text styles (Large Title 34 → Caption 11) on the
+ * system font, which resolves to SF Pro on Apple devices and applies its own optical tracking — so
+ * titles set no manual letter-spacing.
  */
 @theme {
-  /* Poppins for everything, text and titles alike (loaded by next/font in layout.tsx). */
-  --font-sans: var(--font-poppins), -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  /* San Francisco: the system font on Apple devices (SF Pro Text / Display, chosen by size). It is
+     not shipped as a web font, so other platforms get their own system face (Segoe, Roboto). */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --font-display: var(--font-sans);
   --color-ink: var(--ink);
@@ -111,10 +113,10 @@ select:focus-visible {
   outline: none;
 }
 
-/* iOS text styles. Poppins runs wider than SF, so the large title steps down to 32. */
-@utility large-title { font-family: var(--font-display); font-size: 32px; line-height: 40px; font-weight: 700; }
+/* iOS text styles. */
+@utility large-title { font-family: var(--font-display); font-size: 34px; line-height: 41px; font-weight: 700; }
 @utility title-2 { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 700; }
-@utility title-3 { font-family: var(--font-display); font-size: 20px; line-height: 25px; font-weight: 700; }
+@utility title-3 { font-family: var(--font-display); font-size: 20px; line-height: 25px; font-weight: 600; }
 @utility headline { font-size: 17px; line-height: 22px; font-weight: 600; }
 /* The wordmark: the app's name, set like an app's, not like a heading. */
 @utility wordmark { font-family: var(--font-display); font-weight: 700; }

@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Poppins } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { TopBar } from "@/components/top-bar";
@@ -39,14 +38,10 @@ export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme
 
 export const dynamic = "force-dynamic";
 
-// Poppins everywhere, self-hosted by next/font at build time (no request to Google from the
-// reader's browser). Latin-ext covers Portuguese and Spanish.
-const poppins = Poppins({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700", "800"], variable: "--font-poppins", display: "swap" });
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { lang } = await dict();
   return (
-    <html lang={localeOf(lang)} className={poppins.variable}>
+    <html lang={localeOf(lang)}>
       <body className="min-h-screen">
         <LangProvider lang={lang}>
           <SidebarProvider>
