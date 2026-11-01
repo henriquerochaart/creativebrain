@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { Thumb } from "./thumb";
 import { useLang, useT } from "./lang-provider";
 import type { PublicReference } from "@/server/references";
+import { Mascot } from "./mascot";
 
 type Think = {
   intro: string;
@@ -72,7 +73,12 @@ export function ThinkMode() {
       </form>
 
       {error && <p className="text-sm text-danger">{d.think.failed} {error}</p>}
-      {busy && !res && <p className="pulse-soft text-center text-sm text-ink-3">{d.think.reading}</p>}
+      {busy && !res && (
+        <div className="flex flex-col items-center gap-2">
+          <Mascot pose="notebook" className="h-28 w-28" />
+          <p className="pulse-soft text-center text-sm text-ink-3">{d.think.reading}</p>
+        </div>
+      )}
 
       {res && (
         <div className={busy ? "opacity-50 transition-opacity" : "transition-opacity"}>

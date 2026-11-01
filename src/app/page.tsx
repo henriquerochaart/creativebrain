@@ -15,6 +15,7 @@ import { dict } from "@/server/lang";
 import { platformLabel, taxonomyLabel, type Dict, type Lang } from "@/lib/i18n";
 import { PLATFORM_ICON, PLATFORM_ORDER, SUBJECT_ICON, TYPE_ICON, TYPE_ORDER } from "@/lib/emoji";
 import { displayTitle } from "@/lib/utils";
+import { Mascot } from "@/components/mascot";
 
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -62,7 +63,7 @@ export default async function Home() {
           </Suspense>
         </section>
         <div className="flex flex-col items-center gap-4 rounded-[28px] bg-paper-2 px-6 py-14 text-center">
-          <Thing name="brain" className="h-20 w-20" />
+          <Mascot pose="apontando" className="h-36 w-36" />
           <p className="max-w-sm text-[17px] leading-[22px] text-ink">{d.home.emptyTitle}</p>
           <AddButton className="mt-1" />
         </div>

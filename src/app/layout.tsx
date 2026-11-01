@@ -24,9 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
     // Next emits only the generic mobile-web-app-capable; older iOS needs Apple's own name to open
     // the Home Screen app full screen, without Safari's bars. Newer iOS reads the manifest.
     other: { "apple-mobile-web-app-capable": "yes" },
-    // The 3D brain from the app's icon set (public/icons/3d, Thiings), on a light tile for the Home Screen.
+    // Brain in sunglasses (public/mascot/oculos), on a light pink tile for the tab and the Home Screen.
     icons: {
       icon: [
+        { url: withBase("/icons/favicon-32.png"), sizes: "32x32", type: "image/png" },
         { url: withBase("/icons/favicon-64.png"), sizes: "64x64", type: "image/png" },
         { url: withBase("/icons/icon-192.png"), sizes: "192x192" },
         { url: withBase("/icons/icon-512.png"), sizes: "512x512" },

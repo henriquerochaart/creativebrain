@@ -10,7 +10,7 @@ export default async function SavedPage() {
       <header>
         <h1 className="large-title">{d.saved.title}</h1>
       </header>
-      <ReferenceGrid references={rows.map(toPublic)} lang={lang} empty={d.saved.empty} />
+      <ReferenceGrid references={rows.map(toPublic)} lang={lang} empty={d.saved.empty} mascot="apaixonado" />
     </div>
   );
 }

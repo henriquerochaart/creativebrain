@@ -55,7 +55,7 @@ export default async function DiscoverPage() {
       {data && (
         <section>
           <h2 className="eyebrow mb-4">{d.discover.forYou}</h2>
-          <ReferenceGrid references={data.forYou.map((f) => f.reference)} lang={lang} empty={d.discover.emptyForYou} />
+          <ReferenceGrid references={data.forYou.map((f) => f.reference)} lang={lang} empty={d.discover.emptyForYou} mascot="oculos" />
         </section>
       )}
     </div>

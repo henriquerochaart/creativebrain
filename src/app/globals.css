@@ -43,11 +43,11 @@
   --line: #e5e5ea; /* systemGray5, hairlines */
   --fill: rgba(118, 118, 128, 0.12); /* tertiarySystemFill: search fields, gray buttons, segment tracks */
   --fill-2: rgba(120, 120, 128, 0.2); /* systemFill: hover / pressed */
-  /* The tint is the mascot's pink. Fills (buttons, the + button, selection) use the light tone with
-     dark text on it (8.4:1). Text in the tint (links, active tab, gray buttons) needs more weight on
-     white, so light mode writes it in the deep tone (4.6:1); dark mode writes it in the light one. */
-  --pink: #f49fae;
-  --pink-deep: #d13d60;
+  /* The tint is the mascot's pink, measured from the Brain render (body #f17183): its highlight
+     for fills, with dark text on it (9.4:1), and its shadow for text in the tint, which reads at
+     5.7:1 on white. Dark mode writes tinted text in the highlight instead. */
+  --pink: #ffa9b7;
+  --pink-deep: #b23d4c;
   --accent: var(--pink);
   --on-accent: #1c1c1e;
   --accent-ink: var(--pink-deep);

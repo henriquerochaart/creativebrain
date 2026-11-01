@@ -36,7 +36,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </div>
       </header>
       {q && refs.length > 0 && <WhyThese query={q} ids={refs.slice(0, 12).map((r) => r.id)} titles={titles} />}
-      <ReferenceGrid references={refs} lang={lang} kindsById={sourcesById} empty={q ? d.search.emptyNoMatch : d.search.emptyType} />
+      <ReferenceGrid references={refs} lang={lang} kindsById={sourcesById} empty={q ? d.search.emptyNoMatch : d.search.emptyType} mascot={q ? "surpreso" : "pensando"} />
     </div>
   );
 }

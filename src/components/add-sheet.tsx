@@ -10,6 +10,7 @@ import { useT } from "./lang-provider";
 import { captureFiles, captureText, CAPTURE_ACCEPT } from "@/lib/capture";
 import { cn } from "@/lib/utils";
 import { Thing } from "./thing";
+import { Mascot } from "./mascot";
 
 /**
  * "Add anything": the one place capture starts from, opened by the tab bar's +, the toolbar's
@@ -199,7 +200,9 @@ function GlobalToast({ toast }: { toast: Toast }) {
           toast.kind === "err" && "bg-danger text-white",
         )}
       >
-        {toast.kind === "ok" && <BrainThink className="text-base" />}
+        {toast.kind === "ok" && <BrainThink className="h-6 w-6" />}
+        {toast.kind === "dup" && <Mascot pose="surpreso" className="h-6 w-6" />}
+        {toast.kind === "err" && <Mascot pose="desconfiado" className="h-6 w-6" />}
         {toast.text}
       </div>
     </div>
