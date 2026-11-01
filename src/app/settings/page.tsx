@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { ChevronRight, TriangleAlert } from "lucide-react";
 import { env } from "@/server/env";
+import { publicOrigin } from "@/server/origin";
 import { statusCounts } from "@/server/references";
 import { SETTINGS_HUB } from "@/lib/sections";
 import { cn } from "@/lib/utils";
@@ -80,8 +80,7 @@ export default async function SettingsPage() {
   const counts = await statusCounts().catch(() => ({}) as Record<string, number>);
   const failed = counts.failed ?? 0;
   const inbox = (counts.queued ?? 0) + (counts.processing ?? 0) + failed;
-  const h = await headers();
-  const origin = env.appUrl.startsWith("http") && !env.appUrl.includes("localhost") ? env.appUrl : `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000"}`;
+  const origin = await publicOrigin();
   // Everything here is copied into a phone or a config file, so it must be the full public root.
   const root = `${origin}${env.basePath}`;
   const apiKeySet = Boolean(env.apiKey);
