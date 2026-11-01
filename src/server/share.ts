@@ -1,4 +1,5 @@
 import { t, type Lang } from "@/lib/i18n";
+import { withBase } from "@/lib/base-path";
 
 /**
  * "Share to Brain": turns whatever a share sheet hands us (Android Web Share Target, iOS Shortcut,
@@ -90,4 +91,13 @@ function hostOf(url: string): string {
 function clip(s: string, max = 60): string {
   const one = s.replace(/\s+/g, " ").trim();
   return one.length > max ? `${one.slice(0, max - 1)}…` : one;
+}
+
+/**
+ * The reference's own page as an absolute link: what `?reply=link` answers, so a Shortcut can
+ * offer "Open" after saving. A notification from Shortcuts opens the Shortcuts app when tapped,
+ * not a link, so the Shortcut opens this one itself.
+ */
+export function referenceLink(origin: string, id: string): string {
+  return new URL(withBase(`/r/${id}`), origin).toString();
 }

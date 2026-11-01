@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inputFromShare, payloadFromFields, payloadFromText, captureReply } from "@/server/share";
+import { inputFromShare, payloadFromFields, payloadFromText, captureReply, referenceLink } from "@/server/share";
 import { normalizeBasePath, withBase } from "@/lib/base-path";
 
 describe("inputFromShare", () => {
@@ -40,6 +40,9 @@ describe("background capture (iOS Shortcut)", () => {
     expect(payloadFromText('{"url":"https://example.com/y"}').url).toBe("https://example.com/y");
     expect(inputFromShare(payloadFromText('{"text": broken https://example.com/z'))?.input).toBe("https://example.com/z");
     expect(payloadFromText("   ")).toEqual({ text: null });
+  });
+  it("links to the reference's page for a Shortcut that opens it", () => {
+    expect(referenceLink("https://brain.henriquerocha.art", "abc-123")).toBe("https://brain.henriquerocha.art/r/abc-123");
   });
   it("answers with one line for the notification", () => {
     const url = "https://www.instagram.com/reel/xyz/";
