@@ -13,6 +13,12 @@ export interface Storage {
   delete(key: string): Promise<void>;
   /** Public URL for a key, without touching the network. */
   url(key: string): string;
+  /**
+   * Where a browser can fetch the object directly, or null when it does not exist. Drivers that
+   * serve from their own CDN implement this, and /api/media redirects there instead of streaming
+   * the bytes through a function.
+   */
+  locate?(key: string): Promise<string | null>;
 }
 
 /** Keys are built from these, and `get` maps them back to a content type. */

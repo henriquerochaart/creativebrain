@@ -1,3 +1,4 @@
+import { instagramEmbedImage, instagramShortcode } from "@/server/connectors/instagram";
 import { describe, expect, it } from "vitest";
 import { detectPlatform, isProbablyUrl, normalizeUrl } from "@/server/connectors/detect";
 import { youtubeId } from "@/server/connectors/youtube";
@@ -104,5 +105,25 @@ describe("tiktokOEmbedTarget", () => {
       isPhoto: false,
       canonical: "https://www.tiktok.com/@nike/video/7255",
     });
+  });
+});
+
+describe("Instagram embed page", () => {
+  it("reads the post's picture from the embed image, unescaping the HTML", () => {
+    const html = `<img class="EmbeddedMediaImage" alt="Instagram post shared by &#064;x" src="https://scontent.cdninstagram.com/v/a.jpg?stp=1&amp;_nc_cat=1" />`;
+    expect(instagramEmbedImage(html)).toBe("https://scontent.cdninstagram.com/v/a.jpg?stp=1&_nc_cat=1");
+  });
+  it("falls back to display_url inside the page's script, slashes escaped twice", () => {
+    const html = String.raw`<script>s.handle("{\"display_url\":\"https:\\\/\\\/scontent.cdninstagram.com\\\/v\\\/b.jpg?x=1\\u0026y=2\",\"is_video\":true}")</script>`;
+    expect(instagramEmbedImage(html)).toBe("https://scontent.cdninstagram.com/v/b.jpg?x=1&y=2");
+  });
+  it("returns null when the page has neither", () => {
+    expect(instagramEmbedImage("<html>login</html>")).toBeNull();
+  });
+  it("finds the shortcode in post, reel and tv URLs", () => {
+    expect(instagramShortcode("/reel/DfLCvb7SEB9/")).toBe("DfLCvb7SEB9");
+    expect(instagramShortcode("/p/Cx_1-a/")).toBe("Cx_1-a");
+    expect(instagramShortcode("/tv/AbC/")).toBe("AbC");
+    expect(instagramShortcode("/someprofile/")).toBeNull();
   });
 });

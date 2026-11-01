@@ -30,8 +30,10 @@ export const env = {
   processingMode: str("PROCESSING_MODE", "inline") as "inline" | "worker",
 
   storage: {
-    driver: str("STORAGE_DRIVER", "local") as "local" | "s3",
+    driver: str("STORAGE_DRIVER", "local") as "local" | "s3" | "blob",
     localDir: str("STORAGE_LOCAL_DIR", "./storage"),
+    /** Vercel Blob: set by Vercel itself when a Blob store is connected to the project. */
+    blobToken: str("BLOB_READ_WRITE_TOKEN"),
     s3: {
       bucket: str("S3_BUCKET"),
       region: str("S3_REGION", "auto"),

@@ -6,12 +6,20 @@ import { getStorage } from "@/server/storage";
 
 export const runtime = "nodejs";
 
-/** Serves stored media (local driver, or S3 without a public URL). Public: thumbnails are embedded in pages. */
+/** Serves stored media (local driver, S3 without a public URL) or redirects to it (Vercel Blob). Public: thumbnails are embedded in pages. */
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ key: string[] }> }) {
   const { key } = await ctx.params;
   const path = key.join("/");
 
-  const obj = await getStorage().get(path);
+  const storage = getStorage();
+  // A driver with its own CDN (Vercel Blob): send the browser there. The redirect itself is cached
+  // at the edge for a day, so a page full of thumbnails does not cost a lookup per image per view.
+  if (storage.locate) {
+    const direct = await storage.locate(path);
+    if (direct) return new Response(null, { status: 302, headers: { location: direct, "cache-control": "public, max-age=3600, s-maxage=86400" } });
+  }
+
+  const obj = storage.locate ? null : await storage.get(path);
   if (obj) {
     return new Response(new Uint8Array(obj.data), {
       headers: { "content-type": obj.mime, "cache-control": "public, max-age=31536000, immutable", "content-length": String(obj.data.length) },

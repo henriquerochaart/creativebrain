@@ -76,7 +76,7 @@ Duas decisões que valem explicar:
 
 ## Stack
 
-Next.js 15 (App Router) · React 19 · Tailwind v4 · PostgreSQL + pgvector · Drizzle ORM · pg-boss (fila em Postgres) · storage local ou S3/R2 · ffmpeg · AI Router model-agnostic (Anthropic, OpenAI, Gemini, Voyage; `mock` para demos sem chave).
+Next.js 15 (App Router) · React 19 · Tailwind v4 · PostgreSQL + pgvector · Drizzle ORM · pg-boss (fila em Postgres) · storage local, S3/R2 ou Vercel Blob · ffmpeg · AI Router model-agnostic (Anthropic, OpenAI, Gemini, Voyage; `mock` para demos sem chave).
 
 ```
                  HENRIQUE BRAIN
@@ -168,7 +168,11 @@ O `vercel.json` fica de propósito no mínimo, só declarando o framework, para 
 **Três serviços externos, todos com plano gratuito**
 
 1. **Postgres com pgvector** — [Neon](https://neon.tech) (região `sa-east-1`). Copie a connection string para `DATABASE_URL`. A extensão `vector` é criada pela migração.
-2. **Storage S3 compatível** — [Cloudflare R2](https://developers.cloudflare.com/r2/) com um bucket público. Na Vercel o disco não persiste, então `STORAGE_DRIVER=s3` é obrigatório. Preencha `S3_BUCKET`, `S3_ENDPOINT` (`https://<account>.r2.cloudflarestorage.com`), `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION=auto`, `S3_PUBLIC_URL` (URL pública do bucket).
+2. **Storage que persiste** — na Vercel o disco não persiste, então `local` perde thumbnails e uploads a cada execução, e as miniaturas caem no link original da plataforma, que expira em semanas. Duas opções:
+   - **Vercel Blob** (o que o deploy de referência usa): em Storage → Create → Blob, conecte o store ao projeto. A Vercel cria `BLOB_READ_WRITE_TOKEN` sozinha; defina `STORAGE_DRIVER=blob`.
+   - **S3 compatível**, como [Cloudflare R2](https://developers.cloudflare.com/r2/) com bucket público: `STORAGE_DRIVER=s3` e preencha `S3_BUCKET`, `S3_ENDPOINT` (`https://<account>.r2.cloudflarestorage.com`), `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION=auto`, `S3_PUBLIC_URL`.
+
+   Para recuperar miniaturas perdidas sem refazer o entendimento: `POST /api/references/:id/thumbnail` pede à plataforma a imagem atual do post e guarda no storage (ou recebe a imagem em `file`, multipart).
 3. **IA** — `ANTHROPIC_API_KEY` (raciocínio e visão) e `OPENAI_API_KEY` (embeddings e transcrição).
 
 **Passos**
@@ -247,7 +251,7 @@ src/
     creative.ts        moodboard · assist · auto collections · narrativa
     projects.ts        V3 projects e análise
     db/                schema Drizzle · client · migrate
-    storage/           local · S3/R2
+    storage/           local · S3/R2 · Vercel Blob
     queue/             pg-boss
     taxonomy.ts        PLATFORM · SUBJECT · FORMAT · CREATIVE PRINCIPLES
   mcp/server.ts        servidor MCP

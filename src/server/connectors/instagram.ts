@@ -4,6 +4,26 @@ import { fetchOEmbed } from "./oembed";
 import { extractMeta } from "./html";
 import { env } from "../env";
 
+/**
+ * The post's own picture from Instagram's public embed page (the frame its embed shows), for when
+ * oEmbed has no token and the post page is a login wall. The <img class="EmbeddedMediaImage"> is
+ * the plain case; the JSON blob inside the page's script carries the same picture as display_url,
+ * with its slashes escaped twice.
+ */
+export function instagramEmbedImage(html: string): string | null {
+  const img = /class="EmbeddedMediaImage"[^>]*\bsrc="([^"]+)"/.exec(html)?.[1];
+  if (img) return img.replace(/&amp;/g, "&");
+  const raw = /\\"display_url\\":\\"(.*?)\\"/.exec(html)?.[1];
+  if (!raw) return null;
+  const url = raw.replace(/\\+\//g, "/").replace(/\\+u0026/g, "&");
+  return /^https:\/\//.test(url) ? url : null;
+}
+
+/** The shortcode in /p/, /reel/, /reels/ or /tv/ URLs: what the embed page is addressed by. */
+export function instagramShortcode(pathname: string): string | null {
+  return /\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/.exec(pathname)?.[1] ?? null;
+}
+
 export const instagramConnector: Connector = {
   platform: "instagram",
   matches(url) {
@@ -45,6 +65,17 @@ export const instagramConnector: Connector = {
         } else warnings.push(`Instagram page fetch returned ${res.status}`);
       } catch {
         warnings.push("Instagram page fetch failed");
+      }
+    }
+
+    const shortcode = instagramShortcode(url.pathname);
+    if (!thumbnailUrl && shortcode) {
+      try {
+        const res = await fetchWithTimeout(`https://www.instagram.com/p/${shortcode}/embed/captioned/`);
+        if (res.ok) thumbnailUrl = instagramEmbedImage(await res.text());
+        if (!thumbnailUrl) warnings.push("Instagram embed page had no image either");
+      } catch {
+        warnings.push("Instagram embed page fetch failed");
       }
     }
 

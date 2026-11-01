@@ -24,7 +24,7 @@ import { sql } from "drizzle-orm";
 
 const MAX_INLINE_PDF_BYTES = 30 * 1024 * 1024;
 const MAX_INLINE_PDF_PAGES = 100;
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 async function setStep(id: string, step: ProcessingStep) {
   await db.update(references).set({ status: "processing", processingStep: step, updatedAt: new Date() }).where(eq(references.id, id));

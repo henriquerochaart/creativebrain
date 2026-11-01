@@ -63,12 +63,15 @@ async function checkDatabase() {
 }
 
 function checkStorage() {
-  if (env.storage.driver === "s3") {
+  if (env.storage.driver === "blob") {
+    if (!env.storage.blobToken) add("fail", "Storage", "STORAGE_DRIVER=blob but BLOB_READ_WRITE_TOKEN is not set. Connect a Blob store to the project in Vercel → Storage.");
+    else add("ok", "Storage", "blob · Vercel Blob");
+  } else if (env.storage.driver === "s3") {
     const missing = (["bucket", "accessKeyId", "secretAccessKey"] as const).filter((k) => !env.storage.s3[k]);
     if (missing.length) add("fail", "Storage", `STORAGE_DRIVER=s3 but missing ${missing.map((m) => `S3_${m.replace(/[A-Z]/g, (c) => "_" + c).toUpperCase()}`).join(", ")}`);
     else add("ok", "Storage", `s3 · ${env.storage.s3.bucket}${env.storage.s3.endpoint ? ` @ ${env.storage.s3.endpoint}` : ""}${env.storage.s3.publicUrl ? "" : " (no S3_PUBLIC_URL: media is served through /api/media)"}`);
   } else if (env.isServerless) {
-    add("fail", "Storage", "STORAGE_DRIVER=local on a serverless host. The filesystem is read-only and not shared, so thumbnails and uploads are lost. Use s3 (Cloudflare R2 works).");
+    add("fail", "Storage", "STORAGE_DRIVER=local on a serverless host. The filesystem is read-only and not shared, so thumbnails and uploads are lost. Use blob (Vercel Blob) or s3 (Cloudflare R2 works).");
   } else {
     add("ok", "Storage", `local · ${env.storage.localDir}`);
   }
