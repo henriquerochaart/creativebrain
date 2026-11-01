@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { Thumb } from "./thumb";
 import { useLang, useT } from "./lang-provider";
 import type { PublicReference } from "@/server/references";
+import { Emoji } from "./emoji";
 
 type Proposal = { name: string; emoji: string; rationale: string; referenceIds: string[]; existing: boolean };
 type Res = { proposals: Proposal[]; sample: number; references: Record<string, PublicReference> };
@@ -58,7 +59,8 @@ export function AutoCollections() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-lg font-medium">
-                    {p.emoji} {p.name}
+                    {p.emoji ? <Emoji char={p.emoji} className="mr-1.5" /> : null}
+                    {p.name}
                   </p>
                   <p className="mt-1 text-[13px] text-ink-2">{p.rationale}</p>
                 </div>

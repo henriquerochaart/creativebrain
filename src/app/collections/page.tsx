@@ -3,6 +3,7 @@ import { listCollections } from "@/server/references";
 import { NewCollection } from "@/components/collection-actions";
 import { AutoCollections } from "@/components/auto-collections";
 import { dict } from "@/server/lang";
+import { Emoji } from "@/components/emoji";
 
 export default async function CollectionsPage() {
   const { d } = await dict();
@@ -27,13 +28,13 @@ export default async function CollectionsPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={c.cover} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
                 ) : (
-                  <span className="grid h-full place-items-center text-[48px] leading-none" aria-hidden>
-                    {c.emoji || "📁"}
+                  <span className="grid h-full place-items-center text-[48px] leading-none">
+                    <Emoji char={c.emoji || "📁"} />
                   </span>
                 )}
                 {c.cover && c.emoji ? (
-                  <span className="material absolute left-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full text-[18px] leading-none" aria-hidden>
-                    {c.emoji}
+                  <span className="material absolute left-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full text-[18px] leading-none">
+                    <Emoji char={c.emoji} />
                   </span>
                 ) : null}
               </div>

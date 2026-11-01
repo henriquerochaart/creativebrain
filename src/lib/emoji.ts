@@ -44,3 +44,21 @@ export const SUBJECT_EMOJI: Record<string, string> = {
 /** Display order of the quick filters: what people save most from first. */
 export const TYPE_ORDER = ["video", "image", "website", "pdf", "text", "audio"] as const;
 export const PLATFORM_ORDER = ["instagram", "tiktok", "youtube", "behance", "pinterest"] as const;
+
+/**
+ * Where Apple's artwork for an emoji lives: the emoji-datasource-apple package on jsDelivr, pinned.
+ * File names are the fully-qualified code points (🖼️ is 1f5bc-fe0f) while a typed emoji may lack
+ * the FE0F selector, so this returns every plausible name, best guess first.
+ */
+const BASE = "https://cdn.jsdelivr.net/npm/emoji-datasource-apple@16.0.0/img/apple/64/";
+
+export function emojiCandidates(char: string): string[] {
+  const cps = Array.from(char.trim()).map((c) => c.codePointAt(0)!.toString(16));
+  if (!cps.length) return [];
+  const given = cps.join("-");
+  const without = cps.filter((c) => c !== "fe0f").join("-");
+  // A single symbol typed without its presentation selector: the file has it.
+  const withSelector = cps.includes("fe0f") ? without : [cps[0], "fe0f", ...cps.slice(1)].join("-");
+  return [...new Set([given, withSelector, without])].map((name) => `${BASE}${name}.png`);
+}
+

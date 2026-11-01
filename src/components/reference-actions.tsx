@@ -6,6 +6,7 @@ import { Star, RefreshCw, Trash2, Plus, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useT } from "./lang-provider";
+import { Emoji } from "./emoji";
 
 export function SaveToggle({ id, saved }: { id: string; saved: boolean }) {
   const router = useRouter();
@@ -102,7 +103,7 @@ export function CollectionPicker({ referenceId, all, member }: { referenceId: st
               <li key={c.id}>
                 <button type="button" onClick={() => void toggle(c)} className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[13px] hover:bg-paper-2">
                   <span className="truncate">
-                    {c.emoji ? `${c.emoji} ` : ""}
+                    {c.emoji ? <Emoji char={c.emoji} className="mr-1.5" /> : null}
                     {c.name}
                   </span>
                   {memberIds.has(c.id) && <Check className="h-3.5 w-3.5" />}

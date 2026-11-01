@@ -3,6 +3,7 @@ import { TriangleAlert } from "lucide-react";
 import { env } from "@/server/env";
 import { DEFAULT_LANG } from "@/lib/i18n";
 import { InstallButton, CopyField } from "@/components/share-setup";
+import { Emoji } from "@/components/emoji";
 import { dict } from "@/server/lang";
 
 /** Renders the **bold** spans the setup strings use for the names of buttons and actions. */
@@ -36,6 +37,20 @@ export default async function ShareSetupPage() {
   const captureUrl = `${root}/api/capture?reply=text${lang === DEFAULT_LANG ? "" : `&lang=${lang}`}`;
   const st = s.iphoneSteps;
   const steps = [st.create, st.share, st.fetch, st.options, ...(apiKeySet ? [st.key] : []), st.notify];
+  const shortcutUrl = /^https:\/\//.test(env.shortcutUrl) ? env.shortcutUrl : null;
+  const manualSteps = (
+    <ol className="mt-4 space-y-3 text-sm leading-relaxed text-ink-2">
+      {steps.map((step, i) => (
+        <li key={i} className="flex gap-3">
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-fill text-[12px] font-semibold text-ink">{i + 1}</span>
+          <span className="min-w-0">
+            <Rich text={step} />
+            {step === st.fetch && <CopyField value={captureUrl} />}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
   return (
     <div className="mx-auto max-w-3xl space-y-12">
       <header>
@@ -61,24 +76,32 @@ export default async function ShareSetupPage() {
 
       <section className="rounded-[20px] bg-paper-2 p-6">
         <h2 className="title-3">{s.iphone}</h2>
-        <p className="mt-1 text-sm text-ink-2">{s.iphoneSub}</p>
+        {shortcutUrl ? (
+          // The Albo way: an iCloud link to the finished shortcut. Shortcuts opens it on its "Add
+          // Shortcut" screen, so installing is one tap, on any iPhone, with nothing to type.
+          <>
+            <div className="mt-4 flex items-center gap-4 rounded-[20px] bg-surface p-4 shadow-[var(--card-shadow)]">
+              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-[14px] bg-accent text-[30px] leading-none">
+                <Emoji char="🧠" />
+              </span>
+              <div className="min-w-0">
+                <p className="headline">{s.shortcutName}</p>
+                <p className="mt-0.5 text-[13px] leading-[18px] text-ink-2">{s.shortcutSub}</p>
+              </div>
+            </div>
+            <a href={shortcutUrl} className="btn-filled mt-4 h-12 w-full text-[17px]">
+              {s.shortcutInstall}
+            </a>
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-ink-2">{s.iphoneSub}</p>
+        )}
         {!apiKeySet && (
           <p className="mt-4 flex gap-2.5 rounded-2xl bg-warning/15 p-3 text-[13px] leading-relaxed text-ink">
             <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
             <span>{s.noKeyWarning}</span>
           </p>
         )}
-        <ol className="mt-5 space-y-3 text-sm leading-relaxed text-ink-2">
-          {steps.map((step, i) => (
-            <li key={i} className="flex gap-3">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-fill text-[12px] font-semibold text-ink">{i + 1}</span>
-              <span className="min-w-0">
-                <Rich text={step} />
-                {step === s.iphoneSteps.fetch && <CopyField value={captureUrl} />}
-              </span>
-            </li>
-          ))}
-        </ol>
 
         <h3 className="headline mt-8">{s.instantTitle}</h3>
         <p className="mt-1 text-sm leading-relaxed text-ink-2">{s.instantSub}</p>
@@ -90,6 +113,21 @@ export default async function ShareSetupPage() {
           ))}
         </ul>
         <p className="mt-4 text-[13px] leading-relaxed text-ink-2">{s.firstRun}</p>
+
+        {shortcutUrl ? (
+          <details className="mt-6">
+            <summary className="cursor-pointer text-sm text-ink-2">{s.manual}</summary>
+            {manualSteps}
+          </details>
+        ) : (
+          <>
+            <h3 className="headline mt-8">{s.manual}</h3>
+            {manualSteps}
+            <p className="mt-5 rounded-2xl bg-fill p-3 text-[13px] leading-relaxed text-ink">
+              <Rich text={s.shareLinkHint} />
+            </p>
+          </>
+        )}
 
         <details className="mt-5">
           <summary className="cursor-pointer text-sm text-ink-2">{s.simplerVariant}</summary>

@@ -5,6 +5,7 @@ import { ReferenceGrid } from "@/components/reference-grid";
 import { dict } from "@/server/lang";
 import { platformLabel, taxonomyLabel } from "@/lib/i18n";
 import { PLATFORM_EMOJI, SUBJECT_EMOJI, TYPE_EMOJI } from "@/lib/emoji";
+import { Emoji } from "@/components/emoji";
 
 const KINDS = ["platform", "subject", "format", "principle", "tag", "brand", "type"] as const;
 type Kind = (typeof KINDS)[number];
@@ -28,7 +29,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ kind:
       <header>
         <p className="eyebrow">{d.category[kind]}</p>
         <h1 className="large-title mt-1">
-          {emoji ? <span className="mr-2" aria-hidden>{emoji}</span> : null}
+          {emoji ? <Emoji char={emoji} className="mr-2" /> : null}
           {heading}
         </h1>
         <p className="mt-1 text-sm text-ink-2">{d.category.references(refs.length)}</p>

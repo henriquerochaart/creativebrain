@@ -412,6 +412,12 @@ const pt = {
         "Na primeira vez, o iOS pede permissão para o atalho falar com o servidor e ler a área de transferência. Escolha permitir sempre, senão ele pergunta a cada uso.",
       noKeyWarning:
         "BRAIN_API_KEY não está definida neste servidor, então a API está aberta para qualquer pessoa que saiba o endereço. Defina a chave na Vercel e recarregue esta página: o passo dos Cabeçalhos aparece aqui.",
+      shortcutName: "Brain",
+      shortcutSub: "Um toque instala. Depois, em qualquer app: Compartilhar → Brain. Salva em segundo plano e avisa numa notificação.",
+      shortcutInstall: "Instalar o atalho Brain",
+      manual: "Montar o atalho à mão",
+      shareLinkHint:
+        "Para virar um botão de instalação, como no Albo: com o atalho pronto, toque e segure o Brain no app Atalhos → Compartilhar → Copiar link do iCloud, e defina BRAIN_SHORTCUT_URL com esse link.",
       desktop: "Desktop",
       desktopSub: "Arraste isto para a barra de favoritos. Em qualquer página, clique para mandar a URL para o cérebro.",
       simplerVariant: "Variante mais simples, que abre o cérebro no Safari",
@@ -818,6 +824,12 @@ const en: Dict = {
         "The first time, iOS asks permission for the shortcut to reach the server and read the clipboard. Choose to always allow, or it asks on every run.",
       noKeyWarning:
         "BRAIN_API_KEY is not set on this server, so the API is open to anyone who knows the address. Set the key in Vercel and reload this page: the Headers step appears here.",
+      shortcutName: "Brain",
+      shortcutSub: "One tap installs it. Then, in any app: Share → Brain. It saves in the background and confirms with a notification.",
+      shortcutInstall: "Install the Brain shortcut",
+      manual: "Build the shortcut by hand",
+      shareLinkHint:
+        "To turn this into an install button, like Albo's: with the shortcut built, touch and hold Brain in the Shortcuts app → Share → Copy iCloud Link, and set BRAIN_SHORTCUT_URL to that link.",
       desktop: "Desktop",
       desktopSub: "Drag this to your bookmarks bar. On any page, click it to send the URL to the Brain.",
       simplerVariant: "Simpler variant that opens the Brain in Safari",

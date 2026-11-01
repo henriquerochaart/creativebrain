@@ -28,7 +28,7 @@ The thumbnail is always the material's own, never generated: the OpenGraph or oE
 ## Design: Apple HIG
 The UI follows Apple's Human Interface Guidelines; `src/app/globals.css` is the whole system.
 - Colors are Apple semantic colors as tokens, light and dark: `ink` label, `ink-2` secondaryLabel, `ink-3` systemGray, `paper` systemBackground, `paper-2` secondarySystemBackground, `surface` cards, `line` separators, `fill`/`fill-2` for fields and gray buttons, `accent` systemBlue, `danger` systemRed, `success` systemGreen, `warning` systemOrange. Never a raw Tailwind palette color (`red-600`, `zinc-200`) or a hex in a component; the one exception is canvas drawing (`knowledge-graph.tsx`), which cannot read CSS variables and uses Apple system color values directly.
-- Type uses the iOS text styles: `large-title` for page titles, `title-2`/`title-3`/`headline` below it, `.eyebrow` for section headers. Sentence case everywhere; no uppercase tracked labels, no manual `tracking-*` (SF tracks itself).
+- Type uses the iOS text styles: `large-title` for page titles, `title-2`/`title-3`/`headline` below it, `.eyebrow` for section headers, all set in Poppins (`next/font/google` in `layout.tsx`, exposed as `--font-poppins`). Sentence case everywhere; no uppercase tracked labels, no manual `tracking-*`.
 - Buttons: `btn-filled` for the one primary action on a screen, `btn-gray` for everything else, systemRed for destructive. Touch targets are 44pt below `lg` (`h-11 lg:h-9`).
 - Fields are fills (`bg-fill`, radius 10), not outlines. Containers are fills (`bg-paper-2`) or elevated cards (`bg-surface` + `--card-shadow`), not bordered boxes. Bars and menus use the `material` utility.
 - Long-form reading text is `ink`; `ink-2` is for supporting text only.
@@ -38,7 +38,7 @@ The UI follows Apple's Human Interface Guidelines; `src/app/globals.css` is the 
 On top of HIG, the UI should feel like a friendly phone app, not a web dashboard.
 - Below `lg`, a floating tab bar (`tab-bar.tsx`: Início, Buscar, +, Entrada, Coleções) carries navigation; `main` has `pb-32` to clear it. The HB mark still opens the sidebar drawer. At `lg` the sidebar and toolbar take over and the tab bar is gone.
 - Capture starts in one place: the Add sheet (`add-sheet.tsx`), opened with `useAdd().open()` from the tab bar's +, the toolbar's Add button and the dashed + card. Never a + that navigates. `?add=1` still opens it. Results show as the provider's toast, which outlives the sheet.
-- Titles use the rounded display face (`--font-display`, SF Pro Rounded via `ui-rounded`): `large-title`, `title-2`, `title-3`, `wordmark`.
+- One typeface, Poppins, for text and titles; no rounded or system display face.
 - Emoji stand for kinds of things (media types, platforms, subjects) and live in `src/lib/emoji.ts`. They never stand in for a reference's own picture (see Thumbnails).
 - Cards have no shell: the picture rounded (`rounded-[22px]`), then the platform in `ink-3` and a bold title. Shape language: pills (`chip`), big radii, fills.
 - Sideways rows use `scroll-row`, bleed to the screen edge on a phone (`-mx-4 px-4`) and set matching `scroll-px-*`, or the snap swallows the padding.

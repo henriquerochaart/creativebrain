@@ -27,6 +27,8 @@ export const env = {
   /** Origin + base path: the public root of the app, used to build absolute URLs. */
   publicUrl: `${appUrl}${BASE_PATH}`,
   apiKey: str("BRAIN_API_KEY"),
+  /** iCloud link of the "Brain" iOS Shortcut; when set, the setup page offers a one-tap install. */
+  shortcutUrl: str("BRAIN_SHORTCUT_URL"),
   processingMode: str("PROCESSING_MODE", "inline") as "inline" | "worker",
 
   storage: {

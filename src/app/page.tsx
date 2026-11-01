@@ -13,6 +13,7 @@ import { dict } from "@/server/lang";
 import { platformLabel, taxonomyLabel, type Dict, type Lang } from "@/lib/i18n";
 import { PLATFORM_EMOJI, PLATFORM_ORDER, SUBJECT_EMOJI, TYPE_EMOJI, TYPE_ORDER } from "@/lib/emoji";
 import { displayTitle } from "@/lib/utils";
+import { Emoji } from "@/components/emoji";
 
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -61,8 +62,8 @@ export default async function Home() {
             <nav className="scroll-row scroll-px-4 sm:scroll-px-6 lg:scroll-px-0 -mx-4 gap-2 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0" aria-label={d.home.categories}>
               {chips.map((c) => (
                 <Link key={c.href} href={c.href} className="chip">
-                  <span className="text-[20px] leading-none" aria-hidden>
-                    {c.emoji}
+                  <span className="text-[20px] leading-none">
+                    <Emoji char={c.emoji} />
                   </span>
                   {c.label}
                 </Link>
@@ -72,8 +73,8 @@ export default async function Home() {
           )}
 
           <Link href="/share/setup" className="flex min-h-16 items-center gap-4 rounded-[20px] bg-paper-2 px-5 py-3 transition-colors hover:bg-fill">
-            <span className="text-[26px] leading-none" aria-hidden>
-              📲
+            <span className="text-[26px] leading-none">
+              <Emoji char="📲" />
             </span>
             <span className="flex-1 text-[17px] font-semibold leading-[22px]">{d.home.importBanner}</span>
             <ChevronRight className="h-5 w-5 shrink-0 text-ink-3" />
@@ -98,7 +99,7 @@ export default async function Home() {
                 {orderedSubjects.map((s) => (
                   <Link key={s} href={`/c/subject/${encodeURIComponent(s)}`} className="group flex w-[88px] flex-col items-center gap-2 text-center">
                     <span className="grid h-[76px] w-[76px] place-items-center rounded-full bg-paper-2 text-[34px] leading-none transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95" aria-hidden>
-                      {SUBJECT_EMOJI[s] ?? "✨"}
+                      <Emoji char={SUBJECT_EMOJI[s] ?? "✨"} />
                     </span>
                     <span className="line-clamp-2 text-[13px] leading-4 text-ink-2">{taxonomyLabel(lang, "subjects", s)}</span>
                   </Link>
@@ -112,8 +113,8 @@ export default async function Home() {
             <div className="mt-3 flex flex-wrap gap-2.5">
               {collections.slice(0, 10).map((c) => (
                 <Link key={c.id} href={`/collections/${c.slug}`} className="flex h-14 items-center gap-3 rounded-[18px] bg-paper-2 px-4 text-[16px] font-semibold transition-colors hover:bg-fill">
-                  <span className="text-[22px] leading-none" aria-hidden>
-                    {c.emoji || "📁"}
+                  <span className="text-[22px] leading-none">
+                    <Emoji char={c.emoji || "📁"} />
                   </span>
                   {c.name}
                 </Link>
@@ -135,8 +136,8 @@ export default async function Home() {
           <ReferenceGrid references={refs} lang={lang} showStatus />
         ) : (
           <div className="flex flex-col items-center gap-4 rounded-[28px] bg-paper-2 px-6 py-14 text-center">
-            <span className="text-[56px] leading-none" aria-hidden>
-              🧠
+            <span className="text-[56px] leading-none">
+              <Emoji char="🧠" />
             </span>
             <p className="max-w-md text-[17px] leading-[22px] text-ink">{d.home.emptyTitle}</p>
             <p className="text-[15px] text-ink-2">{d.home.emptySub}</p>

@@ -5,6 +5,7 @@ import { listCollections, statusCounts, facetCounts } from "@/server/references"
 import { SUBJECTS } from "@/server/taxonomy";
 import { dict } from "@/server/lang";
 import { taxonomyLabel } from "@/lib/i18n";
+import { Emoji } from "@/components/emoji";
 
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -59,7 +60,7 @@ export async function Sidebar() {
         </div>
         <nav className="space-y-0.5">
           {collections.slice(0, 12).map((c) => (
-            <NavLink key={c.id} href={`/collections/${c.slug}`} label={c.name} count={c.count} icon={c.emoji ? <span className="text-[15px] leading-none">{c.emoji}</span> : <Folder />} />
+            <NavLink key={c.id} href={`/collections/${c.slug}`} label={c.name} count={c.count} icon={c.emoji ? <span className="text-[15px] leading-none"><Emoji char={c.emoji} /></span> : <Folder />} />
           ))}
           {!collections.length && <p className="px-2.5 py-1 text-[13px] text-ink-3">{d.nav.noCollections}</p>}
         </nav>

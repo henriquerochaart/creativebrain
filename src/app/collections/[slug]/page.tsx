@@ -5,6 +5,7 @@ import { ReferenceGrid } from "@/components/reference-grid";
 import { CaptureBox } from "@/components/capture-box";
 import { DeleteCollection } from "@/components/collection-actions";
 import { dict } from "@/server/lang";
+import { Emoji } from "@/components/emoji";
 
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { lang, d } = await dict();
@@ -18,7 +19,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <div>
           <p className="eyebrow">{col.auto ? d.collections.auto : d.collections.one}</p>
           <h1 className="large-title mt-1">
-            {col.emoji ? `${col.emoji} ` : ""}
+            {col.emoji ? <Emoji char={col.emoji} className="mr-2" /> : null}
             {col.name}
           </h1>
           {col.description && <p className="mt-1 text-sm text-ink-2">{col.description}</p>}

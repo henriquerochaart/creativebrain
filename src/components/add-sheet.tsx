@@ -9,6 +9,7 @@ import { BrainThink } from "./brain-think";
 import { useT } from "./lang-provider";
 import { captureFiles, captureText, CAPTURE_ACCEPT } from "@/lib/capture";
 import { cn } from "@/lib/utils";
+import { Emoji } from "./emoji";
 
 /**
  * "Add anything": the one place capture starts from, opened by the tab bar's +, the toolbar's
@@ -175,8 +176,8 @@ function AddSheet({ onClose, notify }: { onClose: () => void; notify: (toast: To
 function Tile({ emoji, title, sub, onClick, href }: { emoji: string; title: string; sub: string; onClick?: () => void; href?: string }) {
   const body = (
     <>
-      <span className="block text-[32px] leading-none" aria-hidden>
-        {emoji}
+      <span className="block text-[32px] leading-none">
+        <Emoji char={emoji} />
       </span>
       <span className="mt-3 block text-[16px] font-semibold leading-5 text-ink">{title}</span>
       <span className="mt-0.5 block text-[13px] leading-[18px] text-ink-2">{sub}</span>
