@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { House, LibraryBig, Plus, Search, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { tabOf } from "@/lib/sections";
@@ -21,16 +22,29 @@ const TABS: Tab[] = [
 /**
  * The phone's tab bar and its only navigation: there is no header. A floating material capsule,
  * the way current iOS apps carry it, with Add as the raised button in the middle. A tab stays
- * selected on the screens reached through it (`tabOf`). Settings carries a badge while references
- * failed, since the Inbox that lists them lives there. Only below lg; the sidebar does this job on
- * a wide screen.
+ * selected on the screens reached through it (`tabOf`), and items squish under the finger
+ * (`.squish`). Settings carries a badge while references failed, since the Inbox that lists them
+ * lives there. Only below lg; the sidebar does this job on a wide screen.
  */
 export function TabBar({ failed }: { failed: number }) {
   const pathname = usePathname();
   const d = useT();
   const { open } = useAdd();
-  const current = tabOf(pathname);
+  // The tab tapped is selected at once, before its page arrives; the route takes over when it does.
+  const [pending, setPending] = useState<TabKey | null>(null);
+  const [pressed, setPressed] = useState<string | null>(null);
+  useEffect(() => setPending(null), [pathname]);
+  const current = pending ?? tabOf(pathname);
   const [left, right] = [TABS.slice(0, 2), TABS.slice(2)];
+  // Squish: the finger presses the item down, lifting it springs back; the tap itself (and the
+  // navigation) happens on release, as a click does.
+  const press = (key: string) => ({
+    "data-pressed": pressed === key || undefined,
+    onPointerDown: () => setPressed(key),
+    onPointerUp: () => setPressed(null),
+    onPointerLeave: () => setPressed(null),
+    onPointerCancel: () => setPressed(null),
+  });
   const item = (t: Tab) => {
     const on = current === t.key;
     return (
@@ -38,7 +52,9 @@ export function TabBar({ failed }: { failed: number }) {
         key={t.key}
         href={t.href}
         aria-current={on ? "page" : undefined}
-        className={cn("relative flex h-12 min-w-[60px] flex-col items-center justify-center gap-0.5 rounded-full px-2 text-[10px] font-semibold transition-colors", on ? "bg-accent/30 text-accent-ink" : "text-ink-3 hover:text-ink")}
+        onClick={() => setPending(t.key)}
+        {...press(t.key)}
+        className={cn("squish relative flex h-12 min-w-[60px] flex-col items-center justify-center gap-0.5 rounded-full px-2 text-[10px] font-semibold", on ? "bg-accent/30 text-accent-ink" : "text-ink-3 hover:text-ink")}
       >
         <span className="relative">
           <t.Icon className="h-[22px] w-[22px]" strokeWidth={on ? 2.4 : 2} />
@@ -54,7 +70,7 @@ export function TabBar({ failed }: { failed: number }) {
     <nav aria-label={d.header.menu} className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
       <div className="material-thick pointer-events-auto flex h-[64px] w-full max-w-md items-center justify-between rounded-full border border-line/70 px-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.14)]">
         {left.map(item)}
-        <button type="button" onClick={open} aria-label={d.tabs.add} className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-accent text-on-accent shadow-[0_6px_16px_color-mix(in_srgb,var(--accent)_40%,transparent)] transition-transform active:scale-95">
+        <button type="button" onClick={open} aria-label={d.tabs.add} {...press("add")} className="squish grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-accent text-on-accent shadow-[0_6px_16px_color-mix(in_srgb,var(--accent)_40%,transparent)]">
           <Plus className="h-7 w-7" strokeWidth={2.5} />
         </button>
         {right.map(item)}

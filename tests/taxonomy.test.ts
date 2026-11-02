@@ -41,6 +41,7 @@ const understanding: Understanding = {
   people: [],
   audience: "urban 18-34",
   language: "pt",
+  sites: [],
   visualAnalysis: {
     description: "Urban square, red LED wall, crowd.",
     environment: ["urban"],

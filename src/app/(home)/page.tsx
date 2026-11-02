@@ -101,7 +101,12 @@ export default async function Home() {
       </Link>
 
       <section>
-        <h2 className="title-2">{d.home.recent}</h2>
+        <h2 className="title-2">
+          <Link href="/recent" className="inline-flex items-center gap-1 hover:opacity-70">
+            {d.home.recent}
+            <ChevronRight className="h-6 w-6 text-ink-3" strokeWidth={2.5} />
+          </Link>
+        </h2>
         <div className={`${row} mt-3 gap-3`}>
           {recent.map((r) => (
             <RecentCard key={r.id} reference={r} lang={lang} d={d} />

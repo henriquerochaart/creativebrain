@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ExternalLink, Play } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ExternalLink, Play } from "lucide-react";
 import { collectionsOfReference, getReference, listCollections, relatedReferences, similarReferences, toPublic } from "@/server/references";
 import { getStorage } from "@/server/storage";
 import { Thumb } from "@/components/thumb";
@@ -18,6 +18,8 @@ import { ProjectPicker } from "@/components/project-picker";
 import { dict } from "@/server/lang";
 import { UnderstandingProgress } from "@/components/understanding-progress";
 import { platformLabel, taxonomyLabel } from "@/lib/i18n";
+import { Thing } from "@/components/thing";
+import type { ReferenceLink } from "@/server/db/schema";
 
 export default async function ReferencePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { lang, d } = await dict();
@@ -123,6 +125,11 @@ export default async function ReferencePage({ params, searchParams }: { params: 
         <div className="grid gap-10 break-words md:grid-cols-[minmax(0,1fr)_280px] [&>*]:min-w-0">
           <div className="space-y-8">
             <Section title={d.reference.whatItIs}>{ai.whatItIs}</Section>
+            {ai.links?.length ? (
+              <Section title={d.reference.links}>
+                <Links links={ai.links} />
+              </Section>
+            ) : null}
             <Section title={d.reference.whyInteresting}>{ai.whyInteresting}</Section>
             <Section title={d.reference.mechanism}>
               <p className="text-lg font-medium">{ai.creativeMechanism}</p>
@@ -267,5 +274,40 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="eyebrow mb-2">{title}</h2>
       <div className="text-[15px] leading-relaxed">{children}</div>
     </section>
+  );
+}
+
+/**
+ * The sites the reference points at, said in the video, shown on its screens or written in its
+ * caption, each opened and confirmed when the reference was understood (pipeline/links.ts). The
+ * picture is the site's own OpenGraph image; without one, the website icon.
+ */
+function Links({ links }: { links: ReferenceLink[] }) {
+  return (
+    <ul className="space-y-2">
+      {links.map((l) => (
+        <li key={l.url}>
+          <a href={l.url} target="_blank" rel="noreferrer" title={l.title ?? undefined} className="flex items-center gap-3 rounded-[18px] bg-paper-2 p-2.5 pr-3.5 transition-colors hover:bg-fill">
+            {l.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={l.image} alt="" referrerPolicy="no-referrer" loading="lazy" className="h-14 w-14 shrink-0 rounded-[12px] bg-fill object-cover" />
+            ) : (
+              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-[12px] bg-fill">
+                <Thing name="website" className="h-9 w-9" />
+              </span>
+            )}
+            <span className="min-w-0 flex-1">
+              <span className="flex items-baseline gap-2">
+                <span className="truncate text-[15px] font-semibold text-ink">{l.name}</span>
+                {/* The host only when it adds something: "Skillry" then skillry.dev, not skillry.dev twice. */}
+                {l.name.toLowerCase().replace(/^www\./, "") !== l.host && <span className="truncate text-[13px] text-ink-3">{l.host}</span>}
+              </span>
+              <span className="mt-0.5 line-clamp-2 text-[13px] leading-[18px] text-ink-2">{l.note}</span>
+            </span>
+            <ArrowUpRight className="h-4 w-4 shrink-0 text-ink-3" aria-hidden />
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }

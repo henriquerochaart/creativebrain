@@ -14,6 +14,8 @@ export interface ConnectorResult {
   /** Direct URL to a media file (image/video/pdf) that may be downloaded. */
   mediaUrl?: string | null;
   mediaMime?: string | null;
+  /** Headers the media URL needs (TikTok serves its video only with the page's cookies). */
+  mediaHeaders?: Record<string, string> | null;
   /** Readable page text for websites / articles. */
   pageText?: string | null;
   /** Description/caption text from the platform. */

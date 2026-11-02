@@ -23,6 +23,9 @@ export const SETTINGS_HUB: { href: string; key: HubKey; icon: string }[] = [
 /** Screens under Collections besides its own routes. */
 export const COLLECTIONS_HUB = ["/saved"];
 
+/** Screens under Início: the full Recentes gallery behind its heading. */
+export const HOME_HUB = ["/recent"];
+
 /** True when `path` is `href` or below it. */
 export function within(path: string, href: string): boolean {
   return path === href || path.startsWith(`${href}/`);
@@ -30,7 +33,7 @@ export function within(path: string, href: string): boolean {
 
 /** The tab a path belongs to, for the tab bar's selection and the back link. */
 export function tabOf(path: string): "home" | "search" | "collections" | "settings" | null {
-  if (path === "/") return "home";
+  if (path === "/" || HOME_HUB.includes(path)) return "home";
   if (within(path, "/search")) return "search";
   if (within(path, "/collections") || COLLECTIONS_HUB.some((h) => within(path, h))) return "collections";
   if (within(path, "/settings") || SETTINGS_HUB.some((h) => within(path, h.href))) return "settings";
@@ -41,7 +44,8 @@ export function tabOf(path: string): "home" | "search" | "collections" | "settin
  * Where a screen's back link goes, or null for a tab's own root and for screens that carry their
  * own back link (a moodboard or a project goes back to its list, not to Settings).
  */
-export function parentOf(path: string): "/settings" | "/collections" | null {
+export function parentOf(path: string): "/" | "/settings" | "/collections" | null {
+  if (HOME_HUB.includes(path)) return "/";
   if (SETTINGS_HUB.some((h) => path === h.href)) return "/settings";
   if (COLLECTIONS_HUB.includes(path) || /^\/collections\/[^/]+$/.test(path)) return "/collections";
   return null;

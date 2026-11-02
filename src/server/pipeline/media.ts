@@ -139,9 +139,9 @@ export async function withTempFile<T>(data: Buffer, ext: string, fn: (file: stri
   }
 }
 
-export async function downloadFile(url: string, maxBytes = 300 * 1024 * 1024): Promise<{ data: Buffer; mime: string } | null> {
+export async function downloadFile(url: string, maxBytes = 300 * 1024 * 1024, headers: Record<string, string> = {}): Promise<{ data: Buffer; mime: string } | null> {
   try {
-    const res = await fetch(url, { redirect: "follow", headers: { "user-agent": "HenriqueBrain/0.1" } });
+    const res = await fetch(url, { redirect: "follow", headers: { "user-agent": "HenriqueBrain/0.1", ...headers } });
     if (!res.ok) return null;
     const len = Number(res.headers.get("content-length") ?? 0);
     if (len > maxBytes) return null;

@@ -1,8 +1,8 @@
-import { instagramEmbedImage, instagramShortcode } from "@/server/connectors/instagram";
+import { instagramEmbedVideo, instagramEmbedImage, instagramShortcode } from "@/server/connectors/instagram";
 import { describe, expect, it } from "vitest";
 import { detectPlatform, isProbablyUrl, normalizeUrl } from "@/server/connectors/detect";
 import { youtubeId } from "@/server/connectors/youtube";
-import { tiktokOEmbedTarget, tiktokPageItem } from "@/server/connectors/tiktok";
+import { cookieHeader, tiktokOEmbedTarget, tiktokPageItem } from "@/server/connectors/tiktok";
 import { connectorFor } from "@/server/connectors";
 import { extractMeta, extractText } from "@/server/connectors/html";
 
@@ -120,6 +120,11 @@ describe("Instagram embed page", () => {
   it("returns null when the page has neither", () => {
     expect(instagramEmbedImage("<html>login</html>")).toBeNull();
   });
+  it("reads a reel's video file from the same script, and nothing for a photo", () => {
+    const html = String.raw`<script>s.handle("{\"is_video\":true,\"video_url\":\"https:\\\/\\\/scontent-ord5-1.cdninstagram.com\\\/o1\\\/v\\\/t16\\\/m84\\\/AQ.mp4?_nc_cat=110\\u0026_nc_sid=5e9851\"}")</script>`;
+    expect(instagramEmbedVideo(html)).toBe("https://scontent-ord5-1.cdninstagram.com/o1/v/t16/m84/AQ.mp4?_nc_cat=110&_nc_sid=5e9851");
+    expect(instagramEmbedVideo("<html>photo</html>")).toBeNull();
+  });
   it("finds the shortcode in post, reel and tv URLs", () => {
     expect(instagramShortcode("/reel/DfLCvb7SEB9/")).toBe("DfLCvb7SEB9");
     expect(instagramShortcode("/p/Cx_1-a/")).toBe("Cx_1-a");
@@ -133,7 +138,19 @@ describe("TikTok page item", () => {
     `<html><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">${JSON.stringify({ __DEFAULT_SCOPE__: { "webapp.video-detail": { statusCode: 0, itemInfo: { itemStruct: item } } } })}</script></html>`;
   it("reads a video's cover, caption and author", () => {
     const r = tiktokPageItem(page({ desc: "Standing Sushi Bar", author: { uniqueId: "rafbarreiraa", nickname: "RafBarreira" }, video: { cover: "https://p16.tiktokcdn-us.com/c.image", originCover: "https://p16.tiktokcdn-us.com/o.image" } }));
-    expect(r).toEqual({ cover: "https://p16.tiktokcdn-us.com/o.image", desc: "Standing Sushi Bar", author: "rafbarreiraa", authorName: "RafBarreira" });
+    expect(r).toEqual({ cover: "https://p16.tiktokcdn-us.com/o.image", desc: "Standing Sushi Bar", author: "rafbarreiraa", authorName: "RafBarreira", video: null });
+  });
+  it("reads the video's own file, and none for a carousel", () => {
+    expect(tiktokPageItem(page({ author: {}, video: { playAddr: "https://v16.tiktokcdn.com/play.mp4", downloadAddr: "https://v16.tiktokcdn.com/dl.mp4" } }))?.video).toBe("https://v16.tiktokcdn.com/play.mp4");
+    expect(tiktokPageItem(page({ author: {}, video: { downloadAddr: "https://v16.tiktokcdn.com/dl.mp4" } }))?.video).toBe("https://v16.tiktokcdn.com/dl.mp4");
+    expect(tiktokPageItem(page({ author: {}, video: { playAddr: "https://x.mp4" }, imagePost: { images: [] } }))?.video).toBeNull();
+  });
+  it("carries the cookies the page set into the video request", () => {
+    const h = new Headers();
+    h.append("set-cookie", "tt_chain_token=abc; Path=/; HttpOnly");
+    h.append("set-cookie", "ttwid=1%7Cxyz; Domain=.tiktok.com; Secure");
+    expect(cookieHeader(h)).toBe("tt_chain_token=abc; ttwid=1%7Cxyz");
+    expect(cookieHeader(new Headers())).toBeNull();
   });
   it("prefers a carousel's own cover picture", () => {
     const r = tiktokPageItem(page({ desc: "Boipeba", author: {}, video: { cover: "https://v.image" }, imagePost: { cover: { imageURL: { urlList: ["https://photo-cover.image"] } }, images: [{ imageURL: { urlList: ["https://photo-1.image"] } }] } }));

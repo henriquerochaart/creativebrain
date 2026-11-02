@@ -63,6 +63,20 @@ export type ReferenceContent = {
   visualAnalysis?: VisualAnalysis | null;
 };
 
+/** A site the reference points at, opened and confirmed by pipeline/links.ts. */
+export type ReferenceLink = {
+  url: string;
+  host: string;
+  name: string;
+  /** The page's own title, description and OpenGraph image, as fetched. */
+  title: string | null;
+  description: string | null;
+  image: string | null;
+  /** What the material says or shows about it, in the content language. */
+  note: string;
+  evidence: "spoken" | "on_screen" | "caption";
+};
+
 export type ReferenceAI = {
   summary?: string;
   whatItIs?: string;
@@ -79,6 +93,7 @@ export type ReferenceAI = {
   brands?: string[];
   people?: string[];
   audience?: string;
+  links?: ReferenceLink[];
   model?: string;
   generatedAt?: string;
 };

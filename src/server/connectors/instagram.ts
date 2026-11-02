@@ -19,6 +19,18 @@ export function instagramEmbedImage(html: string): string | null {
   return /^https:\/\//.test(url) ? url : null;
 }
 
+/**
+ * The video file itself, from the same embed page: a reel (or a /p/ video post) carries it as
+ * video_url, escaped like display_url. With it the Brain can watch and listen to the video on a
+ * serverless host, where yt-dlp does not run. Null for photos and carousels.
+ */
+export function instagramEmbedVideo(html: string): string | null {
+  const raw = /\\"video_url\\":\\"(.*?)\\"/.exec(html)?.[1];
+  if (!raw) return null;
+  const url = raw.replace(/\\+\//g, "/").replace(/\\+u0026/g, "&");
+  return /^https:\/\//.test(url) ? url : null;
+}
+
 /** The shortcode in /p/, /reel/, /reels/ or /tv/ URLs: what the embed page is addressed by. */
 export function instagramShortcode(pathname: string): string | null {
   return /\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/.exec(pathname)?.[1] ?? null;
@@ -68,11 +80,18 @@ export const instagramConnector: Connector = {
       }
     }
 
+    // The public embed page: the picture when the post page is a login wall, and for a video the
+    // file itself, so it is read for every post, not only when the picture is missing.
     const shortcode = instagramShortcode(url.pathname);
-    if (!thumbnailUrl && shortcode) {
+    let videoUrl: string | null = null;
+    if (shortcode) {
       try {
         const res = await fetchWithTimeout(`https://www.instagram.com/p/${shortcode}/embed/captioned/`);
-        if (res.ok) thumbnailUrl = instagramEmbedImage(await res.text());
+        if (res.ok) {
+          const html = await res.text();
+          thumbnailUrl = thumbnailUrl ?? instagramEmbedImage(html);
+          videoUrl = instagramEmbedVideo(html);
+        }
         if (!thumbnailUrl) warnings.push("Instagram embed page had no image either");
       } catch {
         warnings.push("Instagram embed page fetch failed");
@@ -82,10 +101,12 @@ export const instagramConnector: Connector = {
     const handle = /^\/([A-Za-z0-9_.]+)\/?$/.exec(url.pathname)?.[1];
     return {
       platform: "instagram",
-      mediaType: isVideo ? "video" : "image",
+      mediaType: isVideo || videoUrl ? "video" : "image",
       canonicalUrl,
       metadata: { title, author: author ?? handle ?? null, authorUrl, siteName: "Instagram" },
       thumbnailUrl,
+      mediaUrl: videoUrl,
+      mediaMime: videoUrl ? "video/mp4" : null,
       description,
       fetchableWithMediaFetcher: true,
       warnings,

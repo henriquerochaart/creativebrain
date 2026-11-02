@@ -14,6 +14,7 @@ import { analystSystem, synthesisPrompt } from "../ai/prompts";
 import type { AIDocument, AIImage } from "../ai/types";
 import { resolveUrl } from "../connectors";
 import { extensionFor, getStorage } from "../storage";
+import { resolveLinks } from "./links";
 import { downloadFile, extractAudio, extractFrames, fetchMediaWithYtDlp, probeMedia, withTempFile } from "./media";
 import { ffmpegBinary } from "./binaries";
 import { readPdf, renderPdfFirstPage } from "./pdf";
@@ -96,9 +97,14 @@ async function runPipeline(ref: Reference, provided?: ProvidedUnderstanding): Pr
 
     // 4. media (when permitted)
     await setStep(ref.id, "media");
+    // The connector's own file first (a direct link, or the Instagram/TikTok video read from the
+    // public page), then yt-dlp where the operator runs it. A social video is capped at 100 MB.
     if (resolved.mediaUrl) {
-      media = await downloadFile(resolved.mediaUrl);
-    } else if (resolved.fetchableWithMediaFetcher) {
+      const social = resolved.platform === "instagram" || resolved.platform === "tiktok";
+      media = await downloadFile(resolved.mediaUrl, social ? 100 * 1024 * 1024 : undefined, resolved.mediaHeaders ?? undefined);
+      if (!media && social) warnings.push("The video file the platform listed could not be downloaded");
+    }
+    if (!media && resolved.fetchableWithMediaFetcher) {
       media = await fetchMediaWithYtDlp(resolved.canonicalUrl);
       if (!media) warnings.push("Media not retrieved (MEDIA_FETCHER disabled or failed); analysed from metadata + thumbnail");
     }
@@ -223,6 +229,8 @@ async function runPipeline(ref: Reference, provided?: ProvidedUnderstanding): Pr
   }
 
   const ai = toReferenceAI(understanding, model);
+  // The sites the material points at, opened and confirmed: the reference page's Links.
+  ai.links = await resolveLinks(understanding.sites ?? [], canonicalUrl ?? ref.originalUrl ?? null);
   content.visualAnalysis = understanding.visualAnalysis;
   content.ocr = understanding.visualAnalysis.onScreenText.join("\n") || null;
   const title = understanding.title || metadata.title || ref.title || canonicalUrl || "Untitled";
@@ -325,6 +333,7 @@ export function buildSearchText(input: { ai: ReferenceAI; content: ReferenceCont
     ai.people?.join(" "),
     ai.strategicAttributes?.join(" "),
     ai.emotionalAttributes?.join(" "),
+    ai.links?.map((l) => [l.name, l.host, l.title, l.note].filter(Boolean).join(" ")).join("\n"),
     metadata.author,
     metadata.siteName,
     content.description,

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { withAuth, bad, readJson } from "@/server/http";
 import { getReference, toPublic } from "@/server/references";
-import { UnderstandingSchema } from "@/server/ai/schemas";
+import { ProvidedUnderstandingSchema } from "@/server/ai/schemas";
 import { processReference } from "@/server/pipeline/ingest";
 
 export const runtime = "nodejs";
@@ -20,7 +20,7 @@ export const POST = withAuth<{ id: string }>(async (req: NextRequest, { params }
   const ref = await getReference(params.id);
   if (!ref) return bad("Not found", 404);
   const body = await readJson<{ understanding?: unknown; model?: string }>(req);
-  const parsed = UnderstandingSchema.safeParse(body.understanding);
+  const parsed = ProvidedUnderstandingSchema.safeParse(body.understanding);
   if (!parsed.success) {
     const issues = parsed.error.issues.slice(0, 8).map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`);
     return bad(`Invalid understanding — ${issues.join("; ")}`);

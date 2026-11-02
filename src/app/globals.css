@@ -220,6 +220,29 @@ select:focus-visible {
 .fade-in { animation: fade-in 240ms ease-out; }
 @media (min-width: 1024px) { .sheet-up { animation-name: sheet-in; animation-duration: 260ms; } }
 
+/* Squish: pressed, a control shrinks quickly; released, it springs back past its size and
+   settles. Tab bar items and Add. Touch: no grey flash, no callout, no double-tap zoom delay. */
+.squish {
+  transition: transform 420ms cubic-bezier(0.3, 1.9, 0.45, 1), background-color 150ms, color 150ms;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  user-select: none;
+}
+.squish[data-pressed] { transform: scale(0.84); transition-duration: 110ms; transition-timing-function: ease-out; }
+
+/* Skeletons: the shape of the page that is coming, in fill, with a light sweep across it. */
+.skeleton { position: relative; overflow: hidden; background: var(--fill); }
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--paper) 45%, transparent), transparent);
+  animation: skeleton-sweep 1.3s ease-in-out infinite;
+}
+@keyframes skeleton-sweep { to { transform: translateX(100%); } }
+
 /* The loading screen: Brain in love, a heart leaving his head and fading. The heart layer is the
    whole 512 frame (public/mascot/coracao.webp), so it scales around its own centre (90%, 12.5%)
    and moves in percentages of the frame. It starts on the top of the head, passes through where
@@ -247,4 +270,5 @@ select:focus-visible {
   .brain-indeterminate { transform: none; width: 100%; opacity: 0.35; }
   /* The heart stays where it was drawn instead of ending its one short run invisible. */
   .heart-rise { animation: none !important; opacity: 1; transform: none; }
+  .skeleton::after { display: none; }
 }

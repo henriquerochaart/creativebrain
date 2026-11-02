@@ -48,6 +48,9 @@ export function synthesisPrompt(ctx: SynthesisContext): string {
   if (ctx.ocr) parts.push(`Text detected in visuals:\n${clip(ctx.ocr, 4000)}`);
   if (ctx.pageText) parts.push(`Page / document text:\n${clip(ctx.pageText, 40000)}`);
   parts.push(
+    `In sites, list every website, web app or online tool the material points at: said aloud in the transcript, visible in a frame (a browser, a screen recording, an address on a slide) or written in the caption. Copy addresses exactly as they appear.`,
+  );
+  parts.push(
     `If the material is thin (e.g. only a URL and a title), still infer carefully from what is present and say so in whyInteresting. Do not invent facts you cannot see.`,
   );
   return parts.join("\n\n");

@@ -4,6 +4,30 @@ import { z } from "zod";
  * The semantic file of a reference. This is what "understanding" means in the Brain.
  * Everything is required (nullable where empty) so structured-output modes stay strict.
  */
+/**
+ * Websites a reference points at: said in a video, shown on its screens, written in its caption or
+ * on its slides. The pipeline opens each one (pipeline/links.ts) and keeps those that answer, as
+ * the reference's Links. A name the material never spells out gets an address only when the model
+ * is sure of it, and is then kept only if the page it opens carries that name.
+ */
+export const SitesSchema = z
+  .array(
+    z.object({
+      name: z.string().describe("The site, web app or online tool as named, e.g. 'Skillry'."),
+      url: z
+        .string()
+        .nullable()
+        .describe("The address exactly as said, shown or written, e.g. 'skillry.dev/ai-videos'. If only the name appears, its official address only when certain; otherwise null. Never guess."),
+      urlStated: z.boolean().describe("True when this address itself was spoken, visible or written; false when you supplied it."),
+      evidence: z.enum(["spoken", "on_screen", "caption"]).describe("Where the site appears: said aloud, visible in a frame, or in the caption/description."),
+      what: z.string().describe("One sentence: what the site is and what the material says or shows about it."),
+    }),
+  )
+  .describe(
+    "Websites, web apps and online tools the material names aloud, shows on screen (a browser, a screen recording, a URL on a slide) or writes in its caption. Not the platform it is posted on, not the author's own social profiles, not generic mentions. Empty if none.",
+  );
+export type SiteMention = z.infer<typeof SitesSchema>[number];
+
 export const UnderstandingSchema = z.object({
   title: z.string().describe("Short, human title. Brand + what it is. e.g. 'Nike Running — reactive LED run club'"),
   brand: z.string().nullable().describe("Primary brand or author. null if none."),
@@ -27,6 +51,7 @@ export const UnderstandingSchema = z.object({
   people: z.array(z.string()).describe("Named people, creators, agencies, directors."),
   audience: z.string().nullable().describe("Who this speaks to."),
   language: z.string().nullable().describe("ISO 639-1 of the main spoken/written language, or null."),
+  sites: SitesSchema,
   visualAnalysis: z.object({
     description: z.string().describe("What is seen, as a paragraph. If no visuals, describe the layout/document."),
     environment: z.array(z.string()),
@@ -41,6 +66,9 @@ export const UnderstandingSchema = z.object({
   }),
 });
 export type Understanding = z.infer<typeof UnderstandingSchema>;
+
+/** What an outside agent may post as an understanding: the same, with `sites` optional for older callers. */
+export const ProvidedUnderstandingSchema = UnderstandingSchema.extend({ sites: SitesSchema.default([]) });
 
 export const WhyTheseSchema = z.object({
   headline: z.string().describe("One sentence answering the query with the pattern found."),

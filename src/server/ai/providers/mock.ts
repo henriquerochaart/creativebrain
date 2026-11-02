@@ -37,6 +37,11 @@ export class MockLLM implements LLMProvider {
           people: [],
           audience: null,
           language: null,
+          // Addresses written in the caption, so the Links step can be exercised without a model.
+          sites: [...new Set([...input.prompt.matchAll(/\b((?:https?:\/\/)?(?:[a-z0-9-]+\.)+(?:com|dev|ai|io|app|co|art|br|net|org)(?:\/[^\s,;)]*)?)/gi)].map((m) => m[1]))]
+            .filter((u) => !/instagram\.com|tiktok\.com|youtube\.com|example\.com/i.test(u))
+            .slice(0, 5)
+            .map((u) => ({ name: u.replace(/^https?:\/\//, "").split("/")[0], url: u, urlStated: true, evidence: "caption" as const, what: "Mentioned in the caption." })),
           visualAnalysis: {
             description: "Mock provider does not look at pixels.",
             environment: [],

@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: { bodySizeLimit: "200mb" },
+    // Every page is dynamic; without this the client throws each one away on leaving it, so going
+    // back to a tab waited on the server again. Kept 30 s, so switching tabs is instant. Anything
+    // that changes data calls router.refresh(), which clears it.
+    staleTimes: { dynamic: 30 },
   },
 };
 

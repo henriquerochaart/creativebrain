@@ -9,12 +9,14 @@ describe("sections", () => {
     expect(tabOf("/saved")).toBe("collections");
     expect(tabOf("/inbox")).toBe("settings");
     expect(tabOf("/moodboards/abc")).toBe("settings");
+    expect(tabOf("/recent")).toBe("home");
     expect(tabOf("/r/abc")).toBeNull();
   });
 
   it("sends each hub screen back to its tab, and leaves screens with their own back link alone", () => {
     for (const h of SETTINGS_HUB) expect(parentOf(h.href)).toBe("/settings");
     expect(parentOf("/saved")).toBe("/collections");
+    expect(parentOf("/recent")).toBe("/");
     expect(parentOf("/collections/branding")).toBe("/collections");
     expect(parentOf("/collections")).toBeNull();
     expect(parentOf("/moodboards/abc")).toBeNull();
