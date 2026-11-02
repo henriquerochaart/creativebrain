@@ -14,14 +14,7 @@ export default async function DiscoverPage() {
     <div className="space-y-12">
       <header>
         <h1 className="large-title">{d.discover.title}</h1>
-        {data ? (
-          <p className="mt-1 text-sm text-ink-2">
-            {d.discover.sub(data.signals)}
-            {data.favourites.principles.length ? d.discover.gravitate(data.favourites.principles.map((p) => taxonomyLabel(lang, "principles", p)).join(", ").toLowerCase()) : ""}
-          </p>
-        ) : (
-          <p className="mt-1 text-sm text-ink-2">{d.discover.subEmpty}</p>
-        )}
+        {!data && <p className="mt-1 text-sm text-ink-2">{d.discover.subEmpty}</p>}
       </header>
 
       {data && data.unexpected.length > 0 && (

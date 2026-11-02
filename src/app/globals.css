@@ -220,6 +220,10 @@ select:focus-visible {
 .fade-in { animation: fade-in 240ms ease-out; }
 @media (min-width: 1024px) { .sheet-up { animation-name: sheet-in; animation-duration: 260ms; } }
 
+/* Touch screens: no native rubber band or pull-to-refresh at the page edge; PullToRefresh draws
+   its own, with Brain, and the two would fight. */
+@media (pointer: coarse) { html, body { overscroll-behavior-y: none; } }
+
 /* Squish: pressed, a control shrinks quickly; released, it springs back past its size and
    settles. Tab bar items and Add. Touch: no grey flash, no callout, no double-tap zoom delay. */
 .squish {

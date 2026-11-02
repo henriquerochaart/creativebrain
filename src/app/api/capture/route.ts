@@ -3,7 +3,7 @@ import { withAuth, bad } from "@/server/http";
 import { inputFromShare, payloadFromFields, payloadFromText, captureReply, referenceLink, type SharePayload } from "@/server/share";
 import { captureInput, toPublic } from "@/server/references";
 import { getLang } from "@/server/lang";
-import { isLang } from "@/lib/i18n";
+import { DEFAULT_LANG, isLang, t } from "@/lib/i18n";
 import { withBase } from "@/lib/base-path";
 
 export const runtime = "nodejs";
@@ -21,12 +21,26 @@ export const maxDuration = 300;
  * GET /api/capture?url=&text=&title= — the same for tools that can only issue a GET.
  * `&redirect=1` jumps to the reference instead.
  */
-export const POST = withAuth(async (req: NextRequest) => capture(req, await readPayload(req)));
+export const POST = withAuth(async (req: NextRequest) => capture(req, await readPayload(req)), { onUnauthorized: locked });
 
-export const GET = withAuth(async (req: NextRequest) => {
+export const GET = withAuth(
+  async (req: NextRequest) => {
+    const p = req.nextUrl.searchParams;
+    return capture(req, { url: p.get("url"), text: p.get("text"), title: p.get("title") });
+  },
+  { onUnauthorized: locked },
+);
+
+/**
+ * Without a session, key or capture token. A Shortcut gets a line it can show as its notification
+ * (the usual cause: the capture URL predates accounts and lacks `&token=`), anyone else a 401.
+ */
+function locked(req: NextRequest): Response {
   const p = req.nextUrl.searchParams;
-  return capture(req, { url: p.get("url"), text: p.get("text"), title: p.get("title") });
-});
+  if (p.get("reply") !== "text" && p.get("reply") !== "link") return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const asked = p.get("lang");
+  return plain(t(isLang(asked) ? asked : DEFAULT_LANG).share.reply.locked, 401);
+}
 
 async function capture(req: NextRequest, payload: SharePayload): Promise<Response> {
   const p = req.nextUrl.searchParams;

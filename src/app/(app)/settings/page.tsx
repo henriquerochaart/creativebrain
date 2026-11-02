@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ChevronRight, TriangleAlert } from "lucide-react";
 import { env } from "@/server/env";
 import { publicOrigin } from "@/server/origin";
+import { currentUser } from "@/server/accounts";
+import { captureToken } from "@/lib/session";
+import { logout } from "@/app/(auth)/actions";
 import { statusCounts } from "@/server/references";
 import { SETTINGS_HUB } from "@/lib/sections";
 import { cn } from "@/lib/utils";
@@ -84,11 +87,13 @@ export default async function SettingsPage() {
   // Everything here is copied into a phone or a config file, so it must be the full public root.
   const root = `${origin}${env.basePath}`;
   const apiKeySet = Boolean(env.apiKey);
-  // A Shortcut sends no language cookie, so a non-default reader language goes into the URL itself.
-  const captureUrl = `${root}/api/capture?reply=text${lang === DEFAULT_LANG ? "" : `&lang=${lang}`}`;
+  // A Shortcut cannot sign in: its URL carries the capture token, and, since it sends no language
+  // cookie, a non-default reader language too.
+  const captureUrl = `${root}/api/capture?reply=text&token=${await captureToken()}${lang === DEFAULT_LANG ? "" : `&lang=${lang}`}`;
   const shortcutUrl = /^https:\/\//.test(env.shortcutUrl) ? env.shortcutUrl : null;
   const st = s.steps;
-  const steps = [st.create, st.share, st.fetch, st.options, ...(apiKeySet ? [st.key] : []), st.notify];
+  const steps = [st.create, st.share, st.fetch, st.options, st.notify];
+  const user = await currentUser();
   const mcpConfig = JSON.stringify(
     { mcpServers: { brain: { command: "npx", args: ["tsx", "src/mcp/server.ts"], env: { BRAIN_URL: root, ...(apiKeySet ? { BRAIN_API_KEY: "…" } : {}) } } } },
     null,
@@ -98,6 +103,20 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <h1 className="large-title mb-6">{s.title}</h1>
+
+      {user && (
+        <Group
+          icon="key"
+          title={user.email}
+          aside={
+            <form action={logout}>
+              <button type="submit" className="btn-gray h-11 px-4 text-[15px] text-danger lg:h-9">
+                {d.auth.logout}
+              </button>
+            </form>
+          }
+        />
+      )}
 
       <Hub d={d} inbox={inbox} failed={failed} />
 
@@ -116,16 +135,13 @@ export default async function SettingsPage() {
       </Group>
 
       <Group icon="lightning-bolt" title={s.shortcut}>
-        <p>
-          <Rich text={s.shortcutSub} />
-        </p>
         {shortcutUrl && (
           // The Albo way: an iCloud link to the finished shortcut opens Shortcuts on "Add Shortcut".
-          <a href={shortcutUrl} className="btn-filled mt-4 h-12 w-full text-[17px]">
+          <a href={shortcutUrl} className="btn-filled h-12 w-full text-[17px]">
             {s.shortcutInstall}
           </a>
         )}
-        <details className="mt-4" open={!shortcutUrl}>
+        <details className={shortcutUrl ? "mt-4" : undefined} open={!shortcutUrl}>
           <summary className="cursor-pointer font-medium text-ink">{s.manual}</summary>
           <ol className="mt-3 space-y-3">
             {steps.map((step, i) => (
@@ -162,16 +178,16 @@ export default async function SettingsPage() {
         <div className="flex flex-wrap items-center gap-3">
           <a
             href={`javascript:void(window.open('${root}/share?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`}
+            // How to use it is a tooltip: drag it to the bookmarks bar.
+            title={s.desktopSub}
             className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm"
           >
             + Brain
           </a>
-          <span>{s.desktopSub}</span>
         </div>
       </Group>
 
       <Group icon="plug-adapter" title={s.mcp}>
-        <p>{s.mcpSub}</p>
         <CopyBlock value={mcpConfig} />
         {!apiKeySet && (
           <p className="mt-3 flex gap-2 text-[13px] text-ink">

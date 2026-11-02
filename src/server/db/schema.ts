@@ -265,6 +265,21 @@ export const referenceEvents = pgTable(
   (t) => [index("reference_events_ref_idx").on(t.referenceId), index("reference_events_created_idx").on(t.createdAt)],
 );
 
+/**
+ * The people who can open this Brain. The first account to register owns it and registration
+ * closes behind it (server/accounts.ts); the library itself is one, shared by whoever signs in.
+ */
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    passwordHash: text("password_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("users_email_idx").on(t.email)],
+);
+
 export const referencesRelations = relations(references, ({ many }) => ({
   collectionItems: many(collectionItems),
 }));
@@ -282,3 +297,4 @@ export type Collection = typeof collections.$inferSelect;
 export type ReferenceRelation = typeof referenceRelations.$inferSelect;
 export type Board = typeof boards.$inferSelect;
 export type Project = typeof projects.$inferSelect;
+export type User = typeof users.$inferSelect;

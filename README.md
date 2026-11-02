@@ -67,6 +67,8 @@ A thumbnail é sempre a do próprio material: imagem OpenGraph ou oEmbed do link
 
 ## Idiomas
 
+**Contas.** O Brain pede login. A primeira conta criada é a dona e o cadastro fecha em seguida. A API só responde a quem está logado, a `BRAIN_API_KEY` (agentes, MCP) ou, na captura, ao token que vai na URL do Atalho (copie em Ajustes). `AUTH_SECRET` assina as sessões; sem ele, o segredo deriva da `DATABASE_URL`.
+
 A interface é bilíngue, português e inglês, com a escolha em Ajustes. A escolha vai para o cookie `brain_lang`, que os server components leem, então a troca não recarrega a página nem pisca o idioma antigo. Todo texto vive em `src/lib/i18n.ts`; `pt` é a fonte da verdade e `en` é tipado contra ele, então uma chave faltando quebra o typecheck em vez de aparecer em produção.
 
 Duas decisões que valem explicar:

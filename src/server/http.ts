@@ -5,9 +5,9 @@ type Ctx<P> = { params: Promise<P> };
 type Handler<P> = (req: NextRequest, ctx: { params: P }) => Promise<Response> | Response;
 
 /** Wraps a route handler with API-key auth and uniform error handling. */
-export function withAuth<P = Record<string, never>>(handler: Handler<P>) {
+export function withAuth<P = Record<string, never>>(handler: Handler<P>, opts: { onUnauthorized?: (req: NextRequest) => Response } = {}) {
   return async (req: NextRequest, ctx: Ctx<P>): Promise<Response> => {
-    if (!isAuthorized(req)) return unauthorized();
+    if (!(await isAuthorized(req))) return opts.onUnauthorized?.(req) ?? unauthorized();
     try {
       const params = (await ctx?.params) ?? ({} as P);
       return await handler(req, { params });

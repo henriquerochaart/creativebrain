@@ -1,12 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import "./globals.css";
-import { Sidebar } from "@/components/sidebar";
-import { SectionBack } from "@/components/section-back";
 import { LangProvider } from "@/components/lang-provider";
-import { AddFromQuery, AddProvider } from "@/components/add-sheet";
-import { TabBar } from "@/components/tab-bar";
-import { TabBarWithCounts } from "@/components/tab-bar-counts";
 import { withBase } from "@/lib/base-path";
 import { dict } from "@/server/lang";
 import { publicOrigin } from "@/server/origin";
@@ -53,29 +47,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={localeOf(lang)}>
       <body className="min-h-screen">
-        <LangProvider lang={lang}>
-          {/* No header: a phone navigates with the tab bar, a wide screen with the sidebar. */}
-          <AddProvider>
-            <Suspense>
-              <AddFromQuery />
-            </Suspense>
-            <div className="flex">
-              <div className="hidden lg:sticky lg:top-0 lg:block lg:h-screen lg:w-60 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-line lg:bg-paper-2/60">
-                <Suspense fallback={<div className="h-full" />}>
-                  <Sidebar />
-                </Suspense>
-              </div>
-              {/* Bottom padding clears the floating tab bar on a phone. */}
-              <main className="min-w-0 flex-1 px-4 pb-32 pt-6 sm:px-6 lg:px-10 lg:py-8">
-                <SectionBack />
-                {children}
-              </main>
-            </div>
-            <Suspense fallback={<TabBar failed={0} />}>
-              <TabBarWithCounts />
-            </Suspense>
-          </AddProvider>
-        </LangProvider>
+        {/* The shell (sidebar, tab bar, Add sheet) lives in (app)/layout; (auth) screens have none. */}
+        <LangProvider lang={lang}>{children}</LangProvider>
       </body>
     </html>
   );

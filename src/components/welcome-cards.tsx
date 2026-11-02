@@ -1,0 +1,71 @@
+"use client";
+
+import { useRef, useState, useTransition } from "react";
+import { seenWelcome } from "@/app/(auth)/actions";
+import { cn } from "@/lib/utils";
+import { useT } from "./lang-provider";
+import { Mascot, type MascotPose } from "./mascot";
+
+/** One pose per card: hello, "send me things", and the sunglasses of someone who sees connections. */
+const POSES: MascotPose[] = ["feliz", "apontando", "oculos"];
+
+/**
+ * The welcome cards, after Albo: three cards to swipe, Brain on each, one line in his voice.
+ * Titles only. Continue moves to the next card; on the last it becomes the way in (Create
+ * account while nobody owns the Brain, Sign in after). Skip goes straight there.
+ */
+export function WelcomeCards({ owner }: { owner: boolean }) {
+  const d = useT();
+  const track = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const [pending, start] = useTransition();
+  const titles = d.auth.welcome;
+  const last = index === titles.length - 1;
+  const destination = owner ? "/login" : "/register";
+
+  const go = (i: number) => {
+    const el = track.current;
+    const card = el?.children[i] as HTMLElement | undefined;
+    if (el && card) el.scrollTo({ left: card.offsetLeft - el.offsetLeft - 24, behavior: "smooth" });
+  };
+  const onScroll = () => {
+    const el = track.current;
+    if (!el) return;
+    const width = (el.children[0] as HTMLElement | undefined)?.offsetWidth ?? el.clientWidth;
+    setIndex(Math.max(0, Math.min(titles.length - 1, Math.round(el.scrollLeft / (width + 12)))));
+  };
+  const finish = () => start(() => seenWelcome(destination));
+
+  return (
+    <div className="flex flex-1 flex-col pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <div className="flex justify-end px-4">
+        <button type="button" onClick={finish} disabled={pending} className={cn("h-11 px-2 text-[17px] text-accent-ink", last && "invisible")}>
+          {d.auth.skip}
+        </button>
+      </div>
+
+      <div ref={track} onScroll={onScroll} data-no-pull className="mt-2 flex flex-1 snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-6 px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {titles.map((title, i) => (
+          <section key={i} aria-hidden={i !== index} className="flex w-[calc(100%-1.5rem)] shrink-0 snap-start flex-col justify-between rounded-[32px] bg-accent/25 p-7">
+            <div className="grid flex-1 place-items-center">
+              <Mascot pose={POSES[i]} className={cn("h-60 w-60 transition-transform duration-500", i === index ? "scale-100" : "scale-90")} />
+            </div>
+            <h2 className="text-[30px] font-bold leading-[36px] text-ink">{title}</h2>
+          </section>
+        ))}
+      </div>
+
+      <div className="mt-5 flex justify-center gap-2" aria-hidden>
+        {titles.map((_, i) => (
+          <span key={i} className={cn("h-2 rounded-full transition-all duration-300", i === index ? "w-6 bg-accent-ink" : "w-2 bg-fill-2")} />
+        ))}
+      </div>
+
+      <div className="mt-6 px-6">
+        <button type="button" disabled={pending} onClick={() => (last ? finish() : go(index + 1))} className="btn-filled h-14 w-full text-[17px]">
+          {last ? (owner ? d.auth.login : d.auth.register) : d.auth.next}
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -47,7 +47,6 @@ export default async function InboxPage() {
             <h2 className="eyebrow">{d.inbox.stale} · {stale.length}</h2>
             <ReprocessStale ids={stale.map((r) => r.id)} />
           </div>
-          <p className="mb-3 text-[13px] text-ink-2">{d.inbox.staleHint}</p>
           <ul className="divide-y divide-line overflow-hidden rounded-[14px] bg-paper-2">
             {stale.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
