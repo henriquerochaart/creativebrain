@@ -30,6 +30,6 @@ export const POST = withAuth<{ id: string }>(async (req: NextRequest, { params }
   });
   await recordEvent(ref.id, "ask");
   return textStream(chunks, async (answer) => {
-    await db.insert(conversations).values({ referenceId: ref.id, mode: "ask", question: body.question!, answer });
+    await db.insert(conversations).values({ userId: ref.userId, referenceId: ref.id, mode: "ask", question: body.question!, answer });
   });
 });

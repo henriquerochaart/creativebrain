@@ -3,26 +3,40 @@ import { eq } from "drizzle-orm";
 import { db } from "@/server/db/client";
 import { references } from "@/server/db/schema";
 import { getStorage } from "@/server/storage";
+import { getReference } from "@/server/references";
+import { NotSignedIn } from "@/server/tenant";
 
 export const runtime = "nodejs";
 
-/** Serves stored media (local driver, S3 without a public URL) or redirects to it (Vercel Blob). Public: thumbnails are embedded in pages. */
+/**
+ * Serves stored media (local driver, S3 without a public URL) or redirects to it (Vercel Blob),
+ * only to the account whose library the reference is in: every key is references/<id>/…, and the
+ * reference must be the signed-in account's. Cached privately, per browser, so a shared cache can
+ * never hand one account's picture to another.
+ */
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ key: string[] }> }) {
   const { key } = await ctx.params;
   const path = key.join("/");
+  const id = /^references\/([0-9a-fA-F-]{36})\//.exec(path)?.[1];
+  try {
+    if (!id || !(await getReference(id))) return new Response("Not found", { status: 404 });
+  } catch (err) {
+    if (err instanceof NotSignedIn) return new Response("Unauthorized", { status: 401 });
+    throw err;
+  }
 
   const storage = getStorage();
-  // A driver with its own CDN (Vercel Blob): send the browser there. The redirect itself is cached
-  // at the edge for a day, so a page full of thumbnails does not cost a lookup per image per view.
+  // A driver with its own CDN (Vercel Blob): send the browser there. The browser keeps the redirect
+  // for a day, so a page full of thumbnails does not cost a lookup per image per view.
   if (storage.locate) {
     const direct = await storage.locate(path);
-    if (direct) return new Response(null, { status: 302, headers: { location: direct, "cache-control": "public, max-age=3600, s-maxage=86400" } });
+    if (direct) return new Response(null, { status: 302, headers: { location: direct, "cache-control": "private, max-age=86400" } });
   }
 
   const obj = storage.locate ? null : await storage.get(path);
   if (obj) {
     return new Response(new Uint8Array(obj.data), {
-      headers: { "content-type": obj.mime, "cache-control": "public, max-age=31536000, immutable", "content-length": String(obj.data.length) },
+      headers: { "content-type": obj.mime, "cache-control": "private, max-age=31536000, immutable", "content-length": String(obj.data.length) },
     });
   }
 

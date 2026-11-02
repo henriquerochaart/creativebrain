@@ -12,33 +12,35 @@ import { referenceDigest } from "./search/explain";
 import { isUuid, toPublic, type PublicReference } from "./references";
 import { recordEvent } from "./insights";
 import { t, type Dict, type Lang } from "@/lib/i18n";
+import { userId } from "./tenant";
 
 export async function listProjects() {
+  const uid = await userId();
   const rows = await db.execute<{ id: string; name: string; brief: string | null; status: string; analyzed_at: string | null; created_at: string; updated_at: string; count: number; covers: string[] }>(sql`
     SELECT p.*, (SELECT count(*) FROM project_references pr WHERE pr.project_id = p.id)::int AS count,
       ARRAY(SELECT r.thumbnail_url FROM project_references pr JOIN "references" r ON r.id = pr.reference_id WHERE pr.project_id = p.id AND r.thumbnail_url IS NOT NULL ORDER BY pr.position, pr.added_at LIMIT 4) AS covers
-    FROM projects p ORDER BY p.updated_at DESC`);
+    FROM projects p WHERE p.user_id = ${uid} ORDER BY p.updated_at DESC`);
   return rows.rows;
 }
 
 export async function getProject(id: string): Promise<Project | null> {
   if (!isUuid(id)) return null;
-  const [row] = await db.select().from(projects).where(eq(projects.id, id));
+  const [row] = await db.select().from(projects).where(and(eq(projects.id, id), eq(projects.userId, await userId())));
   return row ?? null;
 }
 
 export async function createProject(input: { name: string; brief?: string | null }) {
-  const [row] = await db.insert(projects).values({ name: input.name.trim(), brief: input.brief ?? null }).returning();
+  const [row] = await db.insert(projects).values({ userId: await userId(), name: input.name.trim(), brief: input.brief ?? null }).returning();
   return row;
 }
 
 export async function updateProject(id: string, patch: { name?: string; brief?: string | null; status?: string }) {
-  const [row] = await db.update(projects).set({ ...patch, updatedAt: new Date() }).where(eq(projects.id, id)).returning();
+  const [row] = await db.update(projects).set({ ...patch, updatedAt: new Date() }).where(and(eq(projects.id, id), eq(projects.userId, await userId()))).returning();
   return row ?? null;
 }
 
 export async function deleteProject(id: string) {
-  const res = await db.delete(projects).where(eq(projects.id, id)).returning({ id: projects.id });
+  const res = await db.delete(projects).where(and(eq(projects.id, id), eq(projects.userId, await userId()))).returning({ id: projects.id });
   return res.length > 0;
 }
 
@@ -47,12 +49,18 @@ export async function projectReferenceList(projectId: string): Promise<(PublicRe
     .select({ ref: references, note: projectReferences.note, position: projectReferences.position })
     .from(projectReferences)
     .innerJoin(references, eq(references.id, projectReferences.referenceId))
-    .where(eq(projectReferences.projectId, projectId))
+    .where(and(eq(projectReferences.projectId, projectId), eq(references.userId, await userId())))
     .orderBy(projectReferences.position, projectReferences.addedAt);
   return rows.map((r) => ({ ...toPublic(r.ref), note: r.note, position: r.position }));
 }
 
+/** Only between a project and a reference that are both the signed-in account's. */
 export async function addReferenceToProject(projectId: string, referenceId: string, note?: string | null) {
+  const uid = await userId();
+  const [owns] = (await db.execute<{ ok: boolean }>(sql`
+    SELECT EXISTS (SELECT 1 FROM projects WHERE id = ${projectId} AND user_id = ${uid})
+       AND EXISTS (SELECT 1 FROM "references" WHERE id = ${referenceId} AND user_id = ${uid}) AS ok`)).rows;
+  if (!owns?.ok) throw new Error("Not found");
   const [{ max }] = (await db.execute<{ max: number | null }>(sql`SELECT max(position) AS max FROM project_references WHERE project_id = ${projectId}`)).rows;
   await db
     .insert(projectReferences)
@@ -63,6 +71,7 @@ export async function addReferenceToProject(projectId: string, referenceId: stri
 }
 
 export async function removeReferenceFromProject(projectId: string, referenceId: string) {
+  if (!(await getProject(projectId))) return;
   await db.delete(projectReferences).where(and(eq(projectReferences.projectId, projectId), eq(projectReferences.referenceId, referenceId)));
   await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
 }
@@ -72,7 +81,7 @@ export async function projectsOfReference(referenceId: string) {
     .select({ id: projects.id, name: projects.name })
     .from(projectReferences)
     .innerJoin(projects, eq(projects.id, projectReferences.projectId))
-    .where(eq(projectReferences.referenceId, referenceId));
+    .where(and(eq(projectReferences.referenceId, referenceId), eq(projects.userId, await userId())));
 }
 
 /** Deterministic part of the analysis: what the selection is made of. */
@@ -105,7 +114,7 @@ export async function analyzeProject(project: Project, lang: Lang): Promise<Stor
   const refs = await projectReferenceList(project.id);
   const stats = selectionStats(refs);
   const sentence = selectionSentence(stats, t(lang));
-  const full = refs.length ? await db.select().from(references).where(inArray(references.id, refs.map((r) => r.id))) : [];
+  const full = refs.length ? await db.select().from(references).where(and(inArray(references.id, refs.map((r) => r.id)), eq(references.userId, await userId()))) : [];
   const digest = full.map((r) => referenceDigest(r, { withId: true, long: false })).join("\n\n");
   const llm = getLLM();
   const analysis: ProjectAnalysis = await llm.analyze({
@@ -140,5 +149,5 @@ export function projectMarkdown(project: Project, refs: PublicReference[], store
 }
 
 export async function recentProjectsList(limit = 5) {
-  return db.select({ id: projects.id, name: projects.name }).from(projects).where(eq(projects.status, "open")).orderBy(desc(projects.updatedAt)).limit(limit);
+  return db.select({ id: projects.id, name: projects.name }).from(projects).where(and(eq(projects.status, "open"), eq(projects.userId, await userId()))).orderBy(desc(projects.updatedAt)).limit(limit);
 }

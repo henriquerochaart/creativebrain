@@ -2,12 +2,12 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authenticate, registerOwner, validCredentials } from "@/server/accounts";
+import { authenticate, registerUser, validCredentials } from "@/server/accounts";
 import { SESSION_COOKIE, SESSION_DAYS, WELCOME_COOKIE, signSession } from "@/lib/session";
 import { BASE_PATH } from "@/lib/base-path";
 
 /** The error, and the email typed, since React resets the form after the action: it comes back filled in. */
-export type AuthState = { error: "email" | "password" | "wrong" | "closed" | "server" | null; email?: string };
+export type AuthState = { error: "email" | "password" | "wrong" | "closed" | "taken" | "server" | null; email?: string };
 
 /** Only a path inside the app, never another site: `next` arrives in the URL. */
 function safeNext(value: FormDataEntryValue | null): string {
@@ -51,13 +51,13 @@ export async function register(_: AuthState, form: FormData): Promise<AuthState>
     return { error: invalid, email };
   }
   try {
-    const user = await registerOwner(email, password);
+    const { user, reason } = await registerUser(email, password);
     if (!user) {
-      console.info("[auth] register: closed, the Brain already has an owner");
-      return { error: "closed", email };
+      console.info(`[auth] register: ${reason}`);
+      return { error: reason ?? "closed", email };
     }
     await signIn(user.id);
-    console.info("[auth] register: owner created");
+    console.info("[auth] register: account created");
   } catch (err) {
     console.error("[auth] register failed:", err instanceof Error ? err.message : err);
     return { error: "server", email };

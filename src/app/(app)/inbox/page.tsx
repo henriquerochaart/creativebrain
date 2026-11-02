@@ -5,7 +5,8 @@ import { StatusDot } from "@/components/status-dot";
 import { db } from "@/server/db/client";
 import { references } from "@/server/db/schema";
 import { toPublic } from "@/server/references";
-import { desc, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { userId } from "@/server/tenant";
 import { ReprocessButton } from "@/components/reference-actions";
 import { dict } from "@/server/lang";
 import { ReprocessStale } from "@/components/reprocess-stale";
@@ -17,11 +18,12 @@ const STALE_MS = 6 * 60 * 1000;
 
 export default async function InboxPage() {
   const { lang, d } = await dict();
-  const active = await db.select().from(references).where(inArray(references.status, ["queued", "processing", "failed"])).orderBy(desc(references.createdAt)).limit(100);
+  const uid = await userId();
+  const active = await db.select().from(references).where(and(eq(references.userId, uid), inArray(references.status, ["queued", "processing", "failed"]))).orderBy(desc(references.createdAt)).limit(100);
   const recent = await db
     .select()
     .from(references)
-    .where(sql`${references.status} = \'understood\' AND ${references.processedAt} > now() - interval \'48 hours\'`)
+    .where(and(eq(references.userId, uid), sql`${references.status} = \'understood\' AND ${references.processedAt} > now() - interval \'48 hours\'`))
     .orderBy(desc(references.processedAt))
     .limit(60);
   const failed = active.filter((r) => r.status === "failed");

@@ -2,12 +2,13 @@
  * V2 intelligence layers over the repertoire: trends, personal taste, discovery, knowledge graph data.
  * Deterministic SQL/JS; the LLM narrative sits on top in `narrative.ts`.
  */
-import { sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./db/client";
 import { referenceEvents, references, referenceRelations } from "./db/schema";
 import { toVectorLiteral } from "./pipeline/embed";
 import { mapRow } from "./search";
 import { toPublic, type PublicReference } from "./references";
+import { userId } from "./tenant";
 
 // ---------- Events ----------
 
@@ -22,13 +23,14 @@ export type Trend = { value: string; recent: number; prior: number; lift: number
 
 export async function trends(column: "tags" | "principles" | "subjects" | "formats" | "concepts", recentDays = 30, priorDays = 90, limit = 12): Promise<Trend[]> {
   const col = sql.raw(column);
+  const uid = await userId();
   const rows = await db.execute<{ value: string; recent: number; prior: number }>(sql`
     WITH recent AS (
       SELECT v AS value, count(*)::int AS n FROM "references" r, unnest(r.${col}) v
-      WHERE r.status = 'understood' AND r.created_at > now() - make_interval(days => ${recentDays}) GROUP BY v),
+      WHERE r.user_id = ${uid} AND r.status = 'understood' AND r.created_at > now() - make_interval(days => ${recentDays}) GROUP BY v),
     prior AS (
       SELECT v AS value, count(*)::int AS n FROM "references" r, unnest(r.${col}) v
-      WHERE r.status = 'understood' AND r.created_at <= now() - make_interval(days => ${recentDays})
+      WHERE r.user_id = ${uid} AND r.status = 'understood' AND r.created_at <= now() - make_interval(days => ${recentDays})
         AND r.created_at > now() - make_interval(days => ${recentDays + priorDays}) GROUP BY v)
     SELECT coalesce(recent.value, prior.value) AS value, coalesce(recent.n, 0) AS recent, coalesce(prior.n, 0) AS prior
     FROM recent FULL OUTER JOIN prior ON recent.value = prior.value
@@ -47,7 +49,7 @@ export async function trends(column: "tags" | "principles" | "subjects" | "forma
 export async function recentVolume(days = 30) {
   const rows = await db.execute<{ day: string; n: number }>(sql`
     SELECT to_char(date_trunc('day', created_at), 'YYYY-MM-DD') AS day, count(*)::int AS n
-    FROM "references" WHERE created_at > now() - make_interval(days => ${days}) GROUP BY 1 ORDER BY 1`);
+    FROM "references" WHERE user_id = ${await userId()} AND created_at > now() - make_interval(days => ${days}) GROUP BY 1 ORDER BY 1`);
   return rows.rows;
 }
 
@@ -65,7 +67,7 @@ export async function tasteSignals(): Promise<Signal[]> {
       (SELECT count(*) FROM project_references pr WHERE pr.reference_id = r.id)::int AS projects,
       (SELECT count(*) FROM reference_events e WHERE e.reference_id = r.id AND e.kind = 'ask')::int AS asks,
       (SELECT count(*) FROM reference_events e WHERE e.reference_id = r.id AND e.kind = 'view')::int AS views
-    FROM "references" r WHERE r.status = 'understood' AND r.embedding_content IS NOT NULL`);
+    FROM "references" r WHERE r.user_id = ${await userId()} AND r.status = 'understood' AND r.embedding_content IS NOT NULL`);
   return rows.rows
     .map((r) => ({
       id: r.id,
@@ -89,7 +91,7 @@ export async function tasteVector(): Promise<{ vector: number[]; signals: number
   if (!signals.length) return null;
   const ids = signals.map((s) => s.id);
   const rows = await db.execute<{ id: string; v: string }>(sql`
-    SELECT id, embedding_content::text AS v FROM "references" WHERE id IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
+    SELECT id, embedding_content::text AS v FROM "references" WHERE user_id = ${await userId()} AND id IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
   const w = new Map(signals.map((s) => [s.id, s.weight]));
   let acc: number[] | null = null;
   let total = 0;
@@ -136,7 +138,7 @@ export async function discover(limit = 12): Promise<Discovery | null> {
   const rows = await db.execute<Record<string, unknown> & { score: number }>(sql`
     SELECT r.*, 1 - (r.embedding_content <=> ${lit}::vector) AS score
     FROM "references" r
-    WHERE r.status = 'understood' AND r.embedding_content IS NOT NULL
+    WHERE r.user_id = ${await userId()} AND r.status = 'understood' AND r.embedding_content IS NOT NULL
       AND r.id NOT IN (${sql.join(signalIds.map((id) => sql`${id}`), sql`, `)})
     ORDER BY r.embedding_content <=> ${lit}::vector
     LIMIT ${limit * 5}`);
@@ -162,12 +164,13 @@ export async function graphData(limit = 250): Promise<{ nodes: GraphNode[]; edge
   const refs = await db.execute<{ id: string; title: string | null; thumbnail_url: string | null; source_platform: string; principles: string[]; brand: string | null; degree: number }>(sql`
     SELECT r.id, r.title, r.thumbnail_url, r.source_platform, r.principles, r.brand,
       (SELECT count(*) FROM reference_relations x WHERE x.source_id = r.id OR x.target_id = r.id)::int AS degree
-    FROM "references" r WHERE r.status = 'understood' ORDER BY degree DESC, r.created_at DESC LIMIT ${limit}`);
+    FROM "references" r WHERE r.user_id = ${await userId()} AND r.status = 'understood' ORDER BY degree DESC, r.created_at DESC LIMIT ${limit}`);
   const ids = new Set(refs.rows.map((r) => r.id));
   const nodes: GraphNode[] = refs.rows.map((r) => ({ id: r.id, type: "reference", label: r.title ?? "Untitled", thumb: r.thumbnail_url, platform: r.source_platform, weight: 1 + r.degree }));
   const edges: GraphEdge[] = [];
   if (ids.size) {
-    const rel = await db.select().from(referenceRelations);
+    // Only edges between this library's references survive the filter below.
+    const rel = await db.select().from(referenceRelations).where(inArray(referenceRelations.sourceId, [...ids]));
     const seen = new Set<string>();
     for (const e of rel) {
       if (!ids.has(e.sourceId) || !ids.has(e.targetId)) continue;
@@ -198,6 +201,6 @@ export async function graphData(limit = 250): Promise<{ nodes: GraphNode[]; edge
 }
 
 export async function understoodSample(limit = 150) {
-  const rows = await db.select().from(references).where(sql`${references.status} = 'understood'`).orderBy(sql`${references.createdAt} DESC`).limit(limit);
+  const rows = await db.select().from(references).where(and(eq(references.userId, await userId()), sql`${references.status} = 'understood'`)).orderBy(sql`${references.createdAt} DESC`).limit(limit);
   return rows;
 }

@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+// The API key and the old capture token act as the owner, looked up in the database; here, a stub.
+vi.mock("@/server/tenant", () => ({ ownerId: async () => "owner-1" }));
+
 async function load(key: string) {
   vi.resetModules();
   process.env.BRAIN_API_KEY = key;
@@ -15,28 +18,35 @@ describe("API auth", () => {
     delete process.env.AUTH_SECRET;
   });
   it("is closed by default: no key configured no longer means open", async () => {
-    const { isAuthorized } = await load("");
-    expect(await isAuthorized(new Request("http://x/api/search"))).toBe(false);
+    const { authorizedUser } = await load("");
+    expect(await authorizedUser(new Request("http://x/api/search"))).toBeNull();
   });
-  it("lets a signed-in account through with its session cookie, and not a forged one", async () => {
-    const { isAuthorized, signSession, SESSION_COOKIE } = await load("");
+  it("resolves a signed-in account from its session cookie, and not from a forged one", async () => {
+    const { authorizedUser, signSession, SESSION_COOKIE } = await load("");
     const token = await signSession("user-1");
-    expect(await isAuthorized(new Request("http://x/api/search", { headers: { cookie: `a=b; ${SESSION_COOKIE}=${token}` } }))).toBe(true);
+    expect(await authorizedUser(new Request("http://x/api/search", { headers: { cookie: `a=b; ${SESSION_COOKIE}=${token}` } }))).toBe("user-1");
     const forged = token.slice(0, -2) + (token.endsWith("AA") ? "BB" : "AA");
-    expect(await isAuthorized(new Request("http://x/api/search", { headers: { cookie: `${SESSION_COOKIE}=${forged}` } }))).toBe(false);
+    expect(await authorizedUser(new Request("http://x/api/search", { headers: { cookie: `${SESSION_COOKIE}=${forged}` } }))).toBeNull();
   });
-  it("accepts the API key as bearer or x-api-key", async () => {
-    const { isAuthorized } = await load("secret-123");
-    expect(await isAuthorized(new Request("http://x/api/search", { headers: { authorization: "Bearer secret-123" } }))).toBe(true);
-    expect(await isAuthorized(new Request("http://x/api/search", { headers: { "x-api-key": "secret-123" } }))).toBe(true);
-    expect(await isAuthorized(new Request("http://x/api/search", { headers: { authorization: "Bearer wrong-key-1" } }))).toBe(false);
+  it("lets the API key act as the owner", async () => {
+    const { authorizedUser } = await load("secret-123");
+    expect(await authorizedUser(new Request("http://x/api/search", { headers: { authorization: "Bearer secret-123" } }))).toBe("owner-1");
+    expect(await authorizedUser(new Request("http://x/api/search", { headers: { "x-api-key": "secret-123" } }))).toBe("owner-1");
+    expect(await authorizedUser(new Request("http://x/api/search", { headers: { authorization: "Bearer wrong-key-1" } }))).toBeNull();
   });
-  it("accepts the capture token on /api/capture only", async () => {
-    const { isAuthorized, captureToken } = await load("");
-    const token = await captureToken();
-    expect(await isAuthorized(new Request(`http://x/api/capture?reply=text&token=${token}`, { method: "POST" }))).toBe(true);
-    expect(await isAuthorized(new Request(`http://x/api/references?token=${token}`))).toBe(false);
-    expect(await isAuthorized(new Request("http://x/api/capture?token=nope", { method: "POST" }))).toBe(false);
+  it("sends a capture into the library of the account whose token it carries, on /api/capture only", async () => {
+    const { authorizedUser, captureToken, readCaptureToken } = await load("");
+    const ana = await captureToken("ana-uuid");
+    const bia = await captureToken("bia-uuid");
+    expect(await authorizedUser(new Request(`http://x/api/capture?reply=text&token=${ana}`, { method: "POST" }))).toBe("ana-uuid");
+    expect(await authorizedUser(new Request(`http://x/api/capture?token=${bia}`, { method: "POST" }))).toBe("bia-uuid");
+    // A token with someone else's id swapped in does not verify.
+    expect(await readCaptureToken(`bia-uuid.${ana.split(".")[1]}`)).toBeNull();
+    expect(await authorizedUser(new Request(`http://x/api/references?token=${ana}`))).toBeNull();
+  });
+  it("still accepts the single token from before per-account libraries, for the owner", async () => {
+    const { authorizedUser, legacyCaptureToken } = await load("");
+    expect(await authorizedUser(new Request(`http://x/api/capture?token=${await legacyCaptureToken()}`, { method: "POST" }))).toBe("owner-1");
   });
   it("no longer trusts the UI header on its own", async () => {
     const { isAuthorized } = await load("secret-123");

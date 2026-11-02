@@ -63,9 +63,25 @@ export async function readSession(token: string | null | undefined, now = Date.n
 }
 
 /**
- * The token a Shortcut adds to the capture URL (`&token=`), since it cannot sign in. Derived from
- * the same secret, so it is stable across deploys and changes with it.
+ * The token a Shortcut adds to the capture URL (`&token=`), since it cannot sign in: the account
+ * id and a signature of it, so the capture lands in that account's library. Derived from the
+ * session secret, so it is stable across deploys and changes with it.
  */
-export async function captureToken(): Promise<string> {
+export async function captureToken(userId: string): Promise<string> {
+  return `${userId}.${b64url(await hmac(`capture|${userId}`)).slice(0, 32)}`;
+}
+
+/** The account a capture token belongs to, or null when it is not one we signed. */
+export async function readCaptureToken(token: string | null | undefined): Promise<string | null> {
+  if (!token) return null;
+  const dot = token.lastIndexOf(".");
+  if (dot <= 0) return null;
+  const uid = token.slice(0, dot);
+  const expected = await captureToken(uid);
+  return sameBytes(enc.encode(expected), enc.encode(token)) ? uid : null;
+}
+
+/** The single token of the days before per-account libraries; it still captures, for the owner. */
+export async function legacyCaptureToken(): Promise<string> {
   return b64url(await hmac("capture")).slice(0, 32);
 }

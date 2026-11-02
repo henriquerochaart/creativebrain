@@ -102,6 +102,7 @@ export const references = pgTable(
   "references",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     originalUrl: text("original_url"),
     canonicalUrl: text("canonical_url"),
     sourcePlatform: text("source_platform").notNull().default("other"),
@@ -139,6 +140,7 @@ export const references = pgTable(
     processedAt: timestamp("processed_at", { withTimezone: true }),
   },
   (t) => [
+    index("references_user_created_idx").on(t.userId, t.createdAt),
     index("references_status_idx").on(t.status),
     index("references_platform_idx").on(t.sourcePlatform),
     index("references_created_idx").on(t.createdAt),
@@ -158,6 +160,7 @@ export const collections = pgTable(
   "collections",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     emoji: text("emoji"),
@@ -166,7 +169,7 @@ export const collections = pgTable(
     auto: boolean("auto").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("collections_slug_idx").on(t.slug)],
+  (t) => [uniqueIndex("collections_user_slug_idx").on(t.userId, t.slug)],
 );
 
 export const collectionItems = pgTable(
@@ -206,6 +209,7 @@ export const referenceRelations = pgTable(
 /** Conversations with a reference ("Ask this reference") and Think mode, kept for memory. */
 export const conversations = pgTable("conversations", {
   id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
   referenceId: uuid("reference_id").references(() => references.id, { onDelete: "cascade" }),
   mode: text("mode").notNull(), // ask | think
   question: text("question").notNull(),
@@ -217,6 +221,7 @@ export const conversations = pgTable("conversations", {
 /** Saved boards (moodboards) generated from a brief over the repertoire. */
 export const boards = pgTable("boards", {
   id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   brief: text("brief").notNull(),
   payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
@@ -226,6 +231,7 @@ export const boards = pgTable("boards", {
 /** V3: a project is a creative process — references → concepts → patterns → directions → ideas → output. */
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   brief: text("brief"),
   status: text("status").notNull().default("open"), // open | archived
@@ -266,8 +272,9 @@ export const referenceEvents = pgTable(
 );
 
 /**
- * The people who can open this Brain. The first account to register owns it and registration
- * closes behind it (server/accounts.ts); the library itself is one, shared by whoever signs in.
+ * The people who use this Brain. Each has a library of their own: every owned table carries
+ * user_id and every query filters on it (server/tenant.ts). The first account also adopts rows
+ * that predate accounts.
  */
 export const users = pgTable(
   "users",

@@ -4,6 +4,7 @@ import type { Reference } from "../db/schema";
 import { embedQuery, toVectorLiteral } from "../pipeline/embed";
 import { rrf } from "./rrf";
 import { AIConfigError } from "../ai/types";
+import { userId } from "../tenant";
 
 export type SearchMode = "hybrid" | "keyword" | "semantic" | "visual" | "conceptual";
 
@@ -33,8 +34,9 @@ export type SearchResult = {
   degraded?: string;
 };
 
-function filterSql(f: SearchFilters): SQL {
-  const parts: SQL[] = [sql`r.status = ${f.status ?? "understood"}`];
+/** Always scoped to one account's library: `uid` is the first condition of every search. */
+function filterSql(uid: string, f: SearchFilters): SQL {
+  const parts: SQL[] = [sql`r.user_id = ${uid}`, sql`r.status = ${f.status ?? "understood"}`];
   if (f.platform) parts.push(sql`r.source_platform = ${f.platform}`);
   if (f.mediaType) parts.push(sql`r.media_type = ${f.mediaType}`);
   if (f.subject) parts.push(sql`${f.subject} = ANY(r.subjects)`);
@@ -46,23 +48,23 @@ function filterSql(f: SearchFilters): SQL {
   return sql.join(parts, sql` AND `);
 }
 
-async function keywordSearch(q: string, f: SearchFilters, limit: number) {
+async function keywordSearch(uid: string, q: string, f: SearchFilters, limit: number) {
   const rows = await db.execute<{ id: string; score: number }>(sql`
     SELECT r.id, ts_rank_cd(r.fts, websearch_to_tsquery('simple', ${q})) AS score
     FROM "references" r
-    WHERE ${filterSql(f)} AND r.fts @@ websearch_to_tsquery('simple', ${q})
+    WHERE ${filterSql(uid, f)} AND r.fts @@ websearch_to_tsquery('simple', ${q})
     ORDER BY score DESC
     LIMIT ${limit}`);
   return rows.rows.map((r) => ({ id: r.id, score: Number(r.score) }));
 }
 
-async function vectorSearch(column: "embedding_content" | "embedding_visual" | "embedding_strategic" | "embedding_execution", vec: number[], f: SearchFilters, limit: number) {
+async function vectorSearch(uid: string, column: "embedding_content" | "embedding_visual" | "embedding_strategic" | "embedding_execution", vec: number[], f: SearchFilters, limit: number) {
   const col = sql.raw(column);
   const lit = toVectorLiteral(vec);
   const rows = await db.execute<{ id: string; score: number }>(sql`
     SELECT r.id, 1 - (r.${col} <=> ${lit}::vector) AS score
     FROM "references" r
-    WHERE ${filterSql(f)} AND r.${col} IS NOT NULL
+    WHERE ${filterSql(uid, f)} AND r.${col} IS NOT NULL
     ORDER BY r.${col} <=> ${lit}::vector
     LIMIT ${limit}`);
   return rows.rows.map((r) => ({ id: r.id, score: Number(r.score) }));
@@ -71,7 +73,7 @@ async function vectorSearch(column: "embedding_content" | "embedding_visual" | "
 /** Lists references without a query (browse mode), newest first, with filters. */
 export async function browse(f: SearchFilters, limit = 60, offset = 0): Promise<Reference[]> {
   const rows = await db.execute<Reference>(sql`
-    SELECT r.* FROM "references" r WHERE ${filterSql(f)} ORDER BY r.created_at DESC LIMIT ${limit} OFFSET ${offset}`);
+    SELECT r.* FROM "references" r WHERE ${filterSql(await userId(), f)} ORDER BY r.created_at DESC LIMIT ${limit} OFFSET ${offset}`);
   return rows.rows.map(mapRow);
 }
 
@@ -85,6 +87,7 @@ export async function search(query: string, opts: { mode?: SearchMode; filters?:
   const limit = opts.limit ?? 40;
   const per = Math.max(limit, 30);
   const q = query.trim();
+  const uid = await userId();
   let degraded: string | undefined;
 
   let vec: number[] | null = opts.queryVector ?? null;
@@ -97,20 +100,20 @@ export async function search(query: string, opts: { mode?: SearchMode; filters?:
   }
 
   const lists: { name: string; items: { id: string; score: number }[]; weight?: number }[] = [];
-  if (q && (mode === "hybrid" || mode === "keyword")) lists.push({ name: "keyword", items: await keywordSearch(q, filters, per), weight: 1 });
+  if (q && (mode === "hybrid" || mode === "keyword")) lists.push({ name: "keyword", items: await keywordSearch(uid, q, filters, per), weight: 1 });
   if (vec) {
-    if (mode === "hybrid" || mode === "semantic") lists.push({ name: "semantic", items: await vectorSearch("embedding_content", vec, filters, per), weight: 1.2 });
+    if (mode === "hybrid" || mode === "semantic") lists.push({ name: "semantic", items: await vectorSearch(uid, "embedding_content", vec, filters, per), weight: 1.2 });
     if (mode === "hybrid" || mode === "conceptual") {
-      lists.push({ name: "strategic", items: await vectorSearch("embedding_strategic", vec, filters, per), weight: 0.8 });
-      lists.push({ name: "execution", items: await vectorSearch("embedding_execution", vec, filters, per), weight: 0.8 });
+      lists.push({ name: "strategic", items: await vectorSearch(uid, "embedding_strategic", vec, filters, per), weight: 0.8 });
+      lists.push({ name: "execution", items: await vectorSearch(uid, "embedding_execution", vec, filters, per), weight: 0.8 });
     }
-    if (mode === "hybrid" || mode === "visual") lists.push({ name: "visual", items: await vectorSearch("embedding_visual", vec, filters, per), weight: mode === "visual" ? 1.5 : 0.6 });
+    if (mode === "hybrid" || mode === "visual") lists.push({ name: "visual", items: await vectorSearch(uid, "embedding_visual", vec, filters, per), weight: mode === "visual" ? 1.5 : 0.6 });
   }
 
   const fused = rrf(lists).slice(0, limit);
   if (!fused.length) return { query: q, mode, hits: [], total: 0, degraded };
   const ids = fused.map((f) => f.id);
-  const rows = await db.execute<Reference>(sql`SELECT * FROM "references" WHERE id IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
+  const rows = await db.execute<Reference>(sql`SELECT * FROM "references" WHERE user_id = ${uid} AND id IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
   const byId = new Map(rows.rows.map((r) => [r.id, mapRow(r)]));
   const hits: SearchHit[] = fused
     .filter((f) => byId.has(f.id))
@@ -123,6 +126,7 @@ export function mapRow(r: Record<string, unknown>): Reference {
   const get = (k: string) => r[k];
   return {
     id: get("id"),
+    userId: get("user_id") ?? null,
     originalUrl: get("original_url"),
     canonicalUrl: get("canonical_url"),
     sourcePlatform: get("source_platform"),

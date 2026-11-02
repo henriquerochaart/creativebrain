@@ -22,4 +22,14 @@ describe("accounts", () => {
     expect(validCredentials("a@b.co", "short")).toBe("password");
     expect(normalizeEmail("  Henrique@Example.COM ")).toBe("henrique@example.com");
   });
+  it("follows BRAIN_SIGNUPS: open by default, closed, or an allowlist; the first account always", async () => {
+    const { signupAllowed } = await import("@/server/accounts");
+    expect(signupAllowed("ana@x.com", "")).toBe(true);
+    expect(signupAllowed("ana@x.com", "open")).toBe(true);
+    expect(signupAllowed("ana@x.com", "closed")).toBe(false);
+    expect(signupAllowed("ana@x.com", "closed", true)).toBe(true);
+    expect(signupAllowed("Ana@Spinoff.Digital", "@spinoff.digital, bia@gmail.com")).toBe(true);
+    expect(signupAllowed("bia@gmail.com", "@spinoff.digital, bia@gmail.com")).toBe(true);
+    expect(signupAllowed("caio@gmail.com", "@spinoff.digital, bia@gmail.com")).toBe(false);
+  });
 });

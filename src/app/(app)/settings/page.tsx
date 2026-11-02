@@ -89,11 +89,11 @@ export default async function SettingsPage() {
   const apiKeySet = Boolean(env.apiKey);
   // A Shortcut cannot sign in: its URL carries the capture token, and, since it sends no language
   // cookie, a non-default reader language too.
-  const captureUrl = `${root}/api/capture?reply=text&token=${await captureToken()}${lang === DEFAULT_LANG ? "" : `&lang=${lang}`}`;
+  const user = await currentUser();
+  const captureUrl = `${root}/api/capture?reply=text&token=${user ? await captureToken(user.id) : ""}${lang === DEFAULT_LANG ? "" : `&lang=${lang}`}`;
   const shortcutUrl = /^https:\/\//.test(env.shortcutUrl) ? env.shortcutUrl : null;
   const st = s.steps;
   const steps = [st.create, st.share, st.fetch, st.options, st.notify];
-  const user = await currentUser();
   const mcpConfig = JSON.stringify(
     { mcpServers: { brain: { command: "npx", args: ["tsx", "src/mcp/server.ts"], env: { BRAIN_URL: root, ...(apiKeySet ? { BRAIN_API_KEY: "…" } : {}) } } } },
     null,

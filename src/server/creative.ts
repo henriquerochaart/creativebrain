@@ -1,7 +1,7 @@
 /**
  * V2 creative layers: moodboard generator, creative assistant, auto collections, taste narrative.
  */
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "./db/client";
 import { boards, collectionItems, collections, conversations, references, type Reference } from "./db/schema";
 import { getLLM } from "./ai/router";
@@ -12,6 +12,7 @@ import { referenceDigest } from "./search/explain";
 import { search } from "./search";
 import { addToCollection, brandCounts, createCollection, facetCounts, statusCounts, toPublic } from "./references";
 import { trends, understoodSample } from "./insights";
+import { userId } from "./tenant";
 
 // ---------- Moodboard generator ----------
 
@@ -29,26 +30,27 @@ export async function generateMoodboard(brief: string, lang: Lang) {
   const byId = Object.fromEntries(refs.filter((r) => used.has(r.id)).map((r) => [r.id, toPublic(r)]));
   const [saved] = await db
     .insert(boards)
-    .values({ title: board.title, brief, payload: { board, referenceIds: [...used], degraded: result.degraded ?? null } })
+    .values({ userId: await userId(), title: board.title, brief, payload: { board, referenceIds: [...used], degraded: result.degraded ?? null } })
     .returning();
   return { board: saved, analysis: board, references: byId };
 }
 
 export async function listBoards() {
-  const rows = await db.select().from(boards).orderBy(desc(boards.createdAt)).limit(100);
+  const rows = await db.select().from(boards).where(eq(boards.userId, await userId())).orderBy(desc(boards.createdAt)).limit(100);
   return rows;
 }
 
 export async function getBoard(id: string) {
-  const [row] = await db.select().from(boards).where(eq(boards.id, id));
+  const uid = await userId();
+  const [row] = await db.select().from(boards).where(and(eq(boards.id, id), eq(boards.userId, uid)));
   if (!row) return null;
   const ids = ((row.payload as { referenceIds?: string[] }).referenceIds ?? []).filter(Boolean);
-  const refs = ids.length ? await db.select().from(references).where(inArray(references.id, ids)) : [];
+  const refs = ids.length ? await db.select().from(references).where(and(inArray(references.id, ids), eq(references.userId, uid))) : [];
   return { board: row, analysis: (row.payload as { board: Moodboard }).board, references: Object.fromEntries(refs.map((r) => [r.id, toPublic(r)])) };
 }
 
 export async function deleteBoard(id: string) {
-  const res = await db.delete(boards).where(eq(boards.id, id)).returning({ id: boards.id });
+  const res = await db.delete(boards).where(and(eq(boards.id, id), eq(boards.userId, await userId()))).returning({ id: boards.id });
   return res.length > 0;
 }
 
@@ -66,7 +68,7 @@ export function assistStream(idea: string, history: { role: "user" | "assistant"
 }
 
 export async function saveAssistConversation(idea: string, answer: string, referenceIds: string[]) {
-  await db.insert(conversations).values({ mode: "assist", question: idea, answer, payload: { referenceIds } });
+  await db.insert(conversations).values({ userId: await userId(), mode: "assist", question: idea, answer, payload: { referenceIds } });
 }
 
 // ---------- Auto collections ----------
@@ -75,7 +77,7 @@ export type AutoCollectionProposal = AutoCollections["collections"][number] & { 
 
 export async function proposeCollections(lang: Lang): Promise<{ proposals: AutoCollectionProposal[]; sample: number; references: Record<string, ReturnType<typeof toPublic>> }> {
   const refs = await understoodSample(150);
-  const existing = await db.select({ name: collections.name }).from(collections);
+  const existing = await db.select({ name: collections.name }).from(collections).where(eq(collections.userId, await userId()));
   const digest = refs
     .map((r) => `[${r.id}] ${r.title}${r.brand ? ` — ${r.brand}` : ""} · ${r.ai.creativeMechanism ?? ""} · ${r.principles.join(", ")} · ${r.tags.slice(0, 6).join(" ")}`)
     .join("\n");
@@ -96,7 +98,7 @@ export async function proposeCollections(lang: Lang): Promise<{ proposals: AutoC
 
 export async function acceptProposal(p: { name: string; emoji?: string | null; rationale?: string | null; referenceIds: string[] }) {
   const col = await createCollection({ name: p.name, emoji: p.emoji ?? null, description: p.rationale ?? null });
-  await db.update(collections).set({ auto: true }).where(eq(collections.id, col.id));
+  await db.update(collections).set({ auto: true }).where(and(eq(collections.id, col.id), eq(collections.userId, await userId())));
   for (const id of p.referenceIds) await addToCollection(col.id, id);
   return col;
 }
@@ -134,5 +136,9 @@ export async function tasteNarrative(lang: Lang): Promise<Narrative> {
 
 export async function collectionMembership(referenceIds: string[]) {
   if (!referenceIds.length) return [];
-  return db.select().from(collectionItems).where(inArray(collectionItems.referenceId, referenceIds));
+  return db
+    .select({ collectionId: collectionItems.collectionId, referenceId: collectionItems.referenceId, addedAt: collectionItems.addedAt })
+    .from(collectionItems)
+    .innerJoin(collections, eq(collections.id, collectionItems.collectionId))
+    .where(and(inArray(collectionItems.referenceId, referenceIds), eq(collections.userId, await userId())));
 }

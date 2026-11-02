@@ -33,28 +33,54 @@ export function validCredentials(email: string, password: string): "email" | "pa
   return null;
 }
 
-/** True once someone owns this Brain; registration closes then. */
+/** True once someone owns this Brain (the first account). */
 export async function hasOwner(): Promise<boolean> {
   const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(users);
   return (row?.n ?? 0) > 0;
 }
 
 /**
- * Creates the owner, in one statement that inserts only into an empty table, so two people racing
- * to register cannot both win. Null when someone already owns the Brain.
+ * Who may create an account, from BRAIN_SIGNUPS: unset or "open" lets anyone in (each account
+ * gets its own, empty library); "closed" lets nobody in after the first account; anything else
+ * is a comma-separated list of addresses or "@domain" endings, e.g. "@spinoff.digital,ana@x.com".
+ * The very first account is always allowed: someone has to own the Brain.
  */
-export async function registerOwner(email: string, password: string): Promise<User | null> {
+export function signupAllowed(email: string, policy = process.env.BRAIN_SIGNUPS ?? "", first = false): boolean {
+  if (first) return true;
+  const rule = policy.trim().toLowerCase();
+  if (!rule || rule === "open") return true;
+  if (rule === "closed") return false;
+  const address = normalizeEmail(email);
+  return rule
+    .split(",")
+    .map((r) => r.trim())
+    .filter(Boolean)
+    .some((r) => (r.startsWith("@") ? address.endsWith(r) : address === r));
+}
+
+/** Whether the Register screen should be offered at all (an allowlist is checked per address). */
+export async function signupsOpen(): Promise<boolean> {
+  return !(await hasOwner()) || (process.env.BRAIN_SIGNUPS ?? "").trim().toLowerCase() !== "closed";
+}
+
+/**
+ * Creates an account with its own library. The first account also adopts every row that predates
+ * accounts (no user_id yet), so a Brain set up before logins keeps its library. Null when the
+ * address is taken or not allowed by BRAIN_SIGNUPS.
+ */
+export async function registerUser(email: string, password: string): Promise<{ user: User | null; reason?: "taken" | "closed" }> {
+  const address = normalizeEmail(email);
+  const first = !(await hasOwner());
+  if (!signupAllowed(address, undefined, first)) return { user: null, reason: "closed" };
   const passwordHash = await hashPassword(password);
-  const rows = await db.execute<{ id: string }>(sql`
-    INSERT INTO users (email, password_hash)
-    SELECT ${normalizeEmail(email)}, ${passwordHash}
-    WHERE NOT EXISTS (SELECT 1 FROM users)
-    RETURNING id
-  `);
-  const id = rows.rows[0]?.id;
-  if (!id) return null;
-  const [user] = await db.select().from(users).where(eq(users.id, id));
-  return user ?? null;
+  const [user] = await db.insert(users).values({ email: address, passwordHash }).onConflictDoNothing().returning();
+  if (!user) return { user: null, reason: "taken" };
+  if (first) {
+    for (const table of ["references", "collections", "boards", "projects", "conversations"]) {
+      await db.execute(sql`UPDATE ${sql.identifier(table)} SET user_id = ${user.id} WHERE user_id IS NULL`);
+    }
+  }
+  return { user };
 }
 
 export async function authenticate(email: string, password: string): Promise<User | null> {

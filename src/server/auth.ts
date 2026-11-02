@@ -1,27 +1,37 @@
 import { env } from "./env";
-import { SESSION_COOKIE, captureToken, readSession } from "@/lib/session";
+import { ownerId } from "./tenant";
+import { SESSION_COOKIE, legacyCaptureToken, readCaptureToken, readSession } from "@/lib/session";
 
 /**
- * Who may call /api/*. Since the Brain has accounts, nothing is open by default:
- * - the app itself, through the session cookie of a signed-in account;
- * - agents (MCP, scripts), with BRAIN_API_KEY as `Authorization: Bearer <key>` or `x-api-key`;
- * - the iOS Shortcut, which cannot sign in, on /api/capture only, with `?token=` (the capture
- *   token shown in Ajustes).
+ * Who is calling /api/*, as the account whose library the call reads and writes, or null:
+ * - the app itself: the session cookie of a signed-in account;
+ * - agents (MCP, scripts): BRAIN_API_KEY as `Authorization: Bearer <key>` or `x-api-key`, acting
+ *   as the owner (the first account);
+ * - the iOS Shortcut, on /api/capture only: `?token=`, the account's capture token from Ajustes
+ *   (the older single token still works, for the owner).
  * The middleware turns away page visits without a session before they get here.
  */
-export async function isAuthorized(req: Request): Promise<boolean> {
-  if (await readSession(cookieValue(req, SESSION_COOKIE))) return true;
+export async function authorizedUser(req: Request): Promise<string | null> {
+  const session = await readSession(cookieValue(req, SESSION_COOKIE));
+  if (session) return session;
   if (env.apiKey) {
     const auth = req.headers.get("authorization") ?? "";
     const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-    if (bearer && safeEqual(bearer, env.apiKey)) return true;
     const key = req.headers.get("x-api-key") ?? "";
-    if (key && safeEqual(key, env.apiKey)) return true;
+    if ((bearer && safeEqual(bearer, env.apiKey)) || (key && safeEqual(key, env.apiKey))) return ownerId();
   }
   const url = new URL(req.url);
   const token = url.searchParams.get("token");
-  if (token && url.pathname.endsWith("/api/capture") && safeEqual(token, await captureToken())) return true;
-  return false;
+  if (token && url.pathname.endsWith("/api/capture")) {
+    const uid = await readCaptureToken(token);
+    if (uid) return uid;
+    if (safeEqual(token, await legacyCaptureToken())) return ownerId();
+  }
+  return null;
+}
+
+export async function isAuthorized(req: Request): Promise<boolean> {
+  return (await authorizedUser(req)) !== null;
 }
 
 /** One cookie from the raw header, so this works on a plain Request as well as a NextRequest. */

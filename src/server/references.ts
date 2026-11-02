@@ -8,6 +8,7 @@ import { extensionFor, getStorage } from "./storage";
 import { SIMILARITY_KINDS, slugify, type SimilarityKind } from "./taxonomy";
 import { nearest } from "./pipeline/relate";
 import { mapRow } from "./search";
+import { userId } from "./tenant";
 
 export type PublicReference = Omit<Reference, "embeddingContent" | "embeddingVisual" | "embeddingStrategic" | "embeddingExecution" | "searchText" | "fts">;
 
@@ -21,20 +22,21 @@ export function isUuid(id: string): boolean {
   return UUID_RE.test(id);
 }
 
+/** A reference in the signed-in account's library, or null (also for someone else's). */
 export async function getReference(id: string): Promise<Reference | null> {
   if (!isUuid(id)) return null;
-  const [row] = await db.select().from(references).where(eq(references.id, id));
+  const [row] = await db.select().from(references).where(and(eq(references.id, id), eq(references.userId, await userId())));
   return row ?? null;
 }
 
 export async function listReferences(opts: { status?: string; limit?: number; offset?: number; saved?: boolean } = {}) {
-  const conds = [];
+  const conds = [eq(references.userId, await userId())];
   if (opts.status) conds.push(eq(references.status, opts.status));
   if (opts.saved !== undefined) conds.push(eq(references.saved, opts.saved));
   return db
     .select()
     .from(references)
-    .where(conds.length ? and(...conds) : undefined)
+    .where(and(...conds))
     .orderBy(desc(references.createdAt))
     .limit(opts.limit ?? 60)
     .offset(opts.offset ?? 0);
@@ -44,7 +46,7 @@ export async function findByUrl(url: string): Promise<Reference | null> {
   const [row] = await db
     .select()
     .from(references)
-    .where(sql`${references.originalUrl} = ${url} OR ${references.canonicalUrl} = ${url}`)
+    .where(and(eq(references.userId, await userId()), sql`(${references.originalUrl} = ${url} OR ${references.canonicalUrl} = ${url})`))
     .limit(1);
   return row ?? null;
 }
@@ -56,6 +58,7 @@ export async function findByUrl(url: string): Promise<Reference | null> {
 export async function captureInput(input: string, opts: { note?: string; collectionId?: string } = {}) {
   const trimmed = input.trim();
   if (!trimmed) throw new Error("Empty input");
+  const uid = await userId();
   let inserted: Reference;
   if (isProbablyUrl(trimmed)) {
     const url = normalizeUrl(trimmed);
@@ -65,12 +68,13 @@ export async function captureInput(input: string, opts: { note?: string; collect
     const mediaType = platform === "pdf" ? "pdf" : platform === "image" ? "image" : platform === "video" || platform === "youtube" || platform === "tiktok" ? "video" : "website";
     [inserted] = await db
       .insert(references)
-      .values({ originalUrl: url, sourcePlatform: platform, mediaType, title: url, userNote: opts.note ?? null, status: "queued" })
+      .values({ userId: uid, originalUrl: url, sourcePlatform: platform, mediaType, title: url, userNote: opts.note ?? null, status: "queued" })
       .returning();
   } else {
     [inserted] = await db
       .insert(references)
       .values({
+        userId: uid,
         sourcePlatform: "text",
         mediaType: "text",
         title: trimmed.split("\n")[0].slice(0, 120),
@@ -94,6 +98,7 @@ export async function captureUpload(file: { name: string; mime: string; data: Bu
   const [inserted] = await db
     .insert(references)
     .values({
+      userId: await userId(),
       sourcePlatform: platform,
       mediaType,
       title: file.name,
@@ -116,7 +121,8 @@ export async function captureUpload(file: { name: string; mime: string; data: Bu
 }
 
 export async function reprocessReference(id: string) {
-  await db.update(references).set({ status: "queued", error: null, processingStep: null }).where(eq(references.id, id));
+  const rows = await db.update(references).set({ status: "queued", error: null, processingStep: null }).where(and(eq(references.id, id), eq(references.userId, await userId()))).returning({ id: references.id });
+  if (!rows.length) throw new Error("Not found");
   return enqueueIngest(id);
 }
 
@@ -124,7 +130,7 @@ export async function updateReference(id: string, patch: { saved?: boolean; user
   const [row] = await db
     .update(references)
     .set({ ...patch, updatedAt: new Date() })
-    .where(eq(references.id, id))
+    .where(and(eq(references.id, id), eq(references.userId, await userId())))
     .returning();
   return row ?? null;
 }
@@ -132,7 +138,7 @@ export async function updateReference(id: string, patch: { saved?: boolean; user
 export async function deleteReference(id: string) {
   const ref = await getReference(id);
   if (!ref) return false;
-  await db.delete(references).where(eq(references.id, id));
+  await db.delete(references).where(and(eq(references.id, id), eq(references.userId, ref.userId!)));
   const storage = getStorage();
   if (ref.mediaKey) await storage.delete(ref.mediaKey).catch(() => undefined);
   return true;
@@ -149,7 +155,7 @@ export async function similarReferences(id: string, perKind = 6): Promise<Simila
     raw[kind] = await nearest(id, kind, perKind);
     raw[kind].forEach((r) => ids.add(r.id));
   }
-  const rows = ids.size ? await db.select().from(references).where(inArray(references.id, [...ids])) : [];
+  const rows = ids.size ? await db.select().from(references).where(and(inArray(references.id, [...ids]), eq(references.userId, await userId()))) : [];
   const byId = new Map(rows.map((r) => [r.id, toPublic(r)]));
   for (const kind of SIMILARITY_KINDS) {
     out[kind] = raw[kind].filter((r) => byId.has(r.id)).map((r) => ({ reference: byId.get(r.id)!, score: Math.round(r.score * 100) / 100 }));
@@ -177,11 +183,12 @@ export async function relatedReferences(id: string, limit = 8) {
 // ---------- Collections ----------
 
 export async function listCollections() {
+  const uid = await userId();
   const rows = await db.execute<{ id: string; name: string; slug: string; emoji: string | null; description: string | null; position: number; auto: boolean; count: number; cover: string | null }>(sql`
     SELECT c.id, c.name, c.slug, c.emoji, c.description, c.position, c.auto,
       (SELECT count(*) FROM collection_items ci WHERE ci.collection_id = c.id)::int AS count,
       (SELECT r.thumbnail_url FROM collection_items ci JOIN "references" r ON r.id = ci.reference_id WHERE ci.collection_id = c.id AND r.thumbnail_url IS NOT NULL ORDER BY ci.added_at DESC LIMIT 1) AS cover
-    FROM collections c ORDER BY c.position, c.created_at`);
+    FROM collections c WHERE c.user_id = ${uid} ORDER BY c.position, c.created_at`);
   return rows.rows;
 }
 
@@ -189,7 +196,7 @@ export async function getCollection(idOrSlug: string) {
   const [row] = await db
     .select()
     .from(collections)
-    .where(isUuid(idOrSlug) ? eq(collections.id, idOrSlug) : eq(collections.slug, idOrSlug))
+    .where(and(eq(collections.userId, await userId()), isUuid(idOrSlug) ? eq(collections.id, idOrSlug) : eq(collections.slug, idOrSlug)))
     .limit(1);
   return row ?? null;
 }
@@ -198,36 +205,44 @@ export async function createCollection(input: { name: string; emoji?: string | n
   const base = slugify(input.name) || "collection";
   let slug = base;
   for (let i = 2; await getCollection(slug); i++) slug = `${base}-${i}`;
-  const [{ max }] = await db.execute<{ max: number | null }>(sql`SELECT max(position) AS max FROM collections`).then((r) => r.rows);
+  const uid = await userId();
+  const [{ max }] = await db.execute<{ max: number | null }>(sql`SELECT max(position) AS max FROM collections WHERE user_id = ${uid}`).then((r) => r.rows);
   const [row] = await db
     .insert(collections)
-    .values({ name: input.name.trim(), slug, emoji: input.emoji ?? null, description: input.description ?? null, position: (max ?? 0) + 1 })
+    .values({ userId: uid, name: input.name.trim(), slug, emoji: input.emoji ?? null, description: input.description ?? null, position: (max ?? 0) + 1 })
     .returning();
   return row;
 }
 
 export async function updateCollection(id: string, patch: { name?: string; emoji?: string | null; description?: string | null; position?: number }) {
-  const [row] = await db.update(collections).set(patch).where(eq(collections.id, id)).returning();
+  const [row] = await db.update(collections).set(patch).where(and(eq(collections.id, id), eq(collections.userId, await userId()))).returning();
   return row ?? null;
 }
 
 export async function deleteCollection(id: string) {
-  const res = await db.delete(collections).where(eq(collections.id, id)).returning({ id: collections.id });
+  const res = await db.delete(collections).where(and(eq(collections.id, id), eq(collections.userId, await userId()))).returning({ id: collections.id });
   return res.length > 0;
 }
 
+/** Links a reference to a collection only when both are the signed-in account's. */
 export async function addToCollection(collectionId: string, referenceId: string) {
-  await db.insert(collectionItems).values({ collectionId, referenceId }).onConflictDoNothing();
+  const uid = await userId();
+  await db.execute(sql`
+    INSERT INTO collection_items (collection_id, reference_id)
+    SELECT c.id, r.id FROM collections c, "references" r
+    WHERE c.id = ${collectionId} AND r.id = ${referenceId} AND c.user_id = ${uid} AND r.user_id = ${uid}
+    ON CONFLICT DO NOTHING`);
 }
 
 export async function removeFromCollection(collectionId: string, referenceId: string) {
+  if (!(await getCollection(collectionId))) return;
   await db.delete(collectionItems).where(and(eq(collectionItems.collectionId, collectionId), eq(collectionItems.referenceId, referenceId)));
 }
 
 export async function collectionReferences(collectionId: string, limit = 200) {
   const rows = await db.execute<Record<string, unknown>>(sql`
     SELECT r.* FROM collection_items ci JOIN "references" r ON r.id = ci.reference_id
-    WHERE ci.collection_id = ${collectionId} ORDER BY ci.added_at DESC LIMIT ${limit}`);
+    WHERE ci.collection_id = ${collectionId} AND r.user_id = ${await userId()} ORDER BY ci.added_at DESC LIMIT ${limit}`);
   return rows.rows.map(mapRow);
 }
 
@@ -236,7 +251,7 @@ export async function collectionsOfReference(referenceId: string) {
     .select({ id: collections.id, name: collections.name, slug: collections.slug, emoji: collections.emoji })
     .from(collectionItems)
     .innerJoin(collections, eq(collections.id, collectionItems.collectionId))
-    .where(eq(collectionItems.referenceId, referenceId));
+    .where(and(eq(collectionItems.referenceId, referenceId), eq(collections.userId, await userId())));
 }
 
 // ---------- Aggregates: concepts, brands, principles, patterns ----------
@@ -245,39 +260,46 @@ export async function facetCounts(column: "tags" | "concepts" | "principles" | "
   const col = sql.raw(column);
   const rows = await db.execute<{ value: string; count: number }>(sql`
     SELECT v AS value, count(*)::int AS count FROM "references" r, unnest(r.${col}) v
-    WHERE r.status = 'understood' GROUP BY v ORDER BY count DESC, v LIMIT ${limit}`);
+    WHERE r.status = 'understood' AND r.user_id = ${await userId()} GROUP BY v ORDER BY count DESC, v LIMIT ${limit}`);
   return rows.rows;
 }
 
 export async function brandCounts(limit = 100) {
   const rows = await db.execute<{ value: string; count: number }>(sql`
     SELECT brand AS value, count(*)::int AS count FROM "references"
-    WHERE status = 'understood' AND brand IS NOT NULL AND brand <> '' GROUP BY brand ORDER BY count DESC, brand LIMIT ${limit}`);
+    WHERE status = 'understood' AND user_id = ${await userId()} AND brand IS NOT NULL AND brand <> '' GROUP BY brand ORDER BY count DESC, brand LIMIT ${limit}`);
   return rows.rows;
 }
 
 export async function platformCounts() {
   const rows = await db.execute<{ value: string; count: number }>(sql`
-    SELECT source_platform AS value, count(*)::int AS count FROM "references" GROUP BY source_platform ORDER BY count DESC`);
+    SELECT source_platform AS value, count(*)::int AS count FROM "references" WHERE user_id = ${await userId()} GROUP BY source_platform ORDER BY count DESC`);
   return rows.rows;
 }
 
 /** How many references of each media type and each source platform: the library's quick filters. */
 export async function kindCounts(): Promise<{ type: Record<string, number>; platform: Record<string, number> }> {
+  const uid = await userId();
   const rows = await db.execute<{ kind: "type" | "platform"; value: string; count: number }>(sql`
-    SELECT 'type' AS kind, media_type AS value, count(*)::int AS count FROM "references" GROUP BY media_type
+    SELECT 'type' AS kind, media_type AS value, count(*)::int AS count FROM "references" WHERE user_id = ${uid} GROUP BY media_type
     UNION ALL
-    SELECT 'platform' AS kind, source_platform AS value, count(*)::int AS count FROM "references" GROUP BY source_platform`);
+    SELECT 'platform' AS kind, source_platform AS value, count(*)::int AS count FROM "references" WHERE user_id = ${uid} GROUP BY source_platform`);
   const out = { type: {} as Record<string, number>, platform: {} as Record<string, number> };
   for (const r of rows.rows) out[r.kind][r.value] = r.count;
   return out;
 }
 
 export async function statusCounts() {
-  const rows = await db.execute<{ status: string; count: number }>(sql`SELECT status, count(*)::int AS count FROM "references" GROUP BY status`);
+  const rows = await db.execute<{ status: string; count: number }>(sql`SELECT status, count(*)::int AS count FROM "references" WHERE user_id = ${await userId()} GROUP BY status`);
   return Object.fromEntries(rows.rows.map((r) => [r.status, r.count])) as Record<string, number>;
 }
 
 export async function graphEdges(limit = 500) {
-  return db.select().from(referenceRelations).orderBy(desc(referenceRelations.score)).limit(limit);
+  return db
+    .select({ sourceId: referenceRelations.sourceId, targetId: referenceRelations.targetId, kind: referenceRelations.kind, score: referenceRelations.score, createdAt: referenceRelations.createdAt })
+    .from(referenceRelations)
+    .innerJoin(references, eq(references.id, referenceRelations.sourceId))
+    .where(eq(references.userId, await userId()))
+    .orderBy(desc(referenceRelations.score))
+    .limit(limit);
 }

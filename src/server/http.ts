@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { isAuthorized, unauthorized } from "./auth";
+import { authorizedUser, unauthorized } from "./auth";
+import { runAs } from "./tenant";
 
 type Ctx<P> = { params: Promise<P> };
 type Handler<P> = (req: NextRequest, ctx: { params: P }) => Promise<Response> | Response;
@@ -7,10 +8,12 @@ type Handler<P> = (req: NextRequest, ctx: { params: P }) => Promise<Response> | 
 /** Wraps a route handler with API-key auth and uniform error handling. */
 export function withAuth<P = Record<string, never>>(handler: Handler<P>, opts: { onUnauthorized?: (req: NextRequest) => Response } = {}) {
   return async (req: NextRequest, ctx: Ctx<P>): Promise<Response> => {
-    if (!(await isAuthorized(req))) return opts.onUnauthorized?.(req) ?? unauthorized();
+    const uid = await authorizedUser(req);
+    if (!uid) return opts.onUnauthorized?.(req) ?? unauthorized();
     try {
       const params = (await ctx?.params) ?? ({} as P);
-      return await handler(req, { params });
+      // Everything the handler calls reads and writes this account's library (server/tenant.ts).
+      return await runAs(uid, async () => handler(req, { params }));
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[api] ${req.method} ${req.nextUrl.pathname}:`, message);

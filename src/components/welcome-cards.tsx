@@ -11,17 +11,17 @@ const POSES: MascotPose[] = ["feliz", "apontando", "oculos"];
 
 /**
  * The welcome cards, after Albo: three cards to swipe, Brain on each, one line in his voice.
- * Titles only. Continue moves to the next card; on the last it becomes the way in (Create
- * account while nobody owns the Brain, Sign in after). Skip goes straight there.
+ * Titles only. Continue moves to the next card; on the last it becomes the way in: Create
+ * account while sign-ups are open, with Sign in under it once accounts exist. Skip jumps to the last.
  */
-export function WelcomeCards({ owner }: { owner: boolean }) {
+export function WelcomeCards({ signup, accounts }: { signup: boolean; accounts: boolean }) {
   const d = useT();
   const track = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [pending, start] = useTransition();
   const titles = d.auth.welcome;
   const last = index === titles.length - 1;
-  const destination = owner ? "/login" : "/register";
+  const destination = signup ? "/register" : "/login";
 
   const go = (i: number) => {
     const el = track.current;
@@ -39,7 +39,7 @@ export function WelcomeCards({ owner }: { owner: boolean }) {
   return (
     <div className="flex flex-1 flex-col pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
       <div className="flex justify-end px-4">
-        <button type="button" onClick={finish} disabled={pending} className={cn("h-11 px-2 text-[17px] text-accent-ink", last && "invisible")}>
+        <button type="button" onClick={() => go(titles.length - 1)} className={cn("h-11 px-2 text-[17px] text-accent-ink", last && "invisible")}>
           {d.auth.skip}
         </button>
       </div>
@@ -63,7 +63,11 @@ export function WelcomeCards({ owner }: { owner: boolean }) {
 
       <div className="mt-6 px-6">
         <button type="button" disabled={pending} onClick={() => (last ? finish() : go(index + 1))} className="btn-filled h-14 w-full text-[17px]">
-          {last ? (owner ? d.auth.login : d.auth.register) : d.auth.next}
+          {last ? (signup ? d.auth.register : d.auth.login) : d.auth.next}
+        </button>
+        {/* The second way in, for someone who already has an account, only where it is a choice. */}
+        <button type="button" disabled={pending} onClick={() => start(() => seenWelcome("/login"))} className={cn("mt-2 h-11 w-full text-[17px] text-accent-ink", !(last && signup && accounts) && "invisible")}>
+          {d.auth.login}
         </button>
       </div>
     </div>

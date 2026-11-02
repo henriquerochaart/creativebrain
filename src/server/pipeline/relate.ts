@@ -12,13 +12,16 @@ const COLUMN: Record<SimilarityKind, string> = {
 
 export type SimilarRow = { id: string; score: number };
 
-/** Nearest neighbours of a reference for one similarity kind, by cosine similarity. */
+/**
+ * Nearest neighbours of a reference for one similarity kind, by cosine similarity, within the
+ * library it belongs to: references never relate across accounts.
+ */
 export async function nearest(referenceId: string, kind: SimilarityKind, limit = 8): Promise<SimilarRow[]> {
   const col = sql.raw(COLUMN[kind]);
   const rows = await db.execute<{ id: string; score: number }>(sql`
     SELECT r.id, 1 - (r.${col} <=> s.${col}) AS score
-    FROM "references" r, (SELECT ${col} FROM "references" WHERE id = ${referenceId}) s
-    WHERE r.id <> ${referenceId} AND r.${col} IS NOT NULL AND s.${col} IS NOT NULL AND r.status = 'understood'
+    FROM "references" r, (SELECT ${col}, user_id FROM "references" WHERE id = ${referenceId}) s
+    WHERE r.id <> ${referenceId} AND r.user_id IS NOT DISTINCT FROM s.user_id AND r.${col} IS NOT NULL AND s.${col} IS NOT NULL AND r.status = 'understood'
     ORDER BY r.${col} <=> s.${col}
     LIMIT ${limit}
   `);
