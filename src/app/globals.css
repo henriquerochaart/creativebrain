@@ -220,6 +220,21 @@ select:focus-visible {
 .fade-in { animation: fade-in 240ms ease-out; }
 @media (min-width: 1024px) { .sheet-up { animation-name: sheet-in; animation-duration: 260ms; } }
 
+/* The loading screen: Brain in love, a heart leaving his head and fading. The heart layer is the
+   whole 512 frame (public/mascot/coracao.webp), so it scales around its own centre (90%, 12.5%)
+   and moves in percentages of the frame. It starts on the top of the head, passes through where
+   the drawing had it, and rises past the frame as it fades. The screen itself fades in late, so a
+   fast navigation never flashes it. The doodle is black; in dark mode it turns white, like ink. */
+@keyframes heart-rise {
+  0% { transform: translate(-12%, 12%) scale(0.35); opacity: 0; }
+  20% { opacity: 1; }
+  40% { transform: none; opacity: 1; }
+  100% { transform: translate(4%, -18%) scale(1.1); opacity: 0; }
+}
+.heart-rise { animation: heart-rise 2.4s cubic-bezier(0.33, 0, 0.2, 1) infinite; transform-origin: 90% 12.5%; }
+.loading-in { animation: fade-in 300ms ease-out 150ms both; }
+@media (prefers-color-scheme: dark) { .heart-rise { filter: invert(1); } }
+
 /* Reduce Motion: keep state visible, drop the movement. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -230,4 +245,6 @@ select:focus-visible {
     transition-duration: 0.001ms !important;
   }
   .brain-indeterminate { transform: none; width: 100%; opacity: 0.35; }
+  /* The heart stays where it was drawn instead of ending its one short run invisible. */
+  .heart-rise { animation: none !important; opacity: 1; transform: none; }
 }

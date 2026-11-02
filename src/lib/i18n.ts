@@ -31,6 +31,7 @@ const pt = {
   app: {
     name: "Henrique Brain",
     short: "Brain",
+    loading: "Carregando…",
     description: "Uma memória criativa multimodal. Capturar → Entender → Classificar → Conectar → Lembrar → Recuperar.",
   },
   header: {
@@ -389,6 +390,7 @@ const en: Dict = {
   app: {
     name: "Henrique Brain",
     short: "Brain",
+    loading: "Loading…",
     description: "A multimodal creative memory. Capture → Understand → Classify → Connect → Remember → Retrieve.",
   },
   header: {
