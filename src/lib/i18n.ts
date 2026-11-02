@@ -346,7 +346,7 @@ const pt = {
     email: "E-mail",
     password: "Senha",
     logout: "Sair",
-    errors: { email: "E-mail inválido.", password: "A senha precisa de 8 caracteres ou mais.", wrong: "E-mail ou senha incorretos.", closed: "Este Brain já tem dono." },
+    errors: { email: "E-mail inválido.", password: "A senha precisa de 8 caracteres ou mais.", wrong: "E-mail ou senha incorretos.", closed: "Este Brain já tem dono.", server: "Não deu certo. Tente de novo." },
   },
   settings: {
     title: "Ajustes",
@@ -712,7 +712,7 @@ const en: Dict = {
     email: "Email",
     password: "Password",
     logout: "Sign out",
-    errors: { email: "Invalid email.", password: "The password needs 8 characters or more.", wrong: "Wrong email or password.", closed: "This Brain already has an owner." },
+    errors: { email: "Invalid email.", password: "The password needs 8 characters or more.", wrong: "Wrong email or password.", closed: "This Brain already has an owner.", server: "That didn't work. Try again." },
   },
   settings: {
     title: "Settings",

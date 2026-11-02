@@ -30,6 +30,9 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
+  // Node, not edge: the session secret falls back to DATABASE_URL, and on Node the middleware is
+  // certain to read the same environment as the functions that sign the cookie.
+  runtime: "nodejs",
   // Everything except Next's assets and the files in public/ (icons, mascot, social cover, worker).
   matcher: ["/((?!_next/|favicon\\.ico|icons/|mascot/|social/|sw\\.js|manifest\\.webmanifest).*)"],
 };

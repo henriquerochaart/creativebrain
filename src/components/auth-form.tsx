@@ -14,14 +14,15 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
   const [state, action, pending] = useActionState<AuthState, FormData>(mode === "login" ? login : register, { error: null });
   const field = "h-12 w-full rounded-[12px] bg-fill px-4 text-[17px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent-ink/40";
   return (
-    <form action={action} className="mt-8 w-full space-y-3">
+    <form action={action} noValidate className="mt-8 w-full space-y-3">
       <input type="hidden" name="next" value={next} />
-      <input name="email" type="email" defaultValue={state.email} required autoComplete={mode === "login" ? "username" : "email"} inputMode="email" autoCapitalize="none" spellCheck={false} placeholder={d.auth.email} aria-label={d.auth.email} className={field} />
+      {/* No required/minLength: the browser's own validation bubble is easy to miss (and absent in
+          some Home Screen apps), which reads as a button that does nothing. The server answers
+          every case with one of the lines below. */}
+      <input name="email" type="email" defaultValue={state.email} autoComplete={mode === "login" ? "username" : "email"} inputMode="email" autoCapitalize="none" spellCheck={false} placeholder={d.auth.email} aria-label={d.auth.email} className={field} />
       <input
         name="password"
         type="password"
-        required
-        minLength={mode === "register" ? 8 : undefined}
         autoComplete={mode === "login" ? "current-password" : "new-password"}
         placeholder={d.auth.password}
         aria-label={d.auth.password}
