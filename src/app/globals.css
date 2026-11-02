@@ -224,6 +224,23 @@ select:focus-visible {
    its own, with Brain, and the two would fight. */
 @media (pointer: coarse) { html, body { overscroll-behavior-y: none; } }
 
+/* Login and Register: a light pink wash behind the form's window, strongest at the top. Mixed
+   into paper, so it stays a tint in dark mode too. */
+.auth-backdrop {
+  background:
+    radial-gradient(120% 60% at 15% 0%, color-mix(in srgb, var(--pink) 45%, var(--paper)) 0%, transparent 70%),
+    radial-gradient(90% 50% at 100% 100%, color-mix(in srgb, var(--pink) 25%, var(--paper)) 0%, transparent 70%),
+    var(--paper);
+}
+@media (prefers-color-scheme: dark) {
+  .auth-backdrop {
+    background:
+      radial-gradient(120% 60% at 15% 0%, color-mix(in srgb, var(--pink) 22%, var(--paper)) 0%, transparent 70%),
+      radial-gradient(90% 50% at 100% 100%, color-mix(in srgb, var(--pink) 12%, var(--paper)) 0%, transparent 70%),
+      var(--paper);
+  }
+}
+
 /* Squish: pressed, a control shrinks quickly; released, it springs back past its size and
    settles. Tab bar items and Add. Touch: no grey flash, no callout, no double-tap zoom delay. */
 .squish {

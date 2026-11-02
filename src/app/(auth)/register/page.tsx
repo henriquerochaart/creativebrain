@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Mascot } from "@/components/mascot";
+import { AuthCard } from "@/components/auth-card";
 import { AuthForm } from "@/components/auth-form";
 import { currentUser, hasOwner } from "@/server/accounts";
 import { dict } from "@/server/lang";
@@ -11,10 +11,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   if (await currentUser()) redirect("/");
   if (await hasOwner()) redirect(`/login${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`);
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-10">
-      <Mascot pose="feliz" className="h-28 w-28" />
-      <h1 className="large-title mt-4 text-center">{d.auth.register}</h1>
+    <AuthCard pose="feliz" title={d.auth.register}>
       <AuthForm mode="register" next={next} />
-    </div>
+    </AuthCard>
   );
 }
