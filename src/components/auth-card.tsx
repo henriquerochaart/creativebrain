@@ -14,30 +14,41 @@ const UNDER_FEET: Partial<Record<MascotPose, number>> = {
 /** How far his feet come down over the card's top edge, like a bird on a branch. */
 const ON_EDGE = 0.035;
 
+/** Brain on white: the art with a soft shadow on the ground under his feet. */
+function StandingBrain({ pose, className }: { pose: MascotPose; className?: string }) {
+  const feet = 1 - (UNDER_FEET[pose] ?? 0.05);
+  return (
+    <div className={className + " relative"}>
+      <div aria-hidden className="mascot-ground absolute left-[18%] w-[64%]" style={{ top: `${(feet - 0.045) * 100}%`, height: "9%" }} />
+      <Mascot pose={pose} className="mascot-shadow relative block h-auto w-full" />
+    </div>
+  );
+}
+
 /**
  * Login, Register and the password screens.
- * Phone: a flat pink tint, and Brain, whole, standing on the top edge of the white card that holds
- * the form, his feet just over it. Desktop (lg): the screen split in half, Brain large in a rounded
- * pink panel on the left and the form on the right, on the page itself.
+ * Phone: a white page, and Brain, whole and with a soft shadow, standing on the top edge of the pink
+ * card that holds the form, his feet just over it. Desktop (lg): the screen split in half, Brain
+ * large on the white at left, the form centred in a rounded pink panel at right.
  */
 export function AuthCard({ pose, title, children }: { pose: MascotPose; title: string; children: React.ReactNode }) {
   const drop = (UNDER_FEET[pose] ?? 0.05) + ON_EDGE;
   return (
     <div className="flex flex-1 flex-col lg:grid lg:grid-cols-2">
-      {/* Fixed and full bleed, under everything; a negative z-index would sink below the body's own background. */}
-      <div aria-hidden className="auth-tint pointer-events-none fixed inset-0 z-0 lg:hidden" />
-      <div aria-hidden className="auth-tint m-4 hidden items-center justify-center rounded-[32px] lg:flex">
-        <Mascot pose={pose} className="h-auto w-[min(70%,560px)]" />
+      <div aria-hidden className="hidden items-center justify-center lg:flex">
+        <StandingBrain pose={pose} className="w-[min(70%,560px)]" />
       </div>
-      <div className="relative z-10 flex flex-1 flex-col justify-center px-5 py-10 lg:px-12">
-        <div className="mx-auto w-full max-w-md lg:max-w-[400px]">
+      <div className="flex flex-1 flex-col justify-center px-5 py-10 lg:p-4">
+        <div className="mx-auto w-full max-w-md lg:flex lg:max-w-none lg:flex-1 lg:flex-col">
           {/* margin-bottom in % is a share of the column's width, as is his own size. */}
           <div className="relative z-20 mx-auto w-[56%] max-w-[240px] lg:hidden" style={{ marginBottom: `calc(${-drop} * min(56%, 240px))` }}>
-            <Mascot pose={pose} className="block h-auto w-full" />
+            <StandingBrain pose={pose} />
           </div>
-          <section className="relative z-10 rounded-[32px] bg-surface p-6 pt-8 shadow-[var(--card-shadow)] sm:p-8 lg:rounded-none lg:bg-transparent lg:p-0 lg:shadow-none">
-            <h1 className="large-title lg:text-[48px] lg:leading-[1.1]">{title}</h1>
-            {children}
+          <section className="auth-tint relative z-10 rounded-[32px] p-6 pt-8 sm:p-8 lg:flex lg:flex-1 lg:flex-col lg:justify-center lg:px-12">
+            <div className="lg:mx-auto lg:w-full lg:max-w-[400px]">
+              <h1 className="large-title lg:text-[48px] lg:leading-[1.1]">{title}</h1>
+              {children}
+            </div>
           </section>
         </div>
       </div>

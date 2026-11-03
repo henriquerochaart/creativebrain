@@ -9,7 +9,8 @@ import { BrainThink } from "./brain-think";
  * The two fields and the button, for Login and Register alike. Labels are the placeholders and
  * the accessible names; the only other text is an error, when there is one.
  */
-const field = "h-12 w-full rounded-[12px] bg-fill px-4 text-[17px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent-ink/40";
+/** White on the pink card: a gray fill would read muddy on the tint. */
+const field = "h-12 w-full rounded-[12px] bg-surface px-4 text-[17px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent-ink/40";
 
 export function AuthForm({ mode, next }: { mode: "login" | "register"; next: string }) {
   const d = useT();

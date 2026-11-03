@@ -226,8 +226,8 @@ select:focus-visible {
 
 /* Login and Register: a light pink wash behind the form's window, strongest at the top. Mixed
    into paper, so it stays a tint in dark mode too. */
-/* Login, Register and the password screens: Brain's pink as a flat tint, behind everything on a
-   phone and inside the left panel on a desktop. */
+/* Login, Register and the password screens: Brain's pink as a flat tint, the card on a phone and
+   the right half on a desktop. */
 .auth-tint {
   background: color-mix(in srgb, var(--pink) 30%, var(--paper));
 }
@@ -235,6 +235,14 @@ select:focus-visible {
   .auth-tint {
     background: color-mix(in srgb, var(--pink) 14%, var(--paper));
   }
+}
+/* Brain standing on white: a soft shadow on the ground under his feet, warm like his own shade,
+   and a slight one on him. */
+.mascot-shadow {
+  filter: drop-shadow(0 8px 10px color-mix(in srgb, var(--pink-deep) 16%, transparent));
+}
+.mascot-ground {
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--pink-deep) 30%, transparent), transparent);
 }
 
 /* Squish: pressed, a control shrinks quickly; released, it springs back past its size and
