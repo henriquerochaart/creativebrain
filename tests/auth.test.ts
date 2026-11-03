@@ -65,3 +65,30 @@ describe("sessions", () => {
     expect(await readSession(null, t0)).toBeNull();
   });
 });
+
+describe("password reset links", () => {
+  const uid = "6f1c2a9e-3b4d-4e5f-8a7b-9c0d1e2f3a4b";
+  it("work for their account, within 30 minutes, until the password changes", async () => {
+    const { resetToken, readResetToken } = await load("");
+    const t0 = Date.UTC(2026, 0, 1);
+    let hash = "scrypt$old";
+    const hashOf = async (id: string) => (id === uid ? hash : null);
+    const token = await resetToken(uid, hash, t0);
+    expect(await readResetToken(token, hashOf, t0 + 60_000)).toBe(uid);
+    expect(await readResetToken(token, hashOf, t0 + 31 * 60_000)).toBeNull();
+    hash = "scrypt$new";
+    expect(await readResetToken(token, hashOf, t0 + 60_000)).toBeNull();
+  });
+  it("cannot be forged, extended or moved to another account", async () => {
+    const { resetToken, readResetToken } = await load("");
+    const t0 = Date.UTC(2026, 0, 1);
+    const hashOf = async () => "scrypt$same";
+    const token = await resetToken(uid, "scrypt$same", t0);
+    const [, exp, sig] = token.split(".");
+    expect(await readResetToken(`${uid}.${Number(exp) + 86_400_000}.${sig}`, hashOf, t0)).toBeNull();
+    expect(await readResetToken(`00000000-0000-4000-8000-000000000000.${exp}.${sig}`, hashOf, t0)).toBeNull();
+    expect(await readResetToken(`${token}.x`, hashOf, t0)).toBeNull();
+    expect(await readResetToken("garbage", hashOf, t0)).toBeNull();
+    expect(await readResetToken(undefined, hashOf, t0)).toBeNull();
+  });
+});

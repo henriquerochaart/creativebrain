@@ -2,9 +2,10 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authenticate, registerUser, validCredentials } from "@/server/accounts";
-import { SESSION_COOKIE, SESSION_DAYS, WELCOME_COOKIE, signSession } from "@/lib/session";
+import { authenticate, findUserByEmail, passwordHashOf, registerUser, setPassword, validCredentials, validEmail, validPassword } from "@/server/accounts";
+import { RESET_MINUTES, SESSION_COOKIE, SESSION_DAYS, WELCOME_COOKIE, readResetToken, resetToken, signSession } from "@/lib/session";
 import { BASE_PATH } from "@/lib/base-path";
+import { publicOrigin } from "@/server/origin";
 
 /** The error, and the email typed, since React resets the form after the action: it comes back filled in. */
 export type AuthState = { error: "email" | "password" | "wrong" | "closed" | "taken" | "server" | null; email?: string };
@@ -68,6 +69,50 @@ export async function register(_: AuthState, form: FormData): Promise<AuthState>
 export async function logout() {
   (await cookies()).delete({ name: SESSION_COOKIE, path: BASE_PATH || "/" });
   redirect("/login");
+}
+
+export type ForgotState = { sent: boolean; error: "email" | "server" | null; email?: string };
+
+/**
+ * Forgot password. The Brain sends no email, so the reset link goes to the server logs (Vercel →
+ * Logs), which only whoever runs the deploy can read: it works for the owner, and for anyone else
+ * through them. The answer on screen is the same whether the address has an account or not.
+ */
+export async function requestReset(_: ForgotState, form: FormData): Promise<ForgotState> {
+  const email = String(form.get("email") ?? "").trim();
+  if (!validEmail(email)) return { sent: false, error: "email", email };
+  try {
+    const user = await findUserByEmail(email);
+    if (user) {
+      const link = `${await publicOrigin()}${BASE_PATH}/reset?token=${await resetToken(user.id, user.passwordHash)}`;
+      console.info(`[auth] reset link, valid ${RESET_MINUTES} minutes, works once: ${link}`);
+    } else {
+      console.info("[auth] reset: no account for that address");
+    }
+  } catch (err) {
+    console.error("[auth] reset failed:", err instanceof Error ? err.message : err);
+    return { sent: false, error: "server", email };
+  }
+  return { sent: true, error: null, email };
+}
+
+export type ResetState = { error: "password" | "expired" | "server" | null };
+
+/** A new password from a reset link; it signs the account in and the link stops working. */
+export async function resetPassword(_: ResetState, form: FormData): Promise<ResetState> {
+  const password = String(form.get("password") ?? "");
+  try {
+    const userId = await readResetToken(String(form.get("token") ?? ""), passwordHashOf);
+    if (!userId) return { error: "expired" };
+    if (!validPassword(password)) return { error: "password" };
+    await setPassword(userId, password);
+    await signIn(userId);
+    console.info("[auth] reset: password changed");
+  } catch (err) {
+    console.error("[auth] reset failed:", err instanceof Error ? err.message : err);
+    return { error: "server" };
+  }
+  redirect("/");
 }
 
 /** The welcome cards were seen or skipped: later signed-out visits go straight to Login. */

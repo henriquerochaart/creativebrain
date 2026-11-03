@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, WELCOME_COOKIE, readSession } from "@/lib/session";
 
 /** Screens a signed-out visitor may open. */
-const PUBLIC_PAGES = new Set(["/welcome", "/login", "/register"]);
+const PUBLIC_PAGES = new Set(["/welcome", "/login", "/register", "/forgot", "/reset"]);
 
 /**
  * The gate. Every page needs a signed-in account: without one, a visit goes to the welcome cards

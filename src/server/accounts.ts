@@ -27,9 +27,12 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+export const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+export const validPassword = (password: string) => password.length >= 8;
+
 export function validCredentials(email: string, password: string): "email" | "password" | null {
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "email";
-  if (password.length < 8) return "password";
+  if (!validEmail(email)) return "email";
+  if (!validPassword(password)) return "password";
   return null;
 }
 
@@ -91,6 +94,26 @@ export async function authenticate(email: string, password: string): Promise<Use
     return null;
   }
   return (await verifyPassword(password, user.passwordHash)) ? user : null;
+}
+
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const [user] = await db.select().from(users).where(eq(users.email, normalizeEmail(email)));
+  return user ?? null;
+}
+
+export async function userById(userId: string): Promise<User | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(userId)) return null;
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+  return user ?? null;
+}
+
+/** The account's current password hash, which a reset link is signed against. */
+export async function passwordHashOf(userId: string): Promise<string | null> {
+  return (await userById(userId))?.passwordHash ?? null;
+}
+
+export async function setPassword(userId: string, password: string): Promise<void> {
+  await db.update(users).set({ passwordHash: await hashPassword(password) }).where(eq(users.id, userId));
 }
 
 /** The signed-in account, for server components and actions. */

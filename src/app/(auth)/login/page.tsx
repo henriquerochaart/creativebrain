@@ -13,11 +13,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <AuthCard pose="oculos" title={d.auth.login}>
       <AuthForm mode="login" next={next} />
-      {signup && (
-        <Link href={`/register${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`} className="mt-3 inline-flex h-11 items-center text-[17px] text-accent-ink">
-          {d.auth.register}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4">
+        {signup && (
+          <Link href={`/register${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`} className="inline-flex h-11 items-center text-[17px] text-accent-ink">
+            {d.auth.register}
+          </Link>
+        )}
+        <Link href="/forgot" className="inline-flex h-11 items-center text-[17px] text-ink-2">
+          {d.auth.forgot}
         </Link>
-      )}
+      </div>
     </AuthCard>
   );
 }

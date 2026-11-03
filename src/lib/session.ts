@@ -81,6 +81,34 @@ export async function readCaptureToken(token: string | null | undefined): Promis
   return sameBytes(enc.encode(expected), enc.encode(token)) ? uid : null;
 }
 
+/** How long a password reset link works. */
+export const RESET_MINUTES = 30;
+
+/**
+ * A password reset link's token: the account, an expiry, and a signature over both and the
+ * account's current password hash. Changing the password changes the hash, so a link works once.
+ */
+export async function resetToken(userId: string, passwordHash: string, now = Date.now()): Promise<string> {
+  const exp = now + RESET_MINUTES * 60_000;
+  return `${userId}.${exp}.${b64url(await hmac(`reset|${userId}|${exp}|${passwordHash}`))}`;
+}
+
+/**
+ * The account a reset token is for, or null when it is forged, expired or already used.
+ * `hashOf` looks up the account's current password hash (null when there is no such account).
+ */
+export async function readResetToken(token: string | null | undefined, hashOf: (userId: string) => Promise<string | null>, now = Date.now()): Promise<string | null> {
+  const [uid, exp, sig, extra] = (token ?? "").split(".");
+  if (!uid || !exp || !sig || extra !== undefined || !/^\d+$/.test(exp) || Number(exp) <= now) return null;
+  const hash = await hashOf(uid);
+  if (!hash) return null;
+  try {
+    return sameBytes(fromB64url(sig), await hmac(`reset|${uid}|${exp}|${hash}`)) ? uid : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The single token of the days before per-account libraries; it still captures, for the owner. */
 export async function legacyCaptureToken(): Promise<string> {
   return b64url(await hmac("capture")).slice(0, 32);
