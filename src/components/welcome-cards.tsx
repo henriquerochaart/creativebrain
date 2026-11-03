@@ -37,7 +37,7 @@ export function WelcomeCards({ signup, accounts }: { signup: boolean; accounts: 
   const finish = () => start(() => seenWelcome(destination));
 
   return (
-    <div className="flex flex-1 flex-col pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
       <div className="flex justify-end px-4">
         <button type="button" onClick={() => go(titles.length - 1)} className={cn("h-11 px-2 text-[17px] text-accent-ink", last && "invisible")}>
           {d.auth.skip}

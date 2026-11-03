@@ -15,7 +15,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
   const d = useT();
   const [state, action, pending] = useActionState<AuthState, FormData>(mode === "login" ? login : register, { error: null });
   return (
-    <form action={action} noValidate className="mt-6 w-full space-y-3">
+    <form action={action} noValidate className="mt-6 w-full space-y-3 lg:mt-8">
       <input type="hidden" name="next" value={next} />
       {/* No required/minLength: the browser's own validation bubble is easy to miss (and absent in
           some Home Screen apps), which reads as a button that does nothing. The server answers
@@ -46,7 +46,7 @@ export function ForgotForm({ minutes }: { minutes: number }) {
   const d = useT();
   const [state, action, pending] = useActionState<ForgotState, FormData>(requestReset, { sent: false, error: null });
   return (
-    <form action={action} noValidate className="mt-6 w-full space-y-3">
+    <form action={action} noValidate className="mt-6 w-full space-y-3 lg:mt-8">
       <input name="email" type="email" defaultValue={state.email} autoComplete="username" inputMode="email" autoCapitalize="none" spellCheck={false} placeholder={d.auth.email} aria-label={d.auth.email} className={field} />
       {state.error && (
         <p role="alert" className="px-1 text-[15px] text-danger">
@@ -70,7 +70,7 @@ export function ResetForm({ token, email }: { token: string; email: string }) {
   const d = useT();
   const [state, action, pending] = useActionState<ResetState, FormData>(resetPassword, { error: null });
   return (
-    <form action={action} noValidate className="mt-6 w-full space-y-3">
+    <form action={action} noValidate className="mt-6 w-full space-y-3 lg:mt-8">
       <input type="hidden" name="token" value={token} />
       {/* For the password manager: it files the new password under this account. */}
       <input type="email" name="username" value={email} autoComplete="username" readOnly hidden />

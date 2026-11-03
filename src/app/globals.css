@@ -226,18 +226,14 @@ select:focus-visible {
 
 /* Login and Register: a light pink wash behind the form's window, strongest at the top. Mixed
    into paper, so it stays a tint in dark mode too. */
-.auth-backdrop {
-  background:
-    radial-gradient(120% 60% at 15% 0%, color-mix(in srgb, var(--pink) 45%, var(--paper)) 0%, transparent 70%),
-    radial-gradient(90% 50% at 100% 100%, color-mix(in srgb, var(--pink) 25%, var(--paper)) 0%, transparent 70%),
-    var(--paper);
+/* Login, Register and the password screens: Brain's pink as a flat tint, behind everything on a
+   phone and inside the left panel on a desktop. */
+.auth-tint {
+  background: color-mix(in srgb, var(--pink) 30%, var(--paper));
 }
 @media (prefers-color-scheme: dark) {
-  .auth-backdrop {
-    background:
-      radial-gradient(120% 60% at 15% 0%, color-mix(in srgb, var(--pink) 22%, var(--paper)) 0%, transparent 70%),
-      radial-gradient(90% 50% at 100% 100%, color-mix(in srgb, var(--pink) 12%, var(--paper)) 0%, transparent 70%),
-      var(--paper);
+  .auth-tint {
+    background: color-mix(in srgb, var(--pink) 14%, var(--paper));
   }
 }
 
