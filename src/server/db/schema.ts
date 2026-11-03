@@ -273,8 +273,8 @@ export const referenceEvents = pgTable(
 
 /**
  * The people who use this Brain. Each has a library of their own: every owned table carries
- * user_id and every query filters on it (server/tenant.ts). The first account also adopts rows
- * that predate accounts.
+ * user_id and every query filters on it (server/tenant.ts). The first account adopts rows that
+ * predate accounts and is the owner, unless another account is marked as the owner.
  */
 export const users = pgTable(
   "users",
@@ -282,6 +282,8 @@ export const users = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     email: text("email").notNull(),
     passwordHash: text("password_hash").notNull(),
+    /** The Brain's owner: the API key and the old capture token act as this account. */
+    isOwner: boolean("is_owner").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("users_email_idx").on(t.email)],

@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { cookies } from "next/headers";
-import { asc } from "drizzle-orm";
+import { asc, desc } from "drizzle-orm";
 import { db } from "./db/client";
 import { users } from "./db/schema";
 import { SESSION_COOKIE, readSession } from "@/lib/session";
@@ -36,6 +36,6 @@ export async function userId(): Promise<string> {
 
 /** The first account: the Brain's owner, whom BRAIN_API_KEY (agents, MCP) acts as. */
 export async function ownerId(): Promise<string | null> {
-  const [row] = await db.select({ id: users.id }).from(users).orderBy(asc(users.createdAt)).limit(1);
+  const [row] = await db.select({ id: users.id }).from(users).orderBy(desc(users.isOwner), asc(users.createdAt)).limit(1);
   return row?.id ?? null;
 }

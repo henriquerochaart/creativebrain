@@ -87,9 +87,9 @@ export async function requestReset(_: ForgotState, form: FormData): Promise<Forg
       const link = `${await publicOrigin()}${BASE_PATH}/reset?token=${await resetToken(user.id, user.passwordHash)}`;
       console.info(`[auth] reset link, valid ${RESET_MINUTES} minutes, works once: ${link}`);
     } else {
-      // The owner may not remember which address the Brain's first account uses: the logs say it,
+      // The owner may not remember which address their account uses: the logs say it,
       // for whoever can read them (they can already read reset links). The screen says nothing.
-      console.info(`[auth] reset: no account for that address. The first account is ${(await ownerEmail()) ?? "not created yet"}`);
+      console.info(`[auth] reset: no account for that address. The owner's account is ${(await ownerEmail()) ?? "not created yet"}`);
     }
   } catch (err) {
     console.error("[auth] reset failed:", err instanceof Error ? err.message : err);

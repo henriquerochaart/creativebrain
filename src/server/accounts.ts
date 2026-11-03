@@ -1,7 +1,7 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "./db/client";
 import { users, type User } from "./db/schema";
 import { SESSION_COOKIE, readSession } from "@/lib/session";
@@ -76,7 +76,7 @@ export async function registerUser(email: string, password: string): Promise<{ u
   const first = !(await hasOwner());
   if (!signupAllowed(address, undefined, first)) return { user: null, reason: "closed" };
   const passwordHash = await hashPassword(password);
-  const [user] = await db.insert(users).values({ email: address, passwordHash }).onConflictDoNothing().returning();
+  const [user] = await db.insert(users).values({ email: address, passwordHash, isOwner: first }).onConflictDoNothing().returning();
   if (!user) return { user: null, reason: "taken" };
   if (first) {
     for (const table of ["references", "collections", "boards", "projects", "conversations"]) {
@@ -107,9 +107,9 @@ export async function userById(userId: string): Promise<User | null> {
   return user ?? null;
 }
 
-/** The first account's address: the owner, who holds every row that predates accounts. */
+/** The owner's address: the account marked as the owner, else the first account. */
 export async function ownerEmail(): Promise<string | null> {
-  const [row] = await db.select({ email: users.email }).from(users).orderBy(asc(users.createdAt)).limit(1);
+  const [row] = await db.select({ email: users.email }).from(users).orderBy(desc(users.isOwner), asc(users.createdAt)).limit(1);
   return row?.email ?? null;
 }
 
