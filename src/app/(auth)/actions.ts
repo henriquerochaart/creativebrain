@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authenticate, findUserByEmail, passwordHashOf, registerUser, setPassword, validCredentials, validEmail, validPassword } from "@/server/accounts";
+import { authenticate, findUserByEmail, ownerEmail, passwordHashOf, registerUser, setPassword, validCredentials, validEmail, validPassword } from "@/server/accounts";
 import { RESET_MINUTES, SESSION_COOKIE, SESSION_DAYS, WELCOME_COOKIE, readResetToken, resetToken, signSession } from "@/lib/session";
 import { BASE_PATH } from "@/lib/base-path";
 import { publicOrigin } from "@/server/origin";
@@ -87,7 +87,9 @@ export async function requestReset(_: ForgotState, form: FormData): Promise<Forg
       const link = `${await publicOrigin()}${BASE_PATH}/reset?token=${await resetToken(user.id, user.passwordHash)}`;
       console.info(`[auth] reset link, valid ${RESET_MINUTES} minutes, works once: ${link}`);
     } else {
-      console.info("[auth] reset: no account for that address");
+      // The owner may not remember which address the Brain's first account uses: the logs say it,
+      // for whoever can read them (they can already read reset links). The screen says nothing.
+      console.info(`[auth] reset: no account for that address. The first account is ${(await ownerEmail()) ?? "not created yet"}`);
     }
   } catch (err) {
     console.error("[auth] reset failed:", err instanceof Error ? err.message : err);

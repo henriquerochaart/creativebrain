@@ -1,7 +1,7 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
-import { eq, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { db } from "./db/client";
 import { users, type User } from "./db/schema";
 import { SESSION_COOKIE, readSession } from "@/lib/session";
@@ -105,6 +105,12 @@ export async function userById(userId: string): Promise<User | null> {
   if (!/^[0-9a-f-]{36}$/i.test(userId)) return null;
   const [user] = await db.select().from(users).where(eq(users.id, userId));
   return user ?? null;
+}
+
+/** The first account's address: the owner, who holds every row that predates accounts. */
+export async function ownerEmail(): Promise<string | null> {
+  const [row] = await db.select({ email: users.email }).from(users).orderBy(asc(users.createdAt)).limit(1);
+  return row?.email ?? null;
 }
 
 /** The account's current password hash, which a reset link is signed against. */
