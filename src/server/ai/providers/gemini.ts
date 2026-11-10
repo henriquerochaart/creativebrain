@@ -12,7 +12,9 @@ import { jsonSchemaOf, parseJsonLoose } from "../json";
 function client(apiKey?: string): GoogleGenAI {
   const key = apiKey ?? process.env.GEMINI_API_KEY;
   if (!key) throw new AIConfigError("GEMINI_API_KEY is not set");
-  return new GoogleGenAI({ apiKey: key });
+  // The SDK retries only when asked. "High demand" 503s and 429s pass in seconds, so a capture
+  // should not fail on the first one: three attempts, 2 s then 4 s apart (capped at 10 s).
+  return new GoogleGenAI({ apiKey: key, httpOptions: { retryOptions: { attempts: 3, initialDelay: 2, maxDelay: 10 } } });
 }
 
 export class GeminiProvider implements LLMProvider {

@@ -10,7 +10,7 @@ export function failureKind(error: string | null | undefined): Kind {
   const e = error ?? "";
   if (/stopped before finishing/i.test(e)) return "stopped";
   if (/refused/i.test(e)) return "refused";
-  if (/model returned|anthropic|overloaded|\b529\b|embeddings failed|api key|rate.?limit/i.test(e)) return "model";
+  if (/\bmodel\b|anthropic|gemini|openai|overloaded|high demand|unavailable|resource_exhausted|quota|\b529\b|embeddings failed|api key|rate.?limit/i.test(e)) return "model";
   if (/storage|ffprobe|ffmpeg|pdf|media|decode|unsupported/i.test(e)) return "media";
   if (/fetch|ENOTFOUND|ECONN|EAI_AGAIN|timed? ?out|abort|blocked|status \d{3}|\b(40[0-9]|5\d\d)\b|redirect|certificate/i.test(e)) return "fetch";
   return "generic";
