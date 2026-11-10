@@ -2,6 +2,7 @@
  * V3 — Projects: the creative process as a first-class object.
  * PROJECT → REFERENCES → CONCEPTS → PATTERNS → DIRECTIONS → IDEAS → OUTPUT
  */
+import { LIST_COLUMNS } from "./db/columns";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./db/client";
 import { projectReferences, projects, references, type Project } from "./db/schema";
@@ -114,7 +115,7 @@ export async function analyzeProject(project: Project, lang: Lang): Promise<Stor
   const refs = await projectReferenceList(project.id);
   const stats = selectionStats(refs);
   const sentence = selectionSentence(stats, t(lang));
-  const full = refs.length ? await db.select().from(references).where(and(inArray(references.id, refs.map((r) => r.id)), eq(references.userId, await userId()))) : [];
+  const full = refs.length ? await db.select(LIST_COLUMNS).from(references).where(and(inArray(references.id, refs.map((r) => r.id)), eq(references.userId, await userId()))) : [];
   const digest = full.map((r) => referenceDigest(r, { withId: true, long: false })).join("\n\n");
   const llm = getLLM();
   const analysis: ProjectAnalysis = await llm.analyze({

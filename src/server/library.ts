@@ -1,8 +1,11 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "./db/client";
 import { boards, collectionItems, collections, conversations, projectReferences, projects, references, users } from "./db/schema";
-import { toPublic } from "./references";
+import { LIST_COLUMNS, toPublic } from "./references";
 import { getStorage } from "./storage";
+import { storageKeysOf } from "./storage-keys";
+
+export { storageKeysOf };
 
 /**
  * A whole library as one JSON document, for the person who owns it: every reference with what the
@@ -11,7 +14,7 @@ import { getStorage } from "./storage";
  */
 export async function exportLibrary(userId: string) {
   const [refs, cols, colItems, bds, projs, projItems, convs] = await Promise.all([
-    db.select().from(references).where(eq(references.userId, userId)).orderBy(asc(references.createdAt)),
+    db.select(LIST_COLUMNS).from(references).where(eq(references.userId, userId)).orderBy(asc(references.createdAt)),
     db.select().from(collections).where(eq(collections.userId, userId)),
     db
       .select({ owner: collectionItems.collectionId, referenceId: collectionItems.referenceId })
@@ -41,16 +44,6 @@ export async function exportLibrary(userId: string) {
     projects: projs.map(({ userId: _owner, ...p }) => ({ ...p, references: membersOf(p.id, projItems) })),
     conversations: convs.map(({ userId: _owner, ...c }) => c),
   };
-}
-
-/** The storage keys a reference owns: its media file, and a thumbnail served by our media route. */
-export function storageKeysOf(r: { mediaKey: string | null; thumbnailUrl: string | null }): string[] {
-  const keys = new Set<string>();
-  if (r.mediaKey) keys.add(r.mediaKey);
-  const marker = "/api/media/";
-  const at = r.thumbnailUrl ? r.thumbnailUrl.indexOf(marker) : -1;
-  if (r.thumbnailUrl && at >= 0) keys.add(decodeURIComponent(r.thumbnailUrl.slice(at + marker.length).split("?")[0]));
-  return [...keys].filter((k) => k && !k.includes(".."));
 }
 
 /**

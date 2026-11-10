@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, ChevronLeft, ExternalLink, Play } from "lucide-react";
-import { collectionsOfReference, getReference, listCollections, relatedReferences, similarReferences, toPublic } from "@/server/references";
+import { collectionsOfReference, getReference, listCollections, relatedReferences, similarReferences, toPublic, failStuck, STUCK_AFTER_MS } from "@/server/references";
 import { getStorage } from "@/server/storage";
 import { Thumb } from "@/components/thumb";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +25,10 @@ export default async function ReferencePage({ params, searchParams }: { params: 
   const { lang, d } = await dict();
   const { id } = await params;
   const sp = await searchParams;
-  const ref = await getReference(id);
+  let ref = await getReference(id);
   if (!ref) notFound();
+  // Still "processing" long after the last step: the run was cut off. Say so instead of polling.
+  if (ref.status === "processing" && Date.now() - new Date(ref.updatedAt).getTime() > STUCK_AFTER_MS && (await failStuck()) > 0) ref = (await getReference(id)) ?? ref;
   const pub = toPublic(ref);
   const understood = ref.status === "understood";
   await recordEvent(ref.id, "view");

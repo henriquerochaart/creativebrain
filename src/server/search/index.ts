@@ -5,6 +5,7 @@ import { embedQuery, toVectorLiteral } from "../pipeline/embed";
 import { rrf } from "./rrf";
 import { AIConfigError } from "../ai/types";
 import { userId } from "../tenant";
+import { LIST_SQL } from "../db/columns";
 
 export type SearchMode = "hybrid" | "keyword" | "semantic" | "visual" | "conceptual";
 
@@ -62,10 +63,13 @@ async function vectorSearch(uid: string, column: "embedding_content" | "embeddin
   const col = sql.raw(column);
   const lit = toVectorLiteral(vec);
   const rows = await db.execute<{ id: string; score: number }>(sql`
-    SELECT r.id, 1 - (r.${col} <=> ${lit}::vector) AS score
-    FROM "references" r
-    WHERE ${filterSql(uid, f)} AND r.${col} IS NOT NULL
-    ORDER BY r.${col} <=> ${lit}::vector
+    SELECT id, score FROM (
+      SELECT r.id, 1 - (r.${col} <=> ${lit}::vector) AS score
+      FROM "references" r
+      WHERE ${filterSql(uid, f)} AND r.${col} IS NOT NULL
+      OFFSET 0 -- a fence: rank this library's rows exactly; a global index would filter its first few candidates
+    ) t
+    ORDER BY score DESC
     LIMIT ${limit}`);
   return rows.rows.map((r) => ({ id: r.id, score: Number(r.score) }));
 }
@@ -73,7 +77,7 @@ async function vectorSearch(uid: string, column: "embedding_content" | "embeddin
 /** Lists references without a query (browse mode), newest first, with filters. */
 export async function browse(f: SearchFilters, limit = 60, offset = 0): Promise<Reference[]> {
   const rows = await db.execute<Reference>(sql`
-    SELECT r.* FROM "references" r WHERE ${filterSql(await userId(), f)} ORDER BY r.created_at DESC LIMIT ${limit} OFFSET ${offset}`);
+    SELECT ${LIST_SQL} FROM "references" r WHERE ${filterSql(await userId(), f)} ORDER BY r.created_at DESC LIMIT ${limit} OFFSET ${offset}`);
   return rows.rows.map(mapRow);
 }
 

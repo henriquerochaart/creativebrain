@@ -18,11 +18,17 @@ export type SimilarRow = { id: string; score: number };
  */
 export async function nearest(referenceId: string, kind: SimilarityKind, limit = 8): Promise<SimilarRow[]> {
   const col = sql.raw(COLUMN[kind]);
+  // The source's vector and owner first, then an exact ranking over that one library (the OFFSET 0
+  // fence keeps the planner from a global index scan that would filter its first candidates away).
   const rows = await db.execute<{ id: string; score: number }>(sql`
-    SELECT r.id, 1 - (r.${col} <=> s.${col}) AS score
-    FROM "references" r, (SELECT ${col}, user_id FROM "references" WHERE id = ${referenceId}) s
-    WHERE r.id <> ${referenceId} AND r.user_id IS NOT DISTINCT FROM s.user_id AND r.${col} IS NOT NULL AND s.${col} IS NOT NULL AND r.status = 'understood'
-    ORDER BY r.${col} <=> s.${col}
+    SELECT id, score FROM (
+      SELECT r.id, 1 - (r.${col} <=> s.${col}) AS score
+      FROM "references" r
+      JOIN "references" s ON s.id = ${referenceId}
+      WHERE r.user_id = s.user_id AND r.id <> ${referenceId} AND r.${col} IS NOT NULL AND s.${col} IS NOT NULL AND r.status = 'understood'
+      OFFSET 0
+    ) t
+    ORDER BY score DESC
     LIMIT ${limit}
   `);
   return rows.rows.map((r) => ({ id: r.id, score: Number(r.score) }));

@@ -10,14 +10,18 @@ import { SIMILARITY_KINDS, slugify, type SimilarityKind } from "./taxonomy";
 import { nearest } from "./pipeline/relate";
 import { mapRow } from "./search";
 import { userId } from "./tenant";
+import { storageKeysOf } from "./storage-keys";
 
 export type PublicReference = Omit<Reference, "embeddingContent" | "embeddingVisual" | "embeddingStrategic" | "embeddingExecution" | "searchText" | "fts">;
+
+export { LIST_COLUMNS, LIST_SQL } from "./db/columns";
+import { LIST_COLUMNS } from "./db/columns";
 
 /** A reference still `processing` after this long is stuck (a function killed mid-run), not working. */
 export const STUCK_AFTER_MS = 20 * 60_000;
 
-export function toPublic(r: Reference): PublicReference {
-  const { embeddingContent: _a, embeddingVisual: _b, embeddingStrategic: _c, embeddingExecution: _d, searchText: _e, fts: _f, ...rest } = r;
+export function toPublic(r: Reference | PublicReference): PublicReference {
+  const { embeddingContent: _a, embeddingVisual: _b, embeddingStrategic: _c, embeddingExecution: _d, searchText: _e, fts: _f, ...rest } = r as Reference;
   return rest;
 }
 
@@ -38,7 +42,7 @@ export async function listReferences(opts: { status?: string; limit?: number; of
   if (opts.status) conds.push(eq(references.status, opts.status));
   if (opts.saved !== undefined) conds.push(eq(references.saved, opts.saved));
   return db
-    .select()
+    .select(LIST_COLUMNS)
     .from(references)
     .where(and(...conds))
     .orderBy(desc(references.createdAt))
@@ -152,7 +156,7 @@ export async function deleteReference(id: string) {
   if (!ref) return false;
   await db.delete(references).where(and(eq(references.id, id), eq(references.userId, ref.userId!)));
   const storage = getStorage();
-  if (ref.mediaKey) await storage.delete(ref.mediaKey).catch(() => undefined);
+  for (const key of storageKeysOf(ref)) await storage.delete(key).catch(() => undefined);
   return true;
 }
 
@@ -167,7 +171,7 @@ export async function similarReferences(id: string, perKind = 6): Promise<Simila
     raw[kind] = await nearest(id, kind, perKind);
     raw[kind].forEach((r) => ids.add(r.id));
   }
-  const rows = ids.size ? await db.select().from(references).where(and(inArray(references.id, [...ids]), eq(references.userId, await userId()))) : [];
+  const rows = ids.size ? await db.select(LIST_COLUMNS).from(references).where(and(inArray(references.id, [...ids]), eq(references.userId, await userId()))) : [];
   const byId = new Map(rows.map((r) => [r.id, toPublic(r)]));
   for (const kind of SIMILARITY_KINDS) {
     out[kind] = raw[kind].filter((r) => byId.has(r.id)).map((r) => ({ reference: byId.get(r.id)!, score: Math.round(r.score * 100) / 100 }));
@@ -299,6 +303,20 @@ export async function kindCounts(): Promise<{ type: Record<string, number>; plat
   const out = { type: {} as Record<string, number>, platform: {} as Record<string, number> };
   for (const r of rows.rows) out[r.kind][r.value] = r.count;
   return out;
+}
+
+/**
+ * A function killed mid-run (a host timeout, a deploy) leaves its reference `processing` forever,
+ * and its screen polling for it. Each step bumps updated_at; one untouched for STUCK_AFTER_MS is
+ * marked failed, so Entrada offers to try again. Run where those references are looked at.
+ */
+export async function failStuck(): Promise<number> {
+  const rows = await db
+    .update(references)
+    .set({ status: "failed", error: "Stopped before finishing. Try again.", processingStep: null, updatedAt: new Date() })
+    .where(and(eq(references.userId, await userId()), eq(references.status, "processing"), sql`${references.updatedAt} < now() - make_interval(secs => ${STUCK_AFTER_MS / 1000})`))
+    .returning({ id: references.id });
+  return rows.length;
 }
 
 export async function statusCounts() {

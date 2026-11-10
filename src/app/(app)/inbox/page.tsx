@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { LIST_COLUMNS } from "@/server/db/columns";
 import { ReferenceGrid } from "@/components/reference-grid";
 import { LiveRefresh } from "@/components/live-refresh";
 import { StatusDot } from "@/components/status-dot";
 import { db } from "@/server/db/client";
 import { references } from "@/server/db/schema";
-import { toPublic } from "@/server/references";
+import { toPublic, failStuck } from "@/server/references";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { userId } from "@/server/tenant";
 import { ReprocessButton } from "@/components/reference-actions";
@@ -17,11 +18,12 @@ import { ReprocessStale } from "@/components/reprocess-stale";
 const STALE_MS = 6 * 60 * 1000;
 
 export default async function InboxPage() {
+  await failStuck().catch(() => 0);
   const { lang, d } = await dict();
   const uid = await userId();
-  const active = await db.select().from(references).where(and(eq(references.userId, uid), inArray(references.status, ["queued", "processing", "failed"]))).orderBy(desc(references.createdAt)).limit(100);
+  const active = await db.select(LIST_COLUMNS).from(references).where(and(eq(references.userId, uid), inArray(references.status, ["queued", "processing", "failed"]))).orderBy(desc(references.createdAt)).limit(100);
   const recent = await db
-    .select()
+    .select(LIST_COLUMNS)
     .from(references)
     .where(and(eq(references.userId, uid), sql`${references.status} = \'understood\' AND ${references.processedAt} > now() - interval \'48 hours\'`))
     .orderBy(desc(references.processedAt))

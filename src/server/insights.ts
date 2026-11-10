@@ -7,13 +7,27 @@ import { db } from "./db/client";
 import { referenceEvents, references, referenceRelations } from "./db/schema";
 import { toVectorLiteral } from "./pipeline/embed";
 import { mapRow } from "./search";
-import { toPublic, type PublicReference } from "./references";
+import { LIST_COLUMNS, LIST_SQL, toPublic, type PublicReference } from "./references";
 import { userId } from "./tenant";
 
 // ---------- Events ----------
 
 export type EventKind = "view" | "ask" | "save" | "collect" | "project";
+/**
+ * Records a signal for Personal Taste. A view counts once per half hour: the reference page
+ * refreshes itself every few seconds while it is being understood, and each refresh is not a look.
+ */
 export async function recordEvent(referenceId: string, kind: EventKind) {
+  if (kind === "view") {
+    await db
+      .execute(
+        sql`INSERT INTO reference_events (reference_id, kind)
+            SELECT ${referenceId}, 'view'
+            WHERE NOT EXISTS (SELECT 1 FROM reference_events WHERE reference_id = ${referenceId} AND kind = 'view' AND created_at > now() - interval '30 minutes')`,
+      )
+      .catch(() => undefined);
+    return;
+  }
   await db.insert(referenceEvents).values({ referenceId, kind }).catch(() => undefined);
 }
 
@@ -136,11 +150,14 @@ export async function discover(limit = 12): Promise<Discovery | null> {
 
   const lit = toVectorLiteral(taste.vector);
   const rows = await db.execute<Record<string, unknown> & { score: number }>(sql`
-    SELECT r.*, 1 - (r.embedding_content <=> ${lit}::vector) AS score
-    FROM "references" r
-    WHERE r.user_id = ${await userId()} AND r.status = 'understood' AND r.embedding_content IS NOT NULL
-      AND r.id NOT IN (${sql.join(signalIds.map((id) => sql`${id}`), sql`, `)})
-    ORDER BY r.embedding_content <=> ${lit}::vector
+    SELECT * FROM (
+      SELECT ${LIST_SQL}, 1 - (r.embedding_content <=> ${lit}::vector) AS score
+      FROM "references" r
+      WHERE r.user_id = ${await userId()} AND r.status = 'understood' AND r.embedding_content IS NOT NULL
+        AND r.id NOT IN (${sql.join(signalIds.map((id) => sql`${id}`), sql`, `)})
+      OFFSET 0 -- a fence: rank this library's rows exactly, not a global index's first candidates
+    ) t
+    ORDER BY score DESC
     LIMIT ${limit * 5}`);
   const candidates = rows.rows.map((r) => ({ reference: toPublic(mapRow(r)), score: Math.round(Number(r.score) * 100) / 100 }));
   const forYou = candidates.slice(0, limit);
@@ -201,6 +218,6 @@ export async function graphData(limit = 250): Promise<{ nodes: GraphNode[]; edge
 }
 
 export async function understoodSample(limit = 150) {
-  const rows = await db.select().from(references).where(and(eq(references.userId, await userId()), sql`${references.status} = 'understood'`)).orderBy(sql`${references.createdAt} DESC`).limit(limit);
+  const rows = await db.select(LIST_COLUMNS).from(references).where(and(eq(references.userId, await userId()), sql`${references.status} = 'understood'`)).orderBy(sql`${references.createdAt} DESC`).limit(limit);
   return rows;
 }

@@ -1,3 +1,4 @@
+import type { PublicReference } from "../references";
 import type { Reference } from "../db/schema";
 import { getLLM } from "../ai/router";
 import { ThinkSchema, WhyTheseSchema, type Think, type WhyThese } from "../ai/schemas";
@@ -5,7 +6,7 @@ import { THINK_SYSTEM, whyTheseSystem, clip } from "../ai/prompts";
 import type { Lang } from "@/lib/i18n";
 
 /** Compact semantic file of a reference for prompting. */
-export function referenceDigest(r: Reference, opts: { withId?: boolean; long?: boolean } = {}): string {
+export function referenceDigest(r: Reference | PublicReference, opts: { withId?: boolean; long?: boolean } = {}): string {
   const ai = r.ai;
   const lines = [
     `${opts.withId ? `[${r.id}] ` : ""}${r.title ?? "Untitled"}${r.brand ? ` — ${r.brand}` : ""} (${r.sourcePlatform} · ${r.mediaType})`,
@@ -35,7 +36,7 @@ export function referenceDigest(r: Reference, opts: { withId?: boolean; long?: b
   return lines.filter(Boolean).join("\n");
 }
 
-export async function whyTheseReferences(query: string, refs: Reference[], lang: Lang): Promise<WhyThese> {
+export async function whyTheseReferences(query: string, refs: PublicReference[], lang: Lang): Promise<WhyThese> {
   const digest = refs.slice(0, 16).map((r) => referenceDigest(r, { withId: true })).join("\n\n");
   return getLLM().analyze({
     system: whyTheseSystem(lang),

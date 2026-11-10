@@ -1,6 +1,7 @@
 /**
  * V2 creative layers: moodboard generator, creative assistant, auto collections, taste narrative.
  */
+import { LIST_COLUMNS } from "./db/columns";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "./db/client";
 import { boards, collectionItems, collections, conversations, references, type Reference } from "./db/schema";
@@ -45,7 +46,7 @@ export async function getBoard(id: string) {
   const [row] = await db.select().from(boards).where(and(eq(boards.id, id), eq(boards.userId, uid)));
   if (!row) return null;
   const ids = ((row.payload as { referenceIds?: string[] }).referenceIds ?? []).filter(Boolean);
-  const refs = ids.length ? await db.select().from(references).where(and(inArray(references.id, ids), eq(references.userId, uid))) : [];
+  const refs = ids.length ? await db.select(LIST_COLUMNS).from(references).where(and(inArray(references.id, ids), eq(references.userId, uid))) : [];
   return { board: row, analysis: (row.payload as { board: Moodboard }).board, references: Object.fromEntries(refs.map((r) => [r.id, toPublic(r)])) };
 }
 
@@ -125,7 +126,7 @@ export async function tasteNarrative(lang: Lang): Promise<Narrative> {
     `Brands: ${brands.map((p) => `${p.value} ${p.count}`).join(", ")}`,
     `Rising in the last 30 days: ${rising.map((t) => `${t.value} ×${t.lift}`).join(", ") || "n/a"}`,
   ].join("\n");
-  const digest = sample.map((r: Reference) => referenceDigest(r)).join("\n\n");
+  const digest = sample.map((r) => referenceDigest(r as Reference)).join("\n\n");
   return getLLM().analyze({
     system: narrativeSystem(lang),
     prompt: `Statistics:\n${stats}\n\nRecent sample (${sample.length}):\n\n${digest}`,
