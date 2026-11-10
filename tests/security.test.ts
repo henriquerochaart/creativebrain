@@ -73,3 +73,14 @@ describe("deleting an account removes its files", () => {
     expect(storageKeysOf({ mediaKey: null, thumbnailUrl: "/api/media/references/a/..%2F..%2Fsecret" })).toEqual([]);
   });
 });
+
+describe("the database connection always verifies its certificate", () => {
+  it("spells out verify-full where pg would later weaken the mode", async () => {
+    const { strictSsl } = await import("@/server/db/ssl");
+    expect(strictSsl("postgres://u:p@h/db?sslmode=require")).toBe("postgres://u:p@h/db?sslmode=verify-full");
+    expect(strictSsl("postgres://u:p@h/db?sslmode=require&channel_binding=require")).toBe("postgres://u:p@h/db?sslmode=verify-full&channel_binding=require");
+    expect(strictSsl("postgres://u:p@h/db?x=1&sslmode=prefer")).toBe("postgres://u:p@h/db?x=1&sslmode=verify-full");
+    expect(strictSsl("postgres://brain:brain@localhost:5432/brain")).toBe("postgres://brain:brain@localhost:5432/brain");
+    expect(strictSsl("postgres://u:p@h/db?sslmode=disable")).toBe("postgres://u:p@h/db?sslmode=disable");
+  });
+});

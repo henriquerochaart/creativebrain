@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";
 import { env } from "../env";
+import { strictSsl } from "./ssl";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -23,7 +24,7 @@ function poolMax(): number {
 export const pool: Pool =
   globalThis.__brainPool ??
   new Pool({
-    connectionString: env.databaseUrl,
+    connectionString: env.databaseUrl ? strictSsl(env.databaseUrl) : env.databaseUrl,
     max: poolMax(),
     idleTimeoutMillis: 10_000,
     // Fail fast instead of hanging a request forever when the database is unreachable.
