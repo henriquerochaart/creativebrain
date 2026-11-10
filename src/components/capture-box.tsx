@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { captureFiles, captureText, CAPTURE_ACCEPT } from "@/lib/capture";
@@ -63,7 +64,7 @@ export function CaptureBox({
       setToast(res.duplicate ? { kind: "dup", text: d.capture.duplicate } : { kind: "ok", text: d.capture.captured });
       router.refresh();
     } catch (err) {
-      setToast({ kind: "err", text: err instanceof Error ? err.message : d.capture.failed });
+      setToast({ kind: "err", text: errorText(err) });
     } finally {
       setBusy(false);
     }

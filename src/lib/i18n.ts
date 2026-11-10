@@ -89,6 +89,7 @@ const pt = {
     failed: "Falhou",
     filesCaptured: (n: number) => `${n} arquivo${n > 1 ? "s" : ""} salvo${n > 1 ? "s" : ""}. Entendendo…`,
     filesPartial: (ok: number, failed: number, first: string) => `${ok} salvo${ok > 1 ? "s" : ""}, ${failed} não. ${first}`,
+    tooLarge: "Arquivo grande demais para enviar.",
     uploading: "Enviando…",
   },
   status: {
@@ -495,6 +496,7 @@ const en: Dict = {
     failed: "Failed",
     filesCaptured: (n: number) => `${n} file${n > 1 ? "s" : ""} saved. Understanding…`,
     filesPartial: (ok: number, failed: number, first: string) => `${ok} saved, ${failed} not. ${first}`,
+    tooLarge: "File too large to upload.",
     uploading: "Uploading…",
   },
   status: {

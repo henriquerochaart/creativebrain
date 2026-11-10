@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { useT } from "./lang-provider";
 
 type Narrative = { headline: string; observations: string[]; blindSpots: string[]; provocation: string };
@@ -25,7 +25,7 @@ export function TasteNarrative() {
             try {
               setN(await api<Narrative>("/api/patterns/narrative", { method: "POST" }));
             } catch (err) {
-              setError(err instanceof Error ? err.message : "failed");
+              setError(errorText(err));
             } finally {
               setBusy(false);
             }

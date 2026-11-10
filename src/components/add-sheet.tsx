@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "@/lib/api";
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -117,7 +118,7 @@ function AddSheet({ onClose, notify }: { onClose: () => void; notify: (toast: To
       const res = await captureText(text);
       finish(res.duplicate ? { kind: "dup", text: d.capture.duplicate } : { kind: "ok", text: d.capture.captured });
     } catch (err) {
-      setError(err instanceof Error ? err.message : d.capture.failed);
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }

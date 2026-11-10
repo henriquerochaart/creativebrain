@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Markdown } from "./markdown";
 import { Thumb } from "./thumb";
-import { api } from "@/lib/api";
+import { api, apiError, errorText, readStream } from "@/lib/api";
 import { withBase } from "@/lib/base-path";
 import { useLang, useT } from "./lang-provider";
 import type { PublicReference } from "@/server/references";
@@ -17,32 +17,29 @@ export function AssistMode() {
   const [idea, setIdea] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [used, setUsed] = useState<PublicReference[]>([]);
   const [degraded, setDegraded] = useState<string | null>(null);
 
   async function run(text: string) {
     if (!text.trim() || busy) return;
     setBusy(true);
+    setError(null);
     setIdea("");
     const history = turns;
     setTurns([...history, { role: "user", content: text }, { role: "assistant", content: "" }]);
     try {
       const res = await fetch(withBase("/api/assist"), { method: "POST", headers: { "content-type": "application/json", "x-brain-ui": "1" }, body: JSON.stringify({ idea: text, history }) });
-      if (!res.ok || !res.body) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? `${res.status}`);
+      if (!res.ok || !res.body) throw await apiError(res);
       setDegraded(res.headers.get("x-degraded"));
       const ids = (res.headers.get("x-references") ?? "").split(",").filter(Boolean);
       void Promise.all(ids.slice(0, 12).map((id) => api<{ reference: PublicReference }>(`/api/references/${id}`).then((r) => r.reference).catch(() => null))).then((rs) => setUsed(rs.filter((r): r is PublicReference => Boolean(r))));
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let full = "";
-      for (;;) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        full += dec.decode(value, { stream: true });
-        setTurns([...history, { role: "user", content: text }, { role: "assistant", content: full }]);
-      }
+      await readStream(res, (full) => setTurns([...history, { role: "user", content: text }, { role: "assistant", content: full }]));
     } catch (err) {
-      setTurns([...history, { role: "user", content: text }, { role: "assistant", content: `${err instanceof Error ? err.message : "failed"}` }]);
+      // A failure is not something the assistant said: drop the turn, give the idea back to retry.
+      setTurns(history);
+      setIdea(text);
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }
@@ -75,7 +72,13 @@ export function AssistMode() {
             className="w-full resize-none bg-transparent px-4 py-3 text-lg outline-none placeholder:text-ink-3"
           />
           <div className="flex items-center justify-between px-2 pb-1">
-            <span className="text-[12px] text-ink-3">{degraded}</span>
+            {error ? (
+              <span role="alert" className="text-[13px] text-danger">
+                {error}
+              </span>
+            ) : (
+              <span className="text-[12px] text-ink-3">{degraded}</span>
+            )}
             <button type="submit" disabled={busy || !idea.trim()} className="btn-filled h-11 px-5 text-[15px] lg:h-10 lg:text-sm">
               {busy ? d.assist.working : d.assist.submit}
             </button>

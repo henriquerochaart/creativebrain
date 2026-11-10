@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, X, Sparkles, Copy } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { withBase } from "@/lib/base-path";
 import { Thumb } from "./thumb";
 import { useLang, useT } from "./lang-provider";
@@ -155,7 +155,7 @@ export function AnalyzeProject({ id, analyzed, count }: { id: string; analyzed: 
             await api(`/api/projects/${id}/analyze`, { method: "POST" });
             router.refresh();
           } catch (err) {
-            setError(`${d.projects.analysisFailed} ${err instanceof Error ? err.message : "failed"}`);
+            setError(`${d.projects.analysisFailed} ${errorText(err)}`);
           } finally {
             setBusy(false);
           }

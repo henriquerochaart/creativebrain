@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, errorText } from "./api";
 
 /**
  * The two ways the browser captures: a piece of text (a link or an idea) and files. Shared by the
@@ -21,7 +21,7 @@ export async function captureFiles(files: FileList | File[], collectionId?: stri
       await api("/api/upload", { method: "POST", body: form });
       ok++;
     } catch (err) {
-      errors.push(`${file.name}: ${err instanceof Error ? err.message : String(err)}`);
+      errors.push(`${file.name}: ${errorText(err)}`);
     }
   }
   return { ok, errors };

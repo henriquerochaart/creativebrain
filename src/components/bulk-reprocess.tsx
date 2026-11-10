@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "@/lib/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
@@ -37,7 +38,7 @@ export function BulkReprocess({
       setState({ running: false, done: ids.length, total: ids.length });
       router.refresh();
     } catch (err) {
-      setState({ running: false, done: 0, total: 0, error: err instanceof Error ? err.message : String(err) });
+      setState({ running: false, done: 0, total: 0, error: errorText(err) });
     }
   }
 

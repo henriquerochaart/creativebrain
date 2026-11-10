@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { useT } from "./lang-provider";
 
 export function MoodboardGenerator() {
@@ -22,7 +22,7 @@ export function MoodboardGenerator() {
           const res = await api<{ board: { id: string } }>("/api/moodboards", { method: "POST", body: JSON.stringify({ brief }) });
           router.push(`/moodboards/${res.board.id}`);
         } catch (err) {
-          setError(err instanceof Error ? err.message : "failed");
+          setError(errorText(err));
           setBusy(false);
         }
       }}

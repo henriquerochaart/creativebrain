@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Star, RefreshCw, Trash2, Plus, Check } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useT } from "./lang-provider";
 import { usePopover } from "./use-popover";
@@ -37,7 +37,7 @@ export function SaveToggle({ id, saved }: { id: string; saved: boolean }) {
             router.refresh();
           } catch (err) {
             setOn(!next); // the star goes back: it was not saved
-            setError(err instanceof Error ? err.message : String(err));
+            setError(errorText(err));
           }
         }}
         className="btn-gray h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]"
@@ -67,7 +67,7 @@ export function ReprocessButton({ id }: { id: string }) {
               await api(`/api/references/${id}/reprocess`, { method: "POST" });
               router.refresh();
             } catch (err) {
-              setError(err instanceof Error ? err.message : String(err));
+              setError(errorText(err));
             }
           })
         }
@@ -98,7 +98,7 @@ export function DeleteButton({ id }: { id: string }) {
             router.refresh();
           } catch (err) {
             setConfirm(false);
-            setError(err instanceof Error ? err.message : String(err));
+            setError(errorText(err));
           }
         }}
         onBlur={() => setConfirm(false)}

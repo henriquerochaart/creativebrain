@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { apiStream } from "@/lib/api";
+import { apiStream, errorText } from "@/lib/api";
 import { Textarea } from "./ui/input";
 import { useT } from "./lang-provider";
 
@@ -12,10 +12,12 @@ export function AskReference({ id }: { id: string }) {
   const [q, setQ] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function ask(question: string) {
     if (!question.trim() || busy) return;
     setBusy(true);
+    setError(null);
     setQ("");
     const history = turns;
     setTurns([...history, { role: "user", content: question }, { role: "assistant", content: "" }]);
@@ -24,7 +26,9 @@ export function AskReference({ id }: { id: string }) {
         setTurns([...history, { role: "user", content: question }, { role: "assistant", content: full }]);
       });
     } catch (err) {
-      setTurns([...history, { role: "user", content: question }, { role: "assistant", content: `${err instanceof Error ? err.message : "failed"}` }]);
+      setTurns(history);
+      setQ(question);
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }
@@ -48,6 +52,11 @@ export function AskReference({ id }: { id: string }) {
           </button>
         ))}
       </div>
+      {error && (
+        <p role="alert" className="mb-3 text-[13px] text-danger">
+          {error}
+        </p>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();

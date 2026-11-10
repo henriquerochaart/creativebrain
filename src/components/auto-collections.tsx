@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { Thumb } from "./thumb";
 import { useLang, useT } from "./lang-provider";
 import type { PublicReference } from "@/server/references";
@@ -29,7 +29,7 @@ export function AutoCollections() {
     try {
       setRes(await api<Res>("/api/collections/propose", { method: "POST" }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "failed");
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }

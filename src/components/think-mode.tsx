@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { api } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { Thumb } from "./thumb";
 import { useLang, useT } from "./lang-provider";
 import type { PublicReference } from "@/server/references";
@@ -38,7 +38,7 @@ export function ThinkMode() {
       setHistory((h) => [...h, { role: "user", content: query }, { role: "assistant", content: `${r.analysis.intro} ${r.analysis.clusters.map((c) => c.title).join("; ")}` }]);
       setQ("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "failed");
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }
