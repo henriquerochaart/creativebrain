@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, ChevronLeft, ExternalLink, Play } from "lucide-react";
+import { ArrowUpRight, ExternalLink, Play } from "lucide-react";
 import { collectionsOfReference, getReference, listCollections, relatedReferences, similarReferences, toPublic, failStuck, STUCK_AFTER_MS } from "@/server/references";
 import { getStorage } from "@/server/storage";
 import { Thumb } from "@/components/thumb";
@@ -13,12 +13,14 @@ import { CollectionPicker, DeleteButton, ReprocessButton, SaveToggle } from "@/c
 import { displayTitle, formatDuration, localeOf, yearOf } from "@/lib/utils";
 import { SIMILARITY_KINDS } from "@/server/taxonomy";
 import { recordEvent } from "@/server/insights";
+import { BackButton } from "@/components/back-button";
 import { projectsOfReference, recentProjectsList } from "@/server/projects";
 import { ProjectPicker } from "@/components/project-picker";
 import { dict } from "@/server/lang";
 import { UnderstandingProgress } from "@/components/understanding-progress";
 import { platformLabel, taxonomyLabel } from "@/lib/i18n";
 import { Thing } from "@/components/thing";
+import { failureText } from "@/lib/failure";
 import type { ReferenceLink } from "@/server/db/schema";
 
 export default async function ReferencePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
@@ -58,12 +60,10 @@ export default async function ReferencePage({ params, searchParams }: { params: 
       {sp.dup && <p className="rounded-full bg-paper-2 px-4 py-2 text-center text-[13px] text-ink-2">{d.reference.dupBanner}</p>}
       <div className="relative overflow-hidden rounded-[28px] bg-paper-2">
         {/* Back as a round glass button floating on the picture, the way an app's detail screen does it. */}
-        <Link href="/" aria-label={d.reference.back} className="material absolute left-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full text-ink shadow-sm transition-transform active:scale-95">
-          <ChevronLeft className="h-6 w-6" strokeWidth={2.5} />
-        </Link>
+        <BackButton label={d.reference.back} className="material absolute left-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full text-ink shadow-sm transition-transform active:scale-95" />
         {videoHref ? (
           <a href={videoHref} target="_blank" rel="noreferrer" aria-label={d.reference.openVideo} className="group relative block">
-            <Thumb reference={pub} lang={lang} className="max-h-[70vh] object-contain" />
+            <Thumb decorative reference={pub} lang={lang} className="max-h-[70vh] object-contain" />
             <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition-transform duration-300 group-hover:scale-110">
                 <Play className="ml-1 h-6 w-6 fill-current" />
@@ -75,7 +75,7 @@ export default async function ReferencePage({ params, searchParams }: { params: 
         ) : ref.mediaType === "text" && !ref.thumbnailUrl ? (
           <pre className="whitespace-pre-wrap p-8 font-sans text-base leading-relaxed">{ref.content.pageText}</pre>
         ) : (
-          <Thumb reference={pub} lang={lang} className="max-h-[70vh] object-contain" />
+          <Thumb decorative reference={pub} lang={lang} className="max-h-[70vh] object-contain" />
         )}
       </div>
 
@@ -120,7 +120,17 @@ export default async function ReferencePage({ params, searchParams }: { params: 
           <ReprocessButton id={ref.id} />
           <DeleteButton id={ref.id} />
         </div>
-        {ref.status === "failed" && <p className="mt-4 rounded-2xl bg-danger/10 p-4 text-sm text-danger">{ref.error}</p>}
+        {ref.status === "failed" && (
+          <div role="alert" className="mt-4 rounded-2xl bg-danger/10 p-4 text-sm text-danger">
+            <p>{failureText(d, ref.error)}</p>
+            {ref.error && (
+              <details className="mt-1 text-[13px] text-ink-2">
+                <summary className="cursor-pointer">{d.failure.details}</summary>
+                <p className="mt-1 break-words">{ref.error}</p>
+              </details>
+            )}
+          </div>
+        )}
       </header>
 
       {understood && (

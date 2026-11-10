@@ -26,7 +26,7 @@ export function ReferenceCard({ reference, showStatus = false, kinds, lang = "pt
     // what you saved. The picture carries the weight; the type stays quiet.
     <Link href={`/r/${r.id}`} className="group block">
       <div className="relative overflow-hidden rounded-[22px] bg-fill">
-        <Thumb reference={r} lang={lang} className="transition-transform duration-500 group-hover:scale-[1.03]" />
+        <Thumb decorative reference={r} lang={lang} className="transition-transform duration-500 group-hover:scale-[1.03]" />
         {r.mediaType === "video" && (
           <span className="absolute left-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full bg-black/45 text-[11px] text-white backdrop-blur-md" aria-label={d.card.video}>
             ▶

@@ -10,21 +10,27 @@ export function NewCollection() {
   const d = useT();
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("");
+  const [busy, setBusy] = useState(false);
   return (
     <form
       className="flex items-center gap-2"
       onSubmit={async (e) => {
         e.preventDefault();
-        if (!name.trim()) return;
-        await api("/api/collections", { method: "POST", body: JSON.stringify({ name, emoji: emoji || null }) });
-        setName("");
-        setEmoji("");
-        router.refresh();
+        if (!name.trim() || busy) return;
+        setBusy(true);
+        try {
+          await api("/api/collections", { method: "POST", body: JSON.stringify({ name, emoji: emoji || null }) });
+          setName("");
+          setEmoji("");
+          router.refresh();
+        } finally {
+          setBusy(false);
+        }
       }}
     >
-      <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="🔥" aria-label="Emoji" className="h-11 w-12 rounded-[10px] bg-fill text-center text-[17px] outline-none focus:ring-2 focus:ring-accent-ink/40 lg:h-10 lg:text-sm" />
+      <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="🔥" aria-label={d.collections.emoji} className="h-11 w-12 rounded-[10px] bg-fill text-center text-[17px] outline-none focus:ring-2 focus:ring-accent-ink/40 lg:h-10 lg:text-sm" />
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.collections.namePlaceholder} aria-label={d.collections.namePlaceholder} className="h-11 w-56 rounded-[10px] bg-fill px-3.5 text-[15px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent-ink/40 lg:h-10 lg:text-sm" />
-      <button type="submit" className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm">
+      <button type="submit" disabled={busy} className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm">
         {d.collections.create}
       </button>
     </form>

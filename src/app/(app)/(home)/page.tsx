@@ -17,10 +17,12 @@ import { PLATFORM_ICON, PLATFORM_ORDER, SUBJECT_ICON, TYPE_ICON, TYPE_ORDER } fr
 import { displayTitle } from "@/lib/utils";
 import { Mascot } from "@/components/mascot";
 
+/** For the side rows only: one failing count should not blank the page, but it is logged. */
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn();
-  } catch {
+  } catch (err) {
+    console.error("[home]", err);
     return fallback;
   }
 }
@@ -36,7 +38,8 @@ const RECENT = 14;
 export default async function Home() {
   const { lang, d } = await dict();
   const [rows, kinds, subjects, collections] = await Promise.all([
-    safe(() => listReferences({ limit: 120 }), []),
+    // Not behind safe(): an unreadable library shows the error screen, not an empty home.
+    listReferences({ limit: 120 }),
     safe(kindCounts, { type: {}, platform: {} }),
     safe(() => facetCounts("subjects", 40), []),
     safe(listCollections, []),
@@ -175,7 +178,7 @@ function RecentCard({ reference: r, lang, d }: { reference: PublicReference; lan
   return (
     <Link href={`/r/${r.id}`} className="group block w-[150px] sm:w-[172px]">
       <div className="relative aspect-[3/4] overflow-hidden rounded-[20px] bg-fill">
-        <Thumb reference={r} lang={lang} sizes="172px" className="aspect-auto h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+        <Thumb decorative reference={r} lang={lang} sizes="172px" className="aspect-auto h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
         {r.mediaType === "video" && (
           <span className="absolute left-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/45 text-[11px] text-white backdrop-blur-md" aria-hidden>
             ▶

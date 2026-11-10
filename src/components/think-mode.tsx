@@ -72,7 +72,7 @@ export function ThinkMode() {
         </div>
       </form>
 
-      {error && <p className="text-sm text-danger">{d.think.failed} {error}</p>}
+      {error && <p role="alert" className="text-sm text-danger">{d.think.failed} {error}</p>}
       {busy && !res && (
         <div className="flex flex-col items-center gap-2">
           <Mascot pose="notebook" className="h-28 w-28" />

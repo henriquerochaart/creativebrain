@@ -8,5 +8,5 @@ export const POST = withAuth(async (req: NextRequest) => {
   if (!parsed.ok) return parsed.response;
   const body = parsed.data;
   if (!body.name || !body.referenceIds?.length) return bad("`name` and `referenceIds` are required");
-  return Response.json({ collection: await acceptProposal({ name: body.name, emoji: body.emoji, rationale: body.rationale, referenceIds: body.referenceIds }) }, { status: 201 });
+  return Response.json({ collection: await acceptProposal({ name: body.name, emoji: body.emoji, rationale: body.rationale, referenceIds: body.referenceIds ?? [] }) }, { status: 201 });
 });

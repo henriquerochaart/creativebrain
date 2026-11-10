@@ -12,5 +12,5 @@ export const POST = withAuth(async (req: NextRequest) => {
   if (!parsed.ok) return parsed.response;
   const body = parsed.data;
   if (!body.name?.trim()) return bad("`name` is required");
-  return Response.json({ collection: await createCollection(body as { name: string; emoji?: string; description?: string }) }, { status: 201 });
+  return Response.json({ collection: await createCollection(body) }, { status: 201 });
 });

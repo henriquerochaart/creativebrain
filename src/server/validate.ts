@@ -9,7 +9,15 @@ import { z } from "zod";
 const text = (max: number) => z.string().trim().max(max);
 const words = z.array(z.string().trim().min(1).max(80)).max(50);
 const uuid = z.string().uuid();
-const history = z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(8000) })).max(20).optional();
+/**
+ * A conversation so far. Clients send all of it; only the recent part reaches a model, so a long
+ * conversation is trimmed here (last 20 turns, 8000 characters each) instead of being refused.
+ */
+const history = z
+  .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(200_000) }))
+  .max(1000)
+  .transform((turns) => turns.slice(-20).map((t) => ({ role: t.role, content: t.content.slice(0, 8000) })))
+  .optional();
 
 export const referencePatch = z.object({
   saved: z.boolean().optional(),
@@ -21,14 +29,14 @@ export const referencePatch = z.object({
   principles: words.optional(),
 });
 
-export const collectionCreate = z.object({ name: text(80).min(1), emoji: text(16).optional(), description: text(500).optional() });
+export const collectionCreate = z.object({ name: text(80).min(1), emoji: text(16).nullable().optional(), description: text(500).nullable().optional() });
 export const collectionPatch = z.object({
   name: text(80).min(1).optional(),
   emoji: text(16).nullable().optional(),
   description: text(500).nullable().optional(),
   position: z.number().int().min(0).max(100_000).optional(),
 });
-export const collectionAccept = z.object({ name: text(80).min(1), emoji: text(16).optional(), rationale: text(1000).optional(), referenceIds: z.array(uuid).max(500).optional() });
+export const collectionAccept = z.object({ name: text(80).min(1), emoji: text(16).nullable().optional(), rationale: text(2000).nullable().optional(), referenceIds: z.array(uuid).max(2000).optional() });
 export const referenceIdBody = z.object({ referenceId: uuid, note: text(2000).optional() });
 
 export const projectCreate = z.object({ name: text(120).min(1), brief: text(5000).optional() });

@@ -27,8 +27,8 @@ export function WhyThese({ query, ids, titles }: { query: string; ids: string[];
   return (
     <section className="rounded-[20px] bg-paper-2 p-6">
       <h2 className="eyebrow mb-3">{d.search.whyThese}</h2>
-      {error && <p className="text-sm text-ink-3">{d.search.couldNotExplain} {error}</p>}
-      {!why && !error && <p className="pulse-soft text-sm text-ink-3">{d.search.readingSet}</p>}
+      {error && <p role="alert" className="text-sm text-ink-3">{d.search.couldNotExplain} {error}</p>}
+      {!why && !error && <p role="status" className="pulse-soft text-sm text-ink-3">{d.search.readingSet}</p>}
       {why && (
         <div className="space-y-5">
           <p className="text-lg font-medium">{why.headline}</p>

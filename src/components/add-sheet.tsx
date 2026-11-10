@@ -128,7 +128,8 @@ function AddSheet({ onClose, notify }: { onClose: () => void; notify: (toast: To
     setBusy(true);
     const { ok, errors } = await captureFiles(files);
     setBusy(false);
-    if (ok) finish({ kind: "ok", text: d.capture.filesCaptured(ok) });
+    if (ok && errors.length) setError(d.capture.filesPartial(ok, errors.length, errors[0]));
+    else if (ok) finish({ kind: "ok", text: d.capture.filesCaptured(ok) });
     else if (errors.length) setError(errors[0]);
   }
 
@@ -160,10 +161,14 @@ function AddSheet({ onClose, notify }: { onClose: () => void; notify: (toast: To
         </div>
         {busy && (
           <p className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-ink-2" role="status">
-            <BrainThink /> {d.capture.captured}
+            <BrainThink /> {d.capture.uploading}
           </p>
         )}
-        {error && <p className="mt-4 text-center text-[13px] text-danger">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-4 text-center text-[13px] text-danger">
+            {error}
+          </p>
+        )}
         <input ref={fileRef} type="file" multiple accept={CAPTURE_ACCEPT} className="hidden" onChange={(e) => e.target.files?.length && void upload(e.target.files)} />
       </div>
     </div>

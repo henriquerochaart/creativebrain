@@ -27,7 +27,7 @@ export function InstallButton() {
       disabled={!evt}
       title={evt ? "" : d.settings.installHint}
       onClick={async () => { if (!evt) return; await evt.prompt(); const c = await evt.userChoice; if (c.outcome === "accepted") setInstalled(true); }}
-      className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm"
+      className="btn-gray h-11 px-4 text-[15px] lg:h-10 lg:text-sm"
     >
       {d.settings.install}
     </button>

@@ -74,7 +74,9 @@ export function CaptureBox({
     if (!list.length || busy) return;
     setBusy(true);
     const { ok, errors } = await captureFiles(list, collectionId);
-    if (ok) setToast({ kind: "ok", text: d.capture.filesCaptured(ok) });
+    // Some files failing is not a success: say how many did not make it, and why for the first.
+    if (ok && errors.length) setToast({ kind: "err", text: d.capture.filesPartial(ok, errors.length, errors[0]) });
+    else if (ok) setToast({ kind: "ok", text: d.capture.filesCaptured(ok) });
     else if (errors.length) setToast({ kind: "err", text: errors[0] });
     setBusy(false);
     router.refresh();
@@ -134,7 +136,7 @@ export function CaptureBox({
             type="button"
             onClick={() => void submitText()}
             disabled={busy || !value.trim()}
-            className="btn-filled h-9 px-4 text-[15px]"
+            className="btn-filled h-11 px-4 text-[15px] lg:h-9"
           >
             {busy ? "…" : d.capture.enter}
           </button>

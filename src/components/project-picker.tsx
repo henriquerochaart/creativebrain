@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { FolderPlus, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import { useT } from "./lang-provider";
+import { usePopover } from "./use-popover";
 
 type P = { id: string; name: string };
 
 export function ProjectPicker({ referenceId, projects, member }: { referenceId: string; projects: P[]; member: P[] }) {
   const router = useRouter();
   const d = useT();
-  const [open, setOpen] = useState(false);
+  const { open, wrapper, trigger, toggle: toggleMenu } = usePopover();
   const [name, setName] = useState("");
   const memberIds = new Set(member.map((m) => m.id));
   async function toggle(p: P) {
@@ -27,8 +28,8 @@ export function ProjectPicker({ referenceId, projects, member }: { referenceId: 
     router.refresh();
   }
   return (
-    <div className="relative">
-      <button type="button" onClick={() => setOpen(!open)} className="btn-gray h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]">
+    <div ref={wrapper} className="relative">
+      <button ref={trigger} type="button" onClick={toggleMenu} aria-expanded={open} aria-haspopup="true" className="btn-gray h-11 px-3.5 text-[15px] lg:h-9 lg:text-[13px]">
         <FolderPlus className="h-3.5 w-3.5" /> {member.length ? d.reference.projects(member.length) : d.reference.addToProject}
       </button>
       {open && (
@@ -36,7 +37,7 @@ export function ProjectPicker({ referenceId, projects, member }: { referenceId: 
           <ul className="max-h-64 overflow-y-auto">
             {projects.map((p) => (
               <li key={p.id}>
-                <button type="button" onClick={() => void toggle(p)} className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[13px] hover:bg-paper-2">
+                <button type="button" onClick={() => void toggle(p)} className="flex min-h-11 w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[15px] hover:bg-paper-2 focus-visible:bg-paper-2 lg:min-h-0 lg:text-[13px]">
                   <span className="truncate">{p.name}</span>
                   {memberIds.has(p.id) && <Check className="h-3.5 w-3.5" />}
                 </button>
@@ -51,8 +52,8 @@ export function ProjectPicker({ referenceId, projects, member }: { referenceId: 
               void create();
             }}
           >
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.reference.newProject} className="h-8 w-full rounded-lg bg-paper-2 px-2 text-[13px] outline-none" />
-            <button type="submit" className="btn-filled h-8 px-3 text-[12px]">
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.reference.newProject} aria-label={d.reference.newProject} className="h-11 w-full rounded-lg bg-paper-2 px-2 text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-accent-ink/40 lg:h-8 lg:text-[13px]" />
+            <button type="submit" className="btn-filled h-11 shrink-0 px-3 text-[15px] lg:h-8 lg:text-[12px]">
               {d.reference.add}
             </button>
           </form>

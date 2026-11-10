@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { safeNext } from "@/lib/safe-next";
 import { isPrivateAddress, assertPublicUrl } from "@/server/net";
-import { referencePatch, projectPatch, collectionPatch, askBody, intParam } from "@/server/validate";
+import { referencePatch, projectPatch, collectionPatch, collectionCreate, collectionAccept, askBody, intParam } from "@/server/validate";
 import { storageKeysOf } from "@/server/library";
 
 describe("after sign-in, only a path inside the app", () => {
@@ -45,7 +45,18 @@ describe("API bodies are allowlists", () => {
     expect(referencePatch.safeParse({ saved: "yes" }).success).toBe(false);
     expect(referencePatch.safeParse({ tags: Array.from({ length: 51 }, (_, i) => `t${i}`) }).success).toBe(false);
     expect(projectPatch.safeParse({ status: "deleted" }).success).toBe(false);
-    expect(askBody.safeParse({ question: "ok", history: [{ role: "user", content: "x".repeat(8001) }] }).success).toBe(false);
+    expect(askBody.safeParse({ question: "ok", history: [{ role: "system", content: "x" }] }).success).toBe(false);
+  });
+  it("accepts what the app's own screens send", () => {
+    // A collection made without an emoji, and an accepted suggestion, as the components send them.
+    expect(collectionCreate.safeParse({ name: "Tipografia", emoji: null }).success).toBe(true);
+    expect(collectionAccept.safeParse({ name: "Cor", emoji: "🎨", rationale: "Paletas quentes.", referenceIds: [] }).success).toBe(true);
+    // A long conversation is trimmed to its recent part, never refused.
+    const long = Array.from({ length: 40 }, (_, i) => ({ role: i % 2 ? "assistant" : "user", content: `${i} ${"x".repeat(9000)}` }));
+    const parsed = askBody.parse({ question: "e agora?", history: long });
+    expect(parsed.history).toHaveLength(20);
+    expect(parsed.history?.[0]?.content.startsWith("20 ")).toBe(true);
+    expect(parsed.history?.every((t) => t.content.length <= 8000)).toBe(true);
   });
   it("never turns a query parameter into NaN", () => {
     expect(intParam("abc", 40, 100)).toBe(40);

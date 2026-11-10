@@ -33,7 +33,7 @@ export function SearchField({ initial, mode }: { initial: string; mode: string }
         className="h-full w-full min-w-0 bg-transparent text-[17px] outline-none placeholder:text-ink-3 lg:text-[15px] [&::-webkit-search-cancel-button]:hidden"
       />
       {q && (
-        <button type="button" onClick={() => setQ("")} aria-label={d.header.clear} className="grid h-6 w-6 shrink-0 place-items-center">
+        <button type="button" onClick={() => setQ("")} aria-label={d.header.clear} className="-mr-2.5 grid h-11 w-11 shrink-0 place-items-center lg:mr-0 lg:h-6 lg:w-6">
           <span className="grid h-[18px] w-[18px] place-items-center rounded-full bg-ink-3/60 text-paper">
             <X className="h-3 w-3" strokeWidth={3} />
           </span>

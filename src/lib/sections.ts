@@ -33,7 +33,7 @@ export function within(path: string, href: string): boolean {
 
 /** The tab a path belongs to, for the tab bar's selection and the back link. */
 export function tabOf(path: string): "home" | "search" | "collections" | "settings" | null {
-  if (path === "/" || HOME_HUB.includes(path)) return "home";
+  if (path === "/" || HOME_HUB.includes(path) || within(path, "/c")) return "home";
   if (within(path, "/search")) return "search";
   if (within(path, "/collections") || COLLECTIONS_HUB.some((h) => within(path, h))) return "collections";
   if (within(path, "/settings") || SETTINGS_HUB.some((h) => within(path, h.href))) return "settings";
@@ -45,7 +45,8 @@ export function tabOf(path: string): "home" | "search" | "collections" | "settin
  * own back link (a moodboard or a project goes back to its list, not to Settings).
  */
 export function parentOf(path: string): "/" | "/settings" | "/collections" | null {
-  if (HOME_HUB.includes(path)) return "/";
+  // A category (/c/subject/Design) is opened from Início's Categorias.
+  if (HOME_HUB.includes(path) || /^\/c\/[^/]+\/[^/]+$/.test(path)) return "/";
   if (SETTINGS_HUB.some((h) => path === h.href)) return "/settings";
   if (COLLECTIONS_HUB.includes(path) || /^\/collections\/[^/]+$/.test(path)) return "/collections";
   return null;

@@ -10,6 +10,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { userId } from "@/server/tenant";
 import { ReprocessButton } from "@/components/reference-actions";
 import { dict } from "@/server/lang";
+import { failureText } from "@/lib/failure";
 import { ReprocessStale } from "@/components/reprocess-stale";
 
 // A bit past the pipeline routes' own maxDuration=300s. Past this, a reference still reading
@@ -79,7 +80,7 @@ export default async function InboxPage() {
                   <Link href={`/r/${r.id}`} className="font-medium hover:underline">
                     {r.title ?? r.originalUrl ?? d.card.untitled}
                   </Link>
-                  <p className="truncate text-[12px] text-danger">{r.error}</p>
+                  <p className="truncate text-[12px] text-danger" title={r.error ?? undefined}>{failureText(d, r.error)}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusDot status={r.status} lang={lang} />

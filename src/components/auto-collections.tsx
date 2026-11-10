@@ -46,7 +46,7 @@ export function AutoCollections() {
       <button type="button" onClick={() => void propose()} disabled={busy} className="btn-gray h-11 gap-2 px-4 text-[15px] lg:h-10 lg:text-sm">
         <Sparkles className="h-4 w-4" /> {busy ? d.collections.reading : res ? d.collections.proposeAgain : d.collections.propose}
       </button>
-      {error && <p className="mt-4 text-sm text-danger">{error}</p>}
+      {error && <p role="alert" className="mt-4 text-sm text-danger">{error}</p>}
       {res && (
         <ul className="mt-6 grid gap-5 md:grid-cols-2">
           {res.proposals.map((p) => (
@@ -64,7 +64,7 @@ export function AutoCollections() {
                     {d.collections.created}
                   </Link>
                 ) : (
-                  <button type="button" onClick={() => void accept(p)} disabled={p.existing} className="btn-filled shrink-0 px-3 py-1.5 text-[12px]">
+                  <button type="button" onClick={() => void accept(p)} disabled={p.existing} className="btn-gray h-11 shrink-0 px-3 text-[13px] lg:h-8 lg:text-[12px]">
                     {p.existing ? d.collections.exists : d.collections.createN(p.referenceIds.length)}
                   </button>
                 )}

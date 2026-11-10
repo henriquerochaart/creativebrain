@@ -8,7 +8,8 @@ export default async function MoodboardsPage() {
   const { lang, d } = await dict();
   const boards = await listBoards();
   return (
-    <div className="space-y-10">
+    // The title sits on the same column as the content below it.
+    <div className="mx-auto max-w-3xl space-y-10">
       <header>
         <h1 className="large-title">{d.moodboards.title}</h1>
       </header>

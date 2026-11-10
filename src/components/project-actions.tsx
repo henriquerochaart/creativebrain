@@ -14,18 +14,24 @@ export function NewProject() {
   const router = useRouter();
   const d = useT();
   const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
   return (
     <form
       className="flex items-center gap-2"
       onSubmit={async (e) => {
         e.preventDefault();
-        if (!name.trim()) return;
-        const res = await api<{ project: { id: string } }>("/api/projects", { method: "POST", body: JSON.stringify({ name }) });
-        router.push(`/projects/${res.project.id}`);
+        if (!name.trim() || busy) return;
+        setBusy(true);
+        try {
+          const res = await api<{ project: { id: string } }>("/api/projects", { method: "POST", body: JSON.stringify({ name }) });
+          router.push(`/projects/${res.project.id}`);
+        } catch {
+          setBusy(false);
+        }
       }}
     >
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder={d.projects.namePlaceholder} aria-label={d.projects.namePlaceholder} className="h-11 w-56 rounded-[10px] bg-fill px-3.5 text-[15px] outline-none placeholder:text-ink-3 focus:ring-2 focus:ring-accent-ink/40 lg:h-10 lg:text-sm" />
-      <button type="submit" className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm">
+      <button type="submit" disabled={busy} className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm">
         {d.projects.newProject}
       </button>
     </form>
@@ -38,13 +44,17 @@ export function ProjectBrief({ id, name, brief }: { id: string; name: string; br
   const [n, setN] = useState(name);
   const [b, setB] = useState(brief ?? "");
   async function save() {
-    await api(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ name: n, brief: b || null }) });
+    // A project keeps a name: an emptied title goes back to the last one.
+    const nextName = n.trim() || name;
+    if (nextName !== n) setN(nextName);
+    if (nextName === name && (b || null) === (brief ?? null)) return;
+    await api(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ name: nextName, brief: b || null }) });
     router.refresh();
   }
   return (
     <div className="space-y-2">
-      <input value={n} onChange={(e) => setN(e.target.value)} onBlur={() => void save()} aria-label={d.projects.namePlaceholder} className="large-title w-full bg-transparent outline-none" />
-      <textarea value={b} onChange={(e) => setB(e.target.value)} onBlur={() => void save()} rows={2} placeholder={d.projects.briefPlaceholder} aria-label={d.projects.briefPlaceholder} className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-3" />
+      <input value={n} onChange={(e) => setN(e.target.value)} onBlur={() => void save()} aria-label={d.projects.namePlaceholder} className="large-title w-full rounded-[10px] bg-transparent outline-none focus-visible:bg-fill" />
+      <textarea value={b} onChange={(e) => setB(e.target.value)} onBlur={() => void save()} rows={2} placeholder={d.projects.briefPlaceholder} aria-label={d.projects.briefPlaceholder} className="w-full resize-none rounded-[10px] bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-3 focus-visible:bg-fill" />
     </div>
   );
 }
@@ -83,7 +93,7 @@ export function ProjectPickerInline({ projectId, memberIds }: { projectId: strin
         className="flex items-center gap-2 rounded-[10px] bg-fill px-3.5 focus-within:ring-2 focus-within:ring-accent-ink/40"
       >
         <Search className="h-4 w-4 text-ink-3" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={d.projects.searchPlaceholder} aria-label={d.projects.searchPlaceholder} className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-ink-3" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={d.projects.searchPlaceholder} aria-label={d.projects.searchPlaceholder} className="h-11 w-full rounded-[10px] bg-transparent text-sm outline-none placeholder:text-ink-3 focus-visible:ring-2 focus-visible:ring-accent-ink/40 lg:h-10" />
         <button type="submit" disabled={busy} className="text-[13px] text-ink-2">
           {busy ? "…" : d.projects.search}
         </button>
@@ -117,7 +127,8 @@ export function RemoveFromProject({ projectId, referenceId }: { projectId: strin
         await api(`/api/projects/${projectId}/references?referenceId=${referenceId}`, { method: "DELETE" });
         router.refresh();
       }}
-      className="absolute right-2 top-2 rounded-full bg-paper/90 p-1 text-ink-2 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 hover:text-ink"
+      // Visible on touch screens and to the keyboard; only a pointer can hover to find it.
+      className="absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full bg-paper/90 text-ink-2 backdrop-blur transition-opacity hover:text-ink focus-visible:opacity-100 lg:h-7 lg:w-7 lg:opacity-0 lg:group-hover:opacity-100"
       title={d.projects.remove}
       aria-label={d.projects.remove}
     >
@@ -133,7 +144,7 @@ export function AnalyzeProject({ id, analyzed, count }: { id: string; analyzed: 
   const [error, setError] = useState<string | null>(null);
   return (
     <div className="flex items-center gap-3">
-      {error && <span className="text-[13px] text-danger">{error}</span>}
+      {error && <span role="alert" className="text-[13px] text-danger">{error}</span>}
       <button
         type="button"
         disabled={busy || count === 0}
@@ -164,8 +175,9 @@ export function CopyOutput({ id }: { id: string }) {
     <button
       type="button"
       onClick={async () => {
-        const res = await fetch(withBase(`/api/projects/${id}/output`), { headers: { "x-brain-ui": "1" } });
         try {
+          const res = await fetch(withBase(`/api/projects/${id}/output`), { headers: { "x-brain-ui": "1" } });
+          if (!res.ok) throw new Error(String(res.status));
           await navigator.clipboard.writeText(await res.text());
           setState("done");
         } catch {

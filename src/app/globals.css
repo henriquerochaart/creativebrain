@@ -35,8 +35,10 @@
 
 :root {
   --ink: #000000; /* label */
-  --ink-2: rgba(60, 60, 67, 0.6); /* secondaryLabel */
-  --ink-3: #8e8e93; /* systemGray */
+  /* secondaryLabel and systemGray, darkened to Apple's accessible values so small supporting text
+     reads at WCAG AA (4.5:1) on white: the stock 0.6 alpha and #8e8e93 sit near 3.4:1. */
+  --ink-2: rgba(60, 60, 67, 0.76); /* secondaryLabel, accessible */
+  --ink-3: #76767b; /* systemGray, accessible */
   --paper: #ffffff; /* systemBackground */
   --paper-2: #f2f2f7; /* secondarySystemBackground */
   --surface: #ffffff; /* cards: elevated by shadow in light */
@@ -51,7 +53,7 @@
   --accent: var(--pink);
   --on-accent: #1c1c1e;
   --accent-ink: var(--pink-deep);
-  --danger: #ff3b30; /* systemRed */
+  --danger: #d70015; /* systemRed, accessible: #ff3b30 is 3.5:1 as text and under white text */
   --success: #34c759; /* systemGreen */
   --warning: #ff9500; /* systemOrange */
   --material: rgba(255, 255, 255, 0.72); /* regular material, under backdrop blur */

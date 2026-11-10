@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { startTransition, useEffect } from "react";
 import { Mascot } from "@/components/mascot";
 import { useT } from "@/components/lang-provider";
 
@@ -11,6 +12,7 @@ import { useT } from "@/components/lang-provider";
  */
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const d = useT();
+  const router = useRouter();
   useEffect(() => {
     console.error("[app] screen failed", error.digest ?? "", error.message);
   }, [error]);
@@ -18,7 +20,8 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
     <div role="alert" className="flex flex-col items-center py-16 text-center">
       <Mascot pose="desconfiado" className="h-40 w-40" />
       <h1 className="large-title mt-4">{d.errorPage.title}</h1>
-      <button type="button" onClick={reset} className="btn-filled mt-6 h-11 px-6 text-[17px] lg:h-9">
+      {/* reset() alone only re-renders the client; a server failure needs the page fetched again. */}
+      <button type="button" onClick={() => startTransition(() => { router.refresh(); reset(); })} className="btn-filled mt-6 h-11 px-6 text-[17px] lg:h-9">
         {d.errorPage.retry}
       </button>
       <Link href="/" className="mt-3 inline-flex h-11 items-center text-[15px] text-ink-2 hover:text-ink">

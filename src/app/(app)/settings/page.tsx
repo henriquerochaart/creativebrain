@@ -183,7 +183,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             href={`javascript:void(window.open('${root}/share?token=${user ? await captureToken(user.id) : ""}&url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`}
             // How to use it is a tooltip: drag it to the bookmarks bar.
             title={s.desktopSub}
-            className="btn-filled h-11 px-4 text-[15px] lg:h-10 lg:text-sm"
+            className="btn-gray h-11 px-4 text-[15px] lg:h-10 lg:text-sm"
           >
             + Brain
           </a>

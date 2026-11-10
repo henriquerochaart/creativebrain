@@ -15,10 +15,11 @@ const TYPE_SYMBOL: Record<string, React.ComponentType<{ className?: string; stro
 
 type ThumbRef = Pick<PublicReference, "thumbnailUrl" | "title" | "sourcePlatform" | "mediaType" | "content">;
 
-export function Thumb({ reference, className, sizes, lang = "pt" }: { reference: ThumbRef; className?: string; sizes?: string; lang?: Lang }) {
+/** `decorative` when the title is printed right beside the picture, so a screen reader says it once. */
+export function Thumb({ reference, className, sizes, lang = "pt", decorative = false }: { reference: ThumbRef; className?: string; sizes?: string; lang?: Lang; decorative?: boolean }) {
   const placeholder = <Placeholder reference={reference} className={className} lang={lang} />;
   if (reference.thumbnailUrl) {
-    return <SmartImage src={reference.thumbnailUrl} alt={reference.title ?? ""} sizes={sizes} className={cn("block h-auto w-full object-cover", className)} fallback={placeholder} />;
+    return <SmartImage src={reference.thumbnailUrl} alt={decorative ? "" : (reference.title ?? "")} sizes={sizes} className={cn("block h-auto w-full object-cover", className)} fallback={placeholder} />;
   }
   return placeholder;
 }

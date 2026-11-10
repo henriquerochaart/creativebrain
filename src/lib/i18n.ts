@@ -88,6 +88,8 @@ const pt = {
     duplicate: "Já estava salvo.",
     failed: "Falhou",
     filesCaptured: (n: number) => `${n} arquivo${n > 1 ? "s" : ""} salvo${n > 1 ? "s" : ""}. Entendendo…`,
+    filesPartial: (ok: number, failed: number, first: string) => `${ok} salvo${ok > 1 ? "s" : ""}, ${failed} não. ${first}`,
+    uploading: "Enviando…",
   },
   status: {
     understood: "Entendida",
@@ -105,6 +107,7 @@ const pt = {
     nothing48h: "Nada entendido nas últimas 48 horas.",
     reprocessVideos: "Reentender todos os vídeos",
     reprocessLinks: "Reinterpretar todos os links",
+    reprocessConfirm: (n: number) => `Reinterpretar ${n} referência${n === 1 ? "" : "s"}? Cada uma passa pelo modelo de novo.`,
     reprocessProgress: (done: number, total: number) => `${done} de ${total}…`,
     reprocessDone: (n: number) => `${n} vídeo${n === 1 ? "" : "s"} na fila.`,
     stale: "Travadas",
@@ -266,6 +269,7 @@ const pt = {
   collections: {
     title: "Coleções",
     create: "Criar",
+    emoji: "Emoji",
     namePlaceholder: "Coisas que eu quero roubar",
     one: "Coleção",
     auto: "Coleção · proposta pelo cérebro",
@@ -391,6 +395,15 @@ const pt = {
   },
   notFound: { title: "Não está no cérebro.", back: "Voltar para todas as referências" },
   errorPage: { title: "Algo deu errado.", retry: "Tentar de novo", home: "Ir para o início" },
+  failure: {
+    stopped: "Parou antes de terminar. Tente de novo.",
+    fetch: "Não consegui abrir o endereço.",
+    media: "Não consegui ler o arquivo.",
+    model: "O modelo não respondeu. Tente de novo.",
+    refused: "O modelo recusou esta referência.",
+    generic: "Não consegui entender esta referência.",
+    details: "Detalhes",
+  },
   account: {
     changePassword: "Alterar senha",
     current: "Senha atual",
@@ -481,6 +494,8 @@ const en: Dict = {
     duplicate: "Already saved.",
     failed: "Failed",
     filesCaptured: (n: number) => `${n} file${n > 1 ? "s" : ""} saved. Understanding…`,
+    filesPartial: (ok: number, failed: number, first: string) => `${ok} saved, ${failed} not. ${first}`,
+    uploading: "Uploading…",
   },
   status: {
     understood: "Understood",
@@ -498,6 +513,7 @@ const en: Dict = {
     nothing48h: "Nothing understood in the last 48 hours.",
     reprocessVideos: "Re-understand every video",
     reprocessLinks: "Re-understand every link",
+    reprocessConfirm: (n: number) => `Re-understand ${n} reference${n === 1 ? "" : "s"}? Each one goes through the model again.`,
     reprocessProgress: (done: number, total: number) => `${done} of ${total}…`,
     reprocessDone: (n: number) => `${n} video${n === 1 ? "" : "s"} queued.`,
     stale: "Stuck",
@@ -659,6 +675,7 @@ const en: Dict = {
   collections: {
     title: "Collections",
     create: "Create",
+    emoji: "Emoji",
     namePlaceholder: "Things I want to steal",
     one: "Collection",
     auto: "Collection · proposed by the Brain",
@@ -784,6 +801,15 @@ const en: Dict = {
   },
   notFound: { title: "Not in the Brain.", back: "Back to all references" },
   errorPage: { title: "Something went wrong.", retry: "Try again", home: "Go to Home" },
+  failure: {
+    stopped: "Stopped before finishing. Try again.",
+    fetch: "Couldn't open the address.",
+    media: "Couldn't read the file.",
+    model: "The model didn't answer. Try again.",
+    refused: "The model declined this reference.",
+    generic: "Couldn't understand this reference.",
+    details: "Details",
+  },
   account: {
     changePassword: "Change password",
     current: "Current password",
