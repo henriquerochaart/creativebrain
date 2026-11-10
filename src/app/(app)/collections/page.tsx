@@ -7,9 +7,16 @@ import { dict } from "@/server/lang";
 import { Emoji } from "@/components/emoji";
 import { Thing } from "@/components/thing";
 
+const PROPOSE_AFTER = 6;
+
 export default async function CollectionsPage() {
   const { d } = await dict();
-  const [cols, saved] = await Promise.all([listCollections(), listReferences({ saved: true, limit: 200 }).then((rows) => rows.map(toPublic))]);
+  const [cols, saved, understood] = await Promise.all([
+    listCollections(),
+    listReferences({ saved: true, limit: 200 }).then((rows) => rows.map(toPublic)),
+    // Proposing collections needs something to group: hidden until the library has a few references.
+    listReferences({ status: "understood", limit: PROPOSE_AFTER }),
+  ]);
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -36,7 +43,7 @@ export default async function CollectionsPage() {
           />
         ))}
       </div>
-      <AutoCollections />
+      {understood.length >= PROPOSE_AFTER && <AutoCollections />}
     </div>
   );
 }

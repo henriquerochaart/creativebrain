@@ -26,6 +26,15 @@ export const POST = withAuth(async (req: NextRequest) => capture(req, await read
 export const GET = withAuth(
   async (req: NextRequest) => {
     const p = req.nextUrl.searchParams;
+    // Signed in by the cookie alone and sent here by another site: a GET must not save on its own
+    // (cross-site request forgery). The share screen asks first. Tools that GET carry a token or key.
+    const site = req.headers.get("sec-fetch-site");
+    const credential = p.has("token") || req.headers.has("authorization") || req.headers.has("x-api-key");
+    if (!credential && (site === "cross-site" || site === "same-site")) {
+      const ask = new URL(withBase("/share"), req.url);
+      for (const k of ["url", "text", "title"]) if (p.get(k)) ask.searchParams.set(k, p.get(k)!);
+      return Response.redirect(ask, 303);
+    }
     return capture(req, { url: p.get("url"), text: p.get("text"), title: p.get("title") });
   },
   { onUnauthorized: locked },

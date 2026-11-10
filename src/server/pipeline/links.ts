@@ -1,6 +1,7 @@
 import type { SiteMention } from "../ai/schemas";
 import type { ReferenceLink } from "../db/schema";
 import { fetchWithTimeout } from "../connectors/types";
+import { readLimited } from "../net";
 import { extractMeta } from "../connectors/html";
 
 /** At most this many sites are opened for one reference. */
@@ -79,7 +80,7 @@ export async function resolveLinks(sites: SiteMention[], ownUrl: string | null):
           await res.body?.cancel();
           return null;
         }
-        const meta = extractMeta((await res.text()).slice(0, 500_000), finalUrl);
+        const meta = extractMeta(((await readLimited(res, 1_000_000)) ?? Buffer.alloc(0)).toString("utf8").slice(0, 500_000), finalUrl);
         const host = new URL(finalUrl).hostname.replace(/^www\./, "");
         const title = meta.title?.trim() || null;
         if (!confirmsName(site, host, title)) return null;

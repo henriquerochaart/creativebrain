@@ -4,11 +4,12 @@ import { AuthCard } from "@/components/auth-card";
 import { AuthForm } from "@/components/auth-form";
 import { currentUser, signupsOpen } from "@/server/accounts";
 import { dict } from "@/server/lang";
+import { safeNext } from "@/lib/safe-next";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { d } = await dict();
   const { next = "/" } = await searchParams;
-  if (await currentUser()) redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/");
+  if (await currentUser()) redirect(safeNext(next));
   const signup = await signupsOpen();
   return (
     <AuthCard pose="oculos" title={d.auth.login}>

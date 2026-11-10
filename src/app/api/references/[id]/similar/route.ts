@@ -1,4 +1,5 @@
 import { withAuth, bad } from "@/server/http";
+import { intParam } from "@/server/validate";
 import { getReference, relatedReferences, similarReferences } from "@/server/references";
 
 export const runtime = "nodejs";
@@ -7,7 +8,7 @@ export const runtime = "nodejs";
 export const GET = withAuth<{ id: string }>(async (req, { params }) => {
   const ref = await getReference(params.id);
   if (!ref) return bad("Not found", 404);
-  const limit = Math.min(Number(req.nextUrl.searchParams.get("limit") ?? 6), 20);
+  const limit = intParam(req.nextUrl.searchParams.get("limit"), 6, 20);
   const [byKind, related] = await Promise.all([similarReferences(ref.id, limit), relatedReferences(ref.id, limit)]);
   return Response.json({ byKind, related });
 });

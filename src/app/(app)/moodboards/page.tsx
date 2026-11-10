@@ -9,7 +9,7 @@ export default async function MoodboardsPage() {
   const boards = await listBoards();
   return (
     <div className="space-y-10">
-      <header className="text-center">
+      <header>
         <h1 className="large-title">{d.moodboards.title}</h1>
       </header>
       <MoodboardGenerator />

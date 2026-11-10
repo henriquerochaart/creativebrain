@@ -5,7 +5,7 @@ export default async function AssistPage() {
   const { d } = await dict();
   return (
     <div className="space-y-8">
-      <header className="text-center">
+      <header>
         <h1 className="large-title">{d.assist.title}</h1>
       </header>
       <AssistMode />

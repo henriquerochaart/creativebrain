@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { withAuth, bad, readJson } from "@/server/http";
+import { intParam, parseBody, captureBody } from "@/server/validate";
+import { withAuth, bad } from "@/server/http";
 import { captureInput, toPublic } from "@/server/references";
 import { browse } from "@/server/search";
 
@@ -22,15 +23,17 @@ export const GET = withAuth(async (req: NextRequest) => {
       collectionId: p.get("collection") ?? undefined,
       mediaType: p.get("mediaType") ?? undefined,
     },
-    Math.min(Number(p.get("limit") ?? 60), 200),
-    Number(p.get("offset") ?? 0),
+    intParam(p.get("limit"), 60, 200),
+    Math.max(0, Number.parseInt(p.get("offset") ?? "0", 10) || 0),
   );
   return Response.json({ references: rows.map(toPublic) });
 });
 
 /** POST /api/references { input: url | text, note?, collectionId? } — capture anything. */
 export const POST = withAuth(async (req: NextRequest) => {
-  const body = await readJson<{ input?: string; note?: string; collectionId?: string }>(req);
+  const parsed = await parseBody(req, captureBody);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.data;
   if (!body.input?.trim()) return bad("`input` is required (a URL or a piece of text)");
   const { reference, duplicate } = await captureInput(body.input, { note: body.note, collectionId: body.collectionId });
   return Response.json({ reference: toPublic(reference), duplicate }, { status: duplicate ? 200 : 201 });

@@ -1,8 +1,11 @@
 import type { Connector, ConnectorResult } from "./types";
 import { fetchWithTimeout } from "./types";
+import { readLimited } from "../net";
 import { extractMeta, extractText } from "./html";
 import { detectPlatform } from "./detect";
 import type { Platform } from "../taxonomy";
+
+const MAX_HTML = 5 * 1024 * 1024;
 
 /**
  * Generic connector for any URL: articles, Behance, Pinterest, app stores, and direct files.
@@ -31,6 +34,8 @@ export const webConnector: Connector = {
     }
     const ctype = (res.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
     const finalUrl = res.url || url.toString();
+    // A file, not a page: the pipeline downloads it on its own, so this response is not read.
+    if (/^(image|video)\//.test(ctype) || ctype === "application/pdf") void res.body?.cancel().catch(() => undefined);
 
     if (ctype.startsWith("image/")) {
       return { platform: "image", mediaType: "image", canonicalUrl: finalUrl, metadata: { title: fileName(finalUrl) }, mediaUrl: finalUrl, mediaMime: ctype, thumbnailUrl: finalUrl };
@@ -43,7 +48,10 @@ export const webConnector: Connector = {
     }
 
     if (!res.ok) warnings.push(`Page returned ${res.status}`);
-    const html = await res.text();
+    // Pages past MAX_HTML are cut: their head (title, OpenGraph) is what we need, and it comes first.
+    const raw = await readLimited(res, MAX_HTML);
+    const html = (raw ?? Buffer.alloc(0)).toString("utf8");
+    if (!raw) warnings.push("Page too large to read");
     const meta = extractMeta(html, finalUrl);
     const pageText = extractText(html);
     const isVideoPage = meta.type?.startsWith("video") || Boolean(meta.video);

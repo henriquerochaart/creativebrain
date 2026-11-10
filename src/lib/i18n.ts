@@ -329,6 +329,8 @@ const pt = {
   share: {
     nothingArrived: "Nada chegou.",
     setupLink: "Configurar no celular",
+    confirmTitle: "Salvar no Brain?",
+    confirm: "Salvar",
     reply: {
       locked: "Atualize o atalho: copie a URL em Ajustes.",
       saved: (where: string) => `Salvo: ${where}. Entendendo agora.`,
@@ -388,6 +390,7 @@ const pt = {
     copied: "Copiado",
   },
   notFound: { title: "Não está no cérebro.", back: "Voltar para todas as referências" },
+  errorPage: { title: "Algo deu errado.", retry: "Tentar de novo", home: "Ir para o início" },
   time: {
     justNow: "agora",
     minutes: (n: number) => `${n} min atrás`,
@@ -701,6 +704,8 @@ const en: Dict = {
   share: {
     nothingArrived: "Nothing arrived.",
     setupLink: "Set up on your phone",
+    confirmTitle: "Save to the Brain?",
+    confirm: "Save",
     reply: {
       locked: "Update the Shortcut: copy the URL from Settings.",
       saved: (where: string) => `Saved: ${where}. Understanding it now.`,
@@ -760,6 +765,7 @@ const en: Dict = {
     copied: "Copied",
   },
   notFound: { title: "Not in the Brain.", back: "Back to all references" },
+  errorPage: { title: "Something went wrong.", retry: "Try again", home: "Go to Home" },
   time: {
     justNow: "just now",
     minutes: (n: number) => `${n}m ago`,

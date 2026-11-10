@@ -15,9 +15,12 @@ export function withAuth<P = Record<string, never>>(handler: Handler<P>, opts: {
       // Everything the handler calls reads and writes this account's library (server/tenant.ts).
       return await runAs(uid, async () => handler(req, { params }));
     } catch (err) {
+      // The detail goes to the logs under an id; the client gets the id, never the internals
+      // (SQL, file paths, provider responses).
+      const ref = crypto.randomUUID().slice(0, 8);
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`[api] ${req.method} ${req.nextUrl.pathname}:`, message);
-      return Response.json({ error: message }, { status: 500 });
+      console.error(`[api] ${req.method} ${req.nextUrl.pathname} (${ref}):`, message);
+      return Response.json({ error: "Internal error", ref }, { status: 500 });
     }
   };
 }

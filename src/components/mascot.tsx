@@ -23,6 +23,6 @@ export type MascotPose =
 export function Mascot({ pose, className }: { pose: MascotPose; className?: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={withBase(`/mascot/${pose}.webp`)} alt="" aria-hidden width={512} height={512} decoding="async" draggable={false} className={cn("inline-block shrink-0 select-none object-contain", className)} />
+    <img src={withBase(`/mascot/${pose}.webp`)} alt="" aria-hidden width={512} height={512} decoding="async" draggable={false} className={cn("mascot-art inline-block shrink-0 select-none object-contain", className)} />
   );
 }

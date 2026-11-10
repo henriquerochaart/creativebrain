@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { withAuth, bad, readJson } from "@/server/http";
+import { parseBody, thinkBody } from "@/server/validate";
+import { withAuth, bad } from "@/server/http";
 import { search } from "@/server/search";
 import { think } from "@/server/search/explain";
 import { toPublic } from "@/server/references";
@@ -12,7 +13,9 @@ export const maxDuration = 120;
 
 /** POST /api/think { query, history? } — conversational retrieval over the whole repertoire. */
 export const POST = withAuth(async (req: NextRequest) => {
-  const body = await readJson<{ query?: string; history?: { role: "user" | "assistant"; content: string }[] }>(req);
+  const parsed = await parseBody(req, thinkBody);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.data;
   if (!body.query?.trim()) return bad("`query` is required");
   const result = await search(body.query, { mode: "hybrid", limit: 40 });
   const refs = result.hits.map((h) => h.reference);

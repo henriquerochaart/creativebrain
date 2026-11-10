@@ -1,3 +1,4 @@
+import { safeFetch } from "../net";
 import type { MediaType, Platform } from "../taxonomy";
 import type { ReferenceMetadata } from "../db/schema";
 
@@ -38,12 +39,12 @@ export const DEFAULT_HEADERS = {
   "accept-language": "en,pt-BR;q=0.9,pt;q=0.8",
 };
 
+/**
+ * Every connector request goes through safeFetch (server/net.ts): public addresses only, checked on
+ * each redirect, and the time limit also covers reading the body.
+ */
 export async function fetchWithTimeout(input: string, init: RequestInit = {}, ms = 15000): Promise<Response> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), ms);
-  try {
-    return await fetch(input, { ...init, headers: { ...DEFAULT_HEADERS, ...(init.headers ?? {}) }, signal: ctrl.signal, redirect: "follow" });
-  } finally {
-    clearTimeout(timer);
-  }
+  const headers = { ...DEFAULT_HEADERS, ...((init.headers as Record<string, string> | undefined) ?? {}) };
+  const res = await safeFetch(input, { method: init.method, body: init.body as string | undefined, headers, timeoutMs: ms });
+  return res as unknown as Response;
 }

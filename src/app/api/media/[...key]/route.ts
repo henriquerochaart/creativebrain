@@ -8,6 +8,8 @@ import { NotSignedIn } from "@/server/tenant";
 
 export const runtime = "nodejs";
 
+const SAFE_SEGMENT = /^[A-Za-z0-9._-]+$/;
+
 /**
  * Serves stored media (local driver, S3 without a public URL) or redirects to it (Vercel Blob),
  * only to the account whose library the reference is in: every key is references/<id>/…, and the
@@ -16,8 +18,11 @@ export const runtime = "nodejs";
  */
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ key: string[] }> }) {
   const { key } = await ctx.params;
+  // Next decodes each segment, so "..%2F" arrives as "../" inside one: every segment must be a plain
+  // file or folder name, or the path could step out of the reference it names.
+  if (!key.every((seg) => SAFE_SEGMENT.test(seg) && seg !== "." && seg !== "..")) return new Response("Not found", { status: 404 });
   const path = key.join("/");
-  const id = /^references\/([0-9a-fA-F-]{36})\//.exec(path)?.[1];
+  const id = /^references\/([0-9a-fA-F-]{36})\/[^/]+$/.exec(path)?.[1];
   try {
     if (!id || !(await getReference(id))) return new Response("Not found", { status: 404 });
   } catch (err) {
@@ -36,7 +41,15 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ key: strin
   const obj = storage.locate ? null : await storage.get(path);
   if (obj) {
     return new Response(new Uint8Array(obj.data), {
-      headers: { "content-type": obj.mime, "cache-control": "private, max-age=31536000, immutable", "content-length": String(obj.data.length) },
+      headers: {
+        "content-type": obj.mime,
+        "cache-control": "private, max-age=31536000, immutable",
+        "content-length": String(obj.data.length),
+        "x-content-type-options": "nosniff",
+        // Opened on its own, an uploaded file must not run as a page of the app (an SVG with a
+        // script, an HTML file). PDFs keep the browser's viewer, which a sandbox would block.
+        ...(obj.mime === "application/pdf" ? {} : { "content-security-policy": "sandbox; default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'" }),
+      },
     });
   }
 

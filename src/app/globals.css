@@ -241,6 +241,13 @@ select:focus-visible {
 .mascot-shadow {
   filter: drop-shadow(0 8px 10px color-mix(in srgb, var(--pink-deep) 16%, transparent));
 }
+/* Brain's doodles (sparkles, motion lines, the sleep z's) are drawn in black; on a dark screen a hair
+   of light around the art keeps them visible. */
+@media (prefers-color-scheme: dark) {
+  .mascot-art {
+    filter: drop-shadow(0 0 0.6px rgb(255 255 255 / 0.55)) drop-shadow(0 0 0.6px rgb(255 255 255 / 0.55));
+  }
+}
 .mascot-ground {
   background: radial-gradient(closest-side, color-mix(in srgb, var(--pink-deep) 30%, transparent), transparent);
 }

@@ -1,3 +1,4 @@
+import { assertPublicUrl, readLimited, safeFetch } from "../net";
 import { execFile } from "node:child_process";
 import { promises as fs } from "node:fs";
 import os from "node:os";
@@ -106,6 +107,8 @@ export async function extractAudio(mediaFile: string): Promise<Buffer | null> {
 /** Downloads media from a social platform with yt-dlp when the operator has enabled it. */
 export async function fetchMediaWithYtDlp(url: string): Promise<{ data: Buffer; mime: string } | null> {
   if (env.connectors.mediaFetcher !== "yt-dlp") return null;
+  // yt-dlp makes its own requests; at least the address it starts from must be a public one.
+  if (!(await assertPublicUrl(url).then(() => true, () => false))) return null;
   const dir = await tmpDir("ytdlp");
   try {
     const out = path.join(dir, "media.%(ext)s");
@@ -139,16 +142,21 @@ export async function withTempFile<T>(data: Buffer, ext: string, fn: (file: stri
   }
 }
 
-export async function downloadFile(url: string, maxBytes = 300 * 1024 * 1024, headers: Record<string, string> = {}): Promise<{ data: Buffer; mime: string } | null> {
+/**
+ * Downloads a file from an address the material gave us, through safeFetch (public addresses only),
+ * reading at most `maxBytes` and giving up after `timeoutMs` in total, body included.
+ */
+export async function downloadFile(url: string, maxBytes = 300 * 1024 * 1024, headers: Record<string, string> = {}, timeoutMs = 120_000): Promise<{ data: Buffer; mime: string } | null> {
   try {
-    const res = await fetch(url, { redirect: "follow", headers: { "user-agent": "HenriqueBrain/0.1", ...headers } });
-    if (!res.ok) return null;
-    const len = Number(res.headers.get("content-length") ?? 0);
-    if (len > maxBytes) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > maxBytes) return null;
+    const res = await safeFetch(url, { headers: { "user-agent": "HenriqueBrain/0.1", ...headers }, timeoutMs });
+    if (!res.ok) {
+      await res.body?.cancel().catch(() => undefined);
+      return null;
+    }
+    const data = await readLimited(res, maxBytes);
+    if (!data) return null;
     const mime = (res.headers.get("content-type") ?? "application/octet-stream").split(";")[0].trim();
-    return { data: buf, mime };
+    return { data, mime };
   } catch {
     return null;
   }

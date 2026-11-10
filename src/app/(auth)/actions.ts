@@ -5,16 +5,12 @@ import { redirect } from "next/navigation";
 import { authenticate, findUserByEmail, ownerEmail, passwordHashOf, registerUser, setPassword, validCredentials, validEmail, validPassword } from "@/server/accounts";
 import { RESET_MINUTES, SESSION_COOKIE, SESSION_DAYS, WELCOME_COOKIE, readResetToken, resetToken, signSession } from "@/lib/session";
 import { BASE_PATH } from "@/lib/base-path";
+import { safeNext } from "@/lib/safe-next";
 import { publicOrigin } from "@/server/origin";
 
 /** The error, and the email typed, since React resets the form after the action: it comes back filled in. */
 export type AuthState = { error: "email" | "password" | "wrong" | "closed" | "taken" | "server" | null; email?: string };
 
-/** Only a path inside the app, never another site: `next` arrives in the URL. */
-function safeNext(value: FormDataEntryValue | null): string {
-  const next = typeof value === "string" ? value : "";
-  return next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : "/";
-}
 
 async function signIn(userId: string) {
   const jar = await cookies();

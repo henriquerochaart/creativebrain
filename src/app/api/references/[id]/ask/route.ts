@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { withAuth, bad, readJson, textStream } from "@/server/http";
+import { parseBody, askBody } from "@/server/validate";
+import { withAuth, bad, textStream } from "@/server/http";
 import { getReference, relatedReferences } from "@/server/references";
 import { getLLM } from "@/server/ai/router";
 import { ASK_SYSTEM } from "@/server/ai/prompts";
@@ -14,7 +15,9 @@ export const runtime = "nodejs";
 export const POST = withAuth<{ id: string }>(async (req: NextRequest, { params }) => {
   const ref = await getReference(params.id);
   if (!ref) return bad("Not found", 404);
-  const body = await readJson<{ question?: string; history?: { role: "user" | "assistant"; content: string }[] }>(req);
+  const parsed = await parseBody(req, askBody);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.data;
   if (!body.question?.trim()) return bad("`question` is required");
   const related = await relatedReferences(ref.id, 4).catch(() => []);
   const context = [

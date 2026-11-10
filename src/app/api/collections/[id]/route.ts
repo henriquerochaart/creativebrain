@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { withAuth, bad, readJson } from "@/server/http";
+import { parseBody, collectionPatch } from "@/server/validate";
+import { withAuth, bad } from "@/server/http";
 import { collectionReferences, deleteCollection, getCollection, toPublic, updateCollection } from "@/server/references";
 
 export const runtime = "nodejs";
@@ -15,7 +16,9 @@ export const GET = withAuth<P>(async (_req, { params }) => {
 export const PATCH = withAuth<P>(async (req: NextRequest, { params }) => {
   const collection = await getCollection(params.id);
   if (!collection) return bad("Not found", 404);
-  const body = await readJson<{ name?: string; emoji?: string | null; description?: string | null; position?: number }>(req);
+  const parsed = await parseBody(req, collectionPatch);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.data;
   return Response.json({ collection: await updateCollection(collection.id, body) });
 });
 
