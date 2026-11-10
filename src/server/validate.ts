@@ -42,6 +42,9 @@ export const askBody = z.object({ question: text(2000).min(1), history });
 export const explainBody = z.object({ query: text(2000).min(1), ids: z.array(uuid).max(60).optional() });
 export const imageUrlBody = z.object({ imageUrl: z.string().url().max(2048) });
 
+export const passwordChange = z.object({ current: z.string().max(200), next: z.string().max(200) });
+export const accountDelete = z.object({ password: z.string().max(200) });
+
 /** Parses a JSON body against a schema: the data, or a 400 Response that names the first problem. */
 export async function parseBody<S extends z.ZodTypeAny>(req: Request, schema: S): Promise<{ ok: true; data: z.infer<S> } | { ok: false; response: Response }> {
   let raw: unknown;

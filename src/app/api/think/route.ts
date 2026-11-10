@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { useQuota } from "@/server/limits";
 import { parseBody, thinkBody } from "@/server/validate";
 import { withAuth, bad } from "@/server/http";
 import { search } from "@/server/search";
@@ -13,6 +14,7 @@ export const maxDuration = 120;
 
 /** POST /api/think { query, history? } — conversational retrieval over the whole repertoire. */
 export const POST = withAuth(async (req: NextRequest) => {
+  await useQuota("ai");
   const parsed = await parseBody(req, thinkBody);
   if (!parsed.ok) return parsed.response;
   const body = parsed.data;

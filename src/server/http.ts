@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import { authorizedUser, unauthorized } from "./auth";
 import { runAs } from "./tenant";
+import { LimitError } from "./limits";
+import { getLang } from "./lang";
+import { t } from "@/lib/i18n";
 
 type Ctx<P> = { params: Promise<P> };
 type Handler<P> = (req: NextRequest, ctx: { params: P }) => Promise<Response> | Response;
@@ -15,6 +18,11 @@ export function withAuth<P = Record<string, never>>(handler: Handler<P>, opts: {
       // Everything the handler calls reads and writes this account's library (server/tenant.ts).
       return await runAs(uid, async () => handler(req, { params }));
     } catch (err) {
+      if (err instanceof LimitError) {
+        const d = t(await getLang());
+        const message = err.retryAfter <= 60 ? d.limits.burst : d.limits[err.kind === "auth" ? "capture" : err.kind];
+        return Response.json({ error: message, limit: err.kind }, { status: 429, headers: { "retry-after": String(err.retryAfter) } });
+      }
       // The detail goes to the logs under an id; the client gets the id, never the internals
       // (SQL, file paths, provider responses).
       const ref = crypto.randomUUID().slice(0, 8);

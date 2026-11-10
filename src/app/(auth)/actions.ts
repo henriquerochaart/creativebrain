@@ -2,21 +2,21 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authenticate, findUserByEmail, ownerEmail, passwordHashOf, registerUser, setPassword, validCredentials, validEmail, validPassword } from "@/server/accounts";
-import { RESET_MINUTES, SESSION_COOKIE, SESSION_DAYS, WELCOME_COOKIE, readResetToken, resetToken, signSession } from "@/lib/session";
+import { authenticate, findUserByEmail, ownerEmail, passwordHashOf, registerUser, setPassword, userById, validCredentials, validEmail, validPassword } from "@/server/accounts";
+import { setSessionCookie } from "@/server/session-cookie";
+import { RESET_MINUTES, SESSION_COOKIE, WELCOME_COOKIE, readResetToken, resetToken } from "@/lib/session";
 import { BASE_PATH } from "@/lib/base-path";
 import { safeNext } from "@/lib/safe-next";
+import { allowAuthAttempt, authFailed } from "@/server/limits";
 import { publicOrigin } from "@/server/origin";
 
 /** The error, and the email typed, since React resets the form after the action: it comes back filled in. */
-export type AuthState = { error: "email" | "password" | "wrong" | "closed" | "taken" | "server" | null; email?: string };
+export type AuthState = { error: "email" | "password" | "wrong" | "closed" | "taken" | "limited" | "server" | null; email?: string };
 
 
-async function signIn(userId: string) {
-  const jar = await cookies();
-  const common = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: BASE_PATH || "/" };
-  jar.set(SESSION_COOKIE, await signSession(userId), { ...common, maxAge: SESSION_DAYS * 86_400 });
-  jar.set(WELCOME_COOKIE, "1", { ...common, maxAge: 365 * 86_400 });
+/** Signs the account in with its current session version (or the one a password change just set). */
+async function signIn(userId: string, version?: number) {
+  await setSessionCookie(userId, version ?? (await userById(userId))?.sessionVersion ?? 0);
 }
 
 export async function login(_: AuthState, form: FormData): Promise<AuthState> {
@@ -24,9 +24,14 @@ export async function login(_: AuthState, form: FormData): Promise<AuthState> {
   const password = String(form.get("password") ?? "");
   let userId: string;
   try {
+    if (!(await allowAuthAttempt("login", email))) {
+      console.info("[auth] login: rate limited");
+      return { error: "limited", email };
+    }
     const user = await authenticate(email, password);
     if (!user) {
       console.info("[auth] login: wrong email or password");
+      await authFailed();
       return { error: "wrong", email };
     }
     userId = user.id;
@@ -48,6 +53,7 @@ export async function register(_: AuthState, form: FormData): Promise<AuthState>
     return { error: invalid, email };
   }
   try {
+    if (!(await allowAuthAttempt("register"))) return { error: "limited", email };
     const { user, reason } = await registerUser(email, password);
     if (!user) {
       console.info(`[auth] register: ${reason}`);
@@ -67,7 +73,7 @@ export async function logout() {
   redirect("/login");
 }
 
-export type ForgotState = { sent: boolean; error: "email" | "server" | null; email?: string };
+export type ForgotState = { sent: boolean; error: "email" | "limited" | "server" | null; email?: string };
 
 /**
  * Forgot password. The Brain sends no email, so the reset link goes to the server logs (Vercel →
@@ -78,6 +84,7 @@ export async function requestReset(_: ForgotState, form: FormData): Promise<Forg
   const email = String(form.get("email") ?? "").trim();
   if (!validEmail(email)) return { sent: false, error: "email", email };
   try {
+    if (!(await allowAuthAttempt("forgot", email))) return { sent: false, error: "limited", email };
     const user = await findUserByEmail(email);
     if (user) {
       const link = `${await publicOrigin()}${BASE_PATH}/reset?token=${await resetToken(user.id, user.passwordHash)}`;
@@ -94,17 +101,17 @@ export async function requestReset(_: ForgotState, form: FormData): Promise<Forg
   return { sent: true, error: null, email };
 }
 
-export type ResetState = { error: "password" | "expired" | "server" | null };
+export type ResetState = { error: "password" | "expired" | "limited" | "server" | null };
 
 /** A new password from a reset link; it signs the account in and the link stops working. */
 export async function resetPassword(_: ResetState, form: FormData): Promise<ResetState> {
   const password = String(form.get("password") ?? "");
   try {
+    if (!(await allowAuthAttempt("reset"))) return { error: "limited" };
     const userId = await readResetToken(String(form.get("token") ?? ""), passwordHashOf);
     if (!userId) return { error: "expired" };
     if (!validPassword(password)) return { error: "password" };
-    await setPassword(userId, password);
-    await signIn(userId);
+    await signIn(userId, await setPassword(userId, password));
     console.info("[auth] reset: password changed");
   } catch (err) {
     console.error("[auth] reset failed:", err instanceof Error ? err.message : err);

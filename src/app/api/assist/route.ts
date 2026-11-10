@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { useQuota } from "@/server/limits";
 import { parseBody, assistBody } from "@/server/validate";
 import { withAuth, bad, textStream } from "@/server/http";
 import { assistContext, assistStream, saveAssistConversation } from "@/server/creative";
@@ -6,6 +7,7 @@ export const runtime = "nodejs";
 export const maxDuration = 180;
 /** POST /api/assist { idea, history? } — "Use my repertoire to develop this idea." Streams markdown; reference ids in the X-References header. */
 export const POST = withAuth(async (req: NextRequest) => {
+  await useQuota("ai");
   const parsed = await parseBody(req, assistBody);
   if (!parsed.ok) return parsed.response;
   const body = parsed.data;

@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "./db/client";
 import { users, type User } from "./db/schema";
-import { SESSION_COOKIE, readSession } from "@/lib/session";
+import { SESSION_COOKIE } from "@/lib/session";
+import { sessionUser } from "./tenant";
 
 const scrypt = promisify(scryptCb) as (password: string, salt: Buffer, keylen: number) => Promise<Buffer>;
 
@@ -118,13 +119,25 @@ export async function passwordHashOf(userId: string): Promise<string | null> {
   return (await userById(userId))?.passwordHash ?? null;
 }
 
-export async function setPassword(userId: string, password: string): Promise<void> {
-  await db.update(users).set({ passwordHash: await hashPassword(password) }).where(eq(users.id, userId));
+/** Sets a new password and retires every session signed before it; returns the new session version. */
+export async function setPassword(userId: string, password: string): Promise<number> {
+  const [row] = await db
+    .update(users)
+    .set({ passwordHash: await hashPassword(password), sessionVersion: sql`${users.sessionVersion} + 1` })
+    .where(eq(users.id, userId))
+    .returning({ v: users.sessionVersion });
+  return row?.v ?? 0;
+}
+
+/** Retires every session of the account ("sign out everywhere"); returns the new version. */
+export async function bumpSessionVersion(userId: string): Promise<number> {
+  const [row] = await db.update(users).set({ sessionVersion: sql`${users.sessionVersion} + 1` }).where(eq(users.id, userId)).returning({ v: users.sessionVersion });
+  return row?.v ?? 0;
 }
 
 /** The signed-in account, for server components and actions. */
 export async function currentUser(): Promise<User | null> {
-  const id = await readSession((await cookies()).get(SESSION_COOKIE)?.value);
+  const id = await sessionUser((await cookies()).get(SESSION_COOKIE)?.value);
   if (!id) return null;
   const [user] = await db.select().from(users).where(eq(users.id, id));
   return user ?? null;

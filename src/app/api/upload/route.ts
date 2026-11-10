@@ -6,11 +6,16 @@ export const runtime = "nodejs";
 // Inline processing runs in `after()`; the function must live long enough to understand a video.
 export const maxDuration = 300;
 
+const MAX_UPLOAD_BYTES = 300 * 1024 * 1024;
+
 /** POST /api/upload — multipart with `file` (image, video, pdf, text) and optional `note`, `collectionId`. */
 export const POST = withAuth(async (req: NextRequest) => {
+  // Declared size first, so an oversized body is refused before it is read into memory.
+  if (Number(req.headers.get("content-length") ?? 0) > MAX_UPLOAD_BYTES) return bad("File too large", 413);
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return bad("`file` is required");
+  if (file.size > MAX_UPLOAD_BYTES) return bad("File too large", 413);
   const data = Buffer.from(await file.arrayBuffer());
   if (!data.length) return bad("Empty file");
   const ref = await captureUpload(

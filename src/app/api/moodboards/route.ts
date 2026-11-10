@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { useQuota } from "@/server/limits";
 import { parseBody, moodboardBody } from "@/server/validate";
 import { withAuth, bad } from "@/server/http";
 import { generateMoodboard, listBoards } from "@/server/creative";
@@ -9,6 +10,7 @@ export const maxDuration = 120;
 export const GET = withAuth(async () => Response.json({ boards: await listBoards() }));
 /** POST /api/moodboards { brief } — "Monte um moodboard para uma campanha de moda futurista." */
 export const POST = withAuth(async (req: NextRequest) => {
+  await useQuota("ai");
   const parsed = await parseBody(req, moodboardBody);
   if (!parsed.ok) return parsed.response;
   const body = parsed.data;

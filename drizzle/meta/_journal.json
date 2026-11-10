@@ -36,6 +36,13 @@
       "when": 1793741643582,
       "tag": "0004_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794339692187,
+      "tag": "0005_limits_sessions_indexes",
+      "breakpoints": true
     }
   ]
 }

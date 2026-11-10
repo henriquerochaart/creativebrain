@@ -183,7 +183,7 @@ export const collectionItems = pgTable(
       .references(() => references.id, { onDelete: "cascade" }),
     addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.collectionId, t.referenceId] })],
+  (t) => [primaryKey({ columns: [t.collectionId, t.referenceId] }), index("collection_items_reference_idx").on(t.referenceId)],
 );
 
 /** Knowledge graph edges between references, one row per similarity kind. */
@@ -216,7 +216,7 @@ export const conversations = pgTable("conversations", {
   answer: text("answer").notNull(),
   payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [index("conversations_user_idx").on(t.userId, t.createdAt)]);
 
 /** Saved boards (moodboards) generated from a brief over the repertoire. */
 export const boards = pgTable("boards", {
@@ -226,7 +226,7 @@ export const boards = pgTable("boards", {
   brief: text("brief").notNull(),
   payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [index("boards_user_idx").on(t.userId, t.createdAt)]);
 
 /** V3: a project is a creative process — references → concepts → patterns → directions → ideas → output. */
 export const projects = pgTable("projects", {
@@ -239,7 +239,7 @@ export const projects = pgTable("projects", {
   analyzedAt: timestamp("analyzed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [index("projects_user_idx").on(t.userId, t.createdAt)]);
 
 export const projectReferences = pgTable(
   "project_references",
@@ -254,7 +254,7 @@ export const projectReferences = pgTable(
     note: text("note"),
     addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.projectId, t.referenceId] })],
+  (t) => [primaryKey({ columns: [t.projectId, t.referenceId] }), index("project_references_reference_idx").on(t.referenceId)],
 );
 
 /** Behavioural signals that feed Personal Taste: view | ask | save | collect | project. */
@@ -284,6 +284,8 @@ export const users = pgTable(
     passwordHash: text("password_hash").notNull(),
     /** The Brain's owner: the API key and the old capture token act as this account. */
     isOwner: boolean("is_owner").notNull().default(false),
+    /** Bumped on a password change or "sign out everywhere": sessions signed with an older one stop working. */
+    sessionVersion: integer("session_version").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("users_email_idx").on(t.email)],
@@ -307,3 +309,17 @@ export type ReferenceRelation = typeof referenceRelations.$inferSelect;
 export type Board = typeof boards.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type User = typeof users.$inferSelect;
+
+/**
+ * Fixed-window counters for rate limits and daily quotas (server/limits.ts): one row per key and
+ * window, incremented atomically. Old windows are pruned as new ones are written.
+ */
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    key: text("key").notNull(),
+    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.key, t.windowStart] }), index("rate_limits_window_idx").on(t.windowStart)],
+);

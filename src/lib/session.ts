@@ -43,23 +43,34 @@ function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
   return diff === 0;
 }
 
-export async function signSession(userId: string, now = Date.now()): Promise<string> {
-  const payload = b64url(enc.encode(JSON.stringify({ u: userId, e: now + SESSION_DAYS * 86_400_000 })));
+/**
+ * `version` is the account's session_version when the cookie was signed. Bumping it (a password
+ * change, "sign out everywhere") retires every cookie signed before; the server checks it against
+ * the database (server/tenant.ts). Cookies from before versions existed read as version 0.
+ */
+export async function signSession(userId: string, now = Date.now(), version = 0): Promise<string> {
+  const payload = b64url(enc.encode(JSON.stringify({ u: userId, e: now + SESSION_DAYS * 86_400_000, v: version })));
   return `${payload}.${b64url(await hmac(payload))}`;
 }
 
-/** The account id a cookie vouches for, or null when it is missing, forged or expired. */
-export async function readSession(token: string | null | undefined, now = Date.now()): Promise<string | null> {
+/** What a cookie vouches for, or null when it is missing, forged or expired. */
+export async function readSessionClaims(token: string | null | undefined, now = Date.now()): Promise<{ userId: string; version: number } | null> {
   if (!token) return null;
   const [payload, sig] = token.split(".");
   if (!payload || !sig) return null;
   try {
     if (!sameBytes(fromB64url(sig), await hmac(payload))) return null;
-    const { u, e } = JSON.parse(new TextDecoder().decode(fromB64url(payload))) as { u?: unknown; e?: unknown };
-    return typeof u === "string" && typeof e === "number" && e > now ? u : null;
+    const { u, e, v } = JSON.parse(new TextDecoder().decode(fromB64url(payload))) as { u?: unknown; e?: unknown; v?: unknown };
+    if (typeof u !== "string" || typeof e !== "number" || e <= now) return null;
+    return { userId: u, version: typeof v === "number" ? v : 0 };
   } catch {
     return null;
   }
+}
+
+/** The account id a cookie vouches for (signature and expiry only: the middleware's check). */
+export async function readSession(token: string | null | undefined, now = Date.now()): Promise<string | null> {
+  return (await readSessionClaims(token, now))?.userId ?? null;
 }
 
 /**

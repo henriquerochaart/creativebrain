@@ -1,6 +1,6 @@
 import { env } from "./env";
-import { ownerId } from "./tenant";
-import { SESSION_COOKIE, legacyCaptureToken, readCaptureToken, readSession } from "@/lib/session";
+import { ownerId, sessionUser } from "./tenant";
+import { SESSION_COOKIE, legacyCaptureToken, readCaptureToken } from "@/lib/session";
 
 /**
  * Who is calling /api/*, as the account whose library the call reads and writes, or null:
@@ -12,7 +12,7 @@ import { SESSION_COOKIE, legacyCaptureToken, readCaptureToken, readSession } fro
  * The middleware turns away page visits without a session before they get here.
  */
 export async function authorizedUser(req: Request): Promise<string | null> {
-  const session = await readSession(cookieValue(req, SESSION_COOKIE));
+  const session = await sessionUser(cookieValue(req, SESSION_COOKIE));
   if (session) return session;
   if (env.apiKey) {
     const auth = req.headers.get("authorization") ?? "";

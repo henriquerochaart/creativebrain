@@ -5,6 +5,7 @@ import { publicOrigin } from "@/server/origin";
 import { currentUser } from "@/server/accounts";
 import { captureToken } from "@/lib/session";
 import { logout } from "@/app/(auth)/actions";
+import { AccountActions } from "@/components/account-actions";
 import { statusCounts } from "@/server/references";
 import { SETTINGS_HUB } from "@/lib/sections";
 import { cn } from "@/lib/utils";
@@ -77,7 +78,7 @@ function Hub({ d, inbox, failed }: { d: Dict; inbox: number; failed: number }) {
  * a phone (Home Screen app, the Brain shortcut, Android, the desktop bookmarklet), connecting
  * agents over MCP, and maintenance.
  */
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ senha?: string }> }) {
   const { lang, d } = await dict();
   const s = d.settings;
   const counts = await statusCounts().catch(() => ({}) as Record<string, number>);
@@ -115,7 +116,9 @@ export default async function SettingsPage() {
               </button>
             </form>
           }
-        />
+        >
+          <AccountActions owner={user.isOwner} changed={(await searchParams).senha === "alterada"} />
+        </Group>
       )}
 
       <Hub d={d} inbox={inbox} failed={failed} />

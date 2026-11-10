@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, WELCOME_COOKIE, readSession } from "@/lib/session";
+import { SESSION_COOKIE, WELCOME_COOKIE } from "@/lib/session";
+import { sessionUser } from "@/server/tenant";
 
 /** Screens a signed-out visitor may open. */
 const PUBLIC_PAGES = new Set(["/welcome", "/login", "/register", "/forgot", "/reset"]);
@@ -13,7 +14,8 @@ const PUBLIC_PAGES = new Set(["/welcome", "/login", "/register", "/forgot", "/re
 export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   if (PUBLIC_PAGES.has(pathname)) return NextResponse.next();
-  if (await readSession(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.next();
+  // Signature, expiry and the account's session version (a password change retires old cookies).
+  if (await sessionUser(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.next();
 
   if (pathname.startsWith("/api/")) {
     // Capture answers a Shortcut without a token itself, with a line it can show as a notification.

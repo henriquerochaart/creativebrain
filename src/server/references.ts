@@ -1,4 +1,5 @@
 /** Data access used by both the API routes and the server components. */
+import { useQuota } from "./limits";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./db/client";
 import { collectionItems, collections, referenceRelations, references, type Reference } from "./db/schema";
@@ -11,6 +12,9 @@ import { mapRow } from "./search";
 import { userId } from "./tenant";
 
 export type PublicReference = Omit<Reference, "embeddingContent" | "embeddingVisual" | "embeddingStrategic" | "embeddingExecution" | "searchText" | "fts">;
+
+/** A reference still `processing` after this long is stuck (a function killed mid-run), not working. */
+export const STUCK_AFTER_MS = 20 * 60_000;
 
 export function toPublic(r: Reference): PublicReference {
   const { embeddingContent: _a, embeddingVisual: _b, embeddingStrategic: _c, embeddingExecution: _d, searchText: _e, fts: _f, ...rest } = r;
@@ -64,6 +68,7 @@ export async function captureInput(input: string, opts: { note?: string; collect
     const url = normalizeUrl(trimmed);
     const existing = await findByUrl(url);
     if (existing) return { reference: existing, duplicate: true as const };
+    await useQuota("capture");
     const platform = detectPlatform(url);
     const mediaType = platform === "pdf" ? "pdf" : platform === "image" ? "image" : platform === "video" || platform === "youtube" || platform === "tiktok" ? "video" : "website";
     [inserted] = await db
@@ -71,6 +76,7 @@ export async function captureInput(input: string, opts: { note?: string; collect
       .values({ userId: uid, originalUrl: url, sourcePlatform: platform, mediaType, title: url, userNote: opts.note ?? null, status: "queued" })
       .returning();
   } else {
+    await useQuota("capture");
     [inserted] = await db
       .insert(references)
       .values({
@@ -94,6 +100,7 @@ export async function captureUpload(file: { name: string; mime: string; data: Bu
   const mime = file.mime || "application/octet-stream";
   const mediaType = mime.startsWith("video/") ? "video" : mime.startsWith("image/") ? "image" : mime === "application/pdf" ? "pdf" : mime.startsWith("audio/") ? "audio" : mime.startsWith("text/") ? "text" : "other";
   if (mediaType === "other") throw new Error(`Unsupported file type: ${mime}`);
+  await useQuota("capture");
   const platform = mediaType === "audio" ? "other" : mediaType === "text" ? "text" : mediaType;
   const [inserted] = await db
     .insert(references)
@@ -121,7 +128,12 @@ export async function captureUpload(file: { name: string; mime: string; data: Bu
 }
 
 export async function reprocessReference(id: string) {
-  const rows = await db.update(references).set({ status: "queued", error: null, processingStep: null }).where(and(eq(references.id, id), eq(references.userId, await userId()))).returning({ id: references.id });
+  const ref = await getReference(id);
+  if (!ref) throw new Error("Not found");
+  // Already being understood (and not stuck): a second run would only spend the model twice.
+  if (ref.status === "processing" && Date.now() - new Date(ref.updatedAt).getTime() < STUCK_AFTER_MS) return { queued: false as const };
+  await useQuota("capture");
+  const rows = await db.update(references).set({ status: "queued", error: null, processingStep: null, updatedAt: new Date() }).where(and(eq(references.id, id), eq(references.userId, await userId()))).returning({ id: references.id });
   if (!rows.length) throw new Error("Not found");
   return enqueueIngest(id);
 }

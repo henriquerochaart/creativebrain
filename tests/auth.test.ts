@@ -1,7 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // The API key and the old capture token act as the owner, looked up in the database; here, a stub.
-vi.mock("@/server/tenant", () => ({ ownerId: async () => "owner-1" }));
+// sessionUser checks the session version in the database; here every account is at version 0.
+vi.mock("@/server/tenant", async () => {
+  const session = await import("@/lib/session");
+  return {
+    ownerId: async () => "owner-1",
+    sessionUser: async (token: string | null | undefined) => {
+      const claims = await session.readSessionClaims(token);
+      return claims && claims.version === 0 ? claims.userId : null;
+    },
+  };
+});
 
 async function load(key: string) {
   vi.resetModules();
@@ -90,5 +100,21 @@ describe("password reset links", () => {
     expect(await readResetToken(`${token}.x`, hashOf, t0)).toBeNull();
     expect(await readResetToken("garbage", hashOf, t0)).toBeNull();
     expect(await readResetToken(undefined, hashOf, t0)).toBeNull();
+  });
+});
+
+describe("session versions", () => {
+  it("carry the version they were signed with; old cookies read as version 0", async () => {
+    const { signSession, readSessionClaims, readSession } = await load("");
+    const t0 = Date.UTC(2026, 0, 1);
+    expect(await readSessionClaims(await signSession("user-1", t0, 3), t0 + 1000)).toEqual({ userId: "user-1", version: 3 });
+    expect(await readSessionClaims(await signSession("user-1", t0), t0 + 1000)).toEqual({ userId: "user-1", version: 0 });
+    // The middleware's signature-only check still accepts it; the database decides the version.
+    expect(await readSession(await signSession("user-1", t0, 3), t0 + 1000)).toBe("user-1");
+  });
+  it("an API call with a cookie from an older version is refused", async () => {
+    const { authorizedUser, signSession, SESSION_COOKIE } = await load("");
+    const stale = await signSession("user-1", Date.now(), 2);
+    expect(await authorizedUser(new Request("http://x/api/search", { headers: { cookie: `${SESSION_COOKIE}=${stale}` } }))).toBeNull();
   });
 });

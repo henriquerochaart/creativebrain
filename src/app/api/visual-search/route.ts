@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { useQuota } from "@/server/limits";
 import { withAuth, bad, readJson } from "@/server/http";
 import { getLLM } from "@/server/ai/router";
 import { ImageQuerySchema } from "@/server/ai/schemas";
@@ -15,6 +16,7 @@ export const runtime = "nodejs";
  * The image is described by the vision model, embedded, and matched against the visual embedding of every reference.
  */
 export const POST = withAuth(async (req: NextRequest) => {
+  await useQuota("ai");
   let image: { mime: string; data: Buffer } | null = null;
   const ctype = req.headers.get("content-type") ?? "";
   if (ctype.includes("multipart/form-data")) {

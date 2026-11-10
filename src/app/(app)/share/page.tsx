@@ -8,6 +8,7 @@ import { dict } from "@/server/lang";
 import { headers } from "next/headers";
 import { readCaptureToken } from "@/lib/session";
 import { userId } from "@/server/tenant";
+import { LimitError } from "@/server/limits";
 import type { Dict } from "@/lib/i18n";
 
 /**
@@ -27,7 +28,16 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
     const fromSomewhereElse = site === "cross-site" || site === "same-site";
     const tokenOk = sp.token ? (await readCaptureToken(sp.token)) === (await userId()) : false;
     if (fromSomewhereElse && !tokenOk) return <ConfirmShare input={parsed.input} note={parsed.note ?? null} d={d} />;
-    await captureAndOpen(parsed.input, parsed.note ?? undefined);
+    try {
+      await captureAndOpen(parsed.input, parsed.note ?? undefined);
+    } catch (err) {
+      if (!(err instanceof LimitError)) throw err; // includes redirect(), which is how success leaves
+      return (
+        <div className="mx-auto max-w-2xl pt-8">
+          <h1 className="large-title">{err.retryAfter <= 60 ? d.limits.burst : d.limits.capture}</h1>
+        </div>
+      );
+    }
   }
   return (
     <div className="mx-auto max-w-2xl space-y-8 pt-8">

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { useQuota } from "@/server/limits";
 import { parseBody, explainBody } from "@/server/validate";
 import { and, eq, inArray } from "drizzle-orm";
 import { withAuth, bad } from "@/server/http";
@@ -13,6 +14,7 @@ export const runtime = "nodejs";
 
 /** POST /api/search/explain { query, ids[] } — "Why these references?" */
 export const POST = withAuth(async (req: NextRequest) => {
+  await useQuota("ai");
   const parsed = await parseBody(req, explainBody);
   if (!parsed.ok) return parsed.response;
   const body = parsed.data;
